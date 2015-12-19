@@ -1,0 +1,12 @@
+
+bin/
+third-party/
+deploy/
+
+premake5
+premake5.exe 
+
+user-options.lua
+
+IAN.sln
+IAN.sdf
