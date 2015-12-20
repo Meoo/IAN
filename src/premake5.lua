@@ -7,7 +7,7 @@ mw.project "Server"
 
   import {
     ["mozjs"] = { "default" },
-    ["websocketpp"] = { "default" },
+    ["websocketpp"] = { "tls" },
 
-    ["sfml2"] = { "graphics" },
+    --["sfml2"] = { "graphics" },
   }

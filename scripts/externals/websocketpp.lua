@@ -52,3 +52,8 @@ mw.external "websocketpp"
     import {
       ["asio"] = { "default" },
     }
+
+  export "tls"
+    import {
+      ["openssl"] = { "default" },
+    }
