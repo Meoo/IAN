@@ -8,7 +8,6 @@ local CORNER_LINKS = DEPLOY_OPTIONS.links or {}
 
 local JQUERY_VERSION = "2.1.4"
 local YUI_VERSION = "2.4.8"
-
 local FONTAWESOME_VERSION = "4.5.0"
 
 local GAME_COMPILED = false

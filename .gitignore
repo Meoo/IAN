@@ -8,5 +8,8 @@ premake5.exe
 
 user-options.lua
 
+# Visual Studio
 IAN.sln
 IAN.sdf
+IAN.opensdf
+.vs/
