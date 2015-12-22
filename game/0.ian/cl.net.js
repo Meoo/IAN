@@ -1,7 +1,5 @@
 
-const SERVER_ADDR = "wss://sandbox.kaazing.net/echo";
-
-const ian_net = (function() {
+var ian_net = (function() {
 
   // Websocket instance
   var socket;
@@ -10,7 +8,7 @@ const ian_net = (function() {
   var onOpen = function(event) {
     jQuery("#ian-loading-text").text("Connected");
 
-    alert("onOpen " + event.data);
+
   }
 
   var onClose = function(event) {
@@ -33,19 +31,19 @@ const ian_net = (function() {
   return {
 
     // Called when the user press the "Connect" button on the login form
-    connect: function(credentials) {
+    connect: function(server, credentials) {
       // Hide the login form and show a wait message
       jQuery("#ian-login").hide();
       jQuery("#ian-loading-text").text("Connecting");
       jQuery("#ian-loading").show();
 
-      socket = new WebSocket(SERVER_ADDR);
+      socket = new WebSocket(server);
       socket.binaryType = "arraybuffer";
       socket.onopen = onOpen;
       socket.onclose = onClose;
       socket.onerror = onError;
       socket.onmessage = onMessage;
-    },
+    }
 
   };
 }());

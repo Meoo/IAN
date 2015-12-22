@@ -37,7 +37,6 @@
     </form>
 
     <div id="ian-main">
-      <img src="https://s3.amazonaws.com/TimeScapes/images/stills/4k/moonbow.jpg" width="100px" height="100px" />
     </div>
 
     <div class="ian-corner ian-bl">
@@ -52,6 +51,7 @@
     <script type="text/javascript">$.noConflict();</script>
     $JS$
     <script type="text/javascript">
+      var SERVER_ADDR = "wss://$SERVER_ADDR$:$SERVER_PORT$";
       ian.onScriptsReady();
       jQuery(window).load(function() { ian.onWindowReady(); });
     </script>

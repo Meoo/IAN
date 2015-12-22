@@ -35,7 +35,7 @@ enum tls_mode {
 };
 
 std::string get_password() {
-	return "test";
+	return "IANkey";
 }
 
 class broadcast_server {
@@ -46,7 +46,7 @@ public:
         m_server.set_open_handler(bind(&broadcast_server::on_open,this,::_1));
         m_server.set_close_handler(bind(&broadcast_server::on_close,this,::_1));
         m_server.set_message_handler(bind(&broadcast_server::on_message,this,::_1,::_2));
-		m_server.set_tls_init_handler(bind(&broadcast_server::on_tls_init, this, MOZILLA_INTERMEDIATE, ::_1));
+		m_server.set_tls_init_handler(bind(&broadcast_server::on_tls_init, this, MOZILLA_MODERN, ::_1));
     }
     
     void on_open(connection_hdl hdl) {
@@ -84,8 +84,8 @@ public:
 					asio::ssl::context::single_dh_use);
 			}
 			ctx->set_password_callback(bind(&get_password));
-			ctx->use_certificate_chain_file("server.pem");
-			ctx->use_private_key_file("server.pem", asio::ssl::context::pem);
+			ctx->use_certificate_chain_file("cert.pem");
+			ctx->use_private_key_file("cert.pem", asio::ssl::context::pem);
 
 			// Example method of generating this file:
 			// `openssl dhparam -out dh.pem 2048`
@@ -126,5 +126,5 @@ private:
 
 int main() {
     broadcast_server server;
-    server.run(9002);
+    server.run(7011);
 }

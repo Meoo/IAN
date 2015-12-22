@@ -1,3 +1,3 @@
 
-const CLIENT = false;
-const SERVER = true;
+var CLIENT = false;
+var SERVER = true;

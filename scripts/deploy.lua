@@ -6,6 +6,16 @@ local HTML_META   = DEPLOY_OPTIONS.meta or {}
 
 local CORNER_LINKS = DEPLOY_OPTIONS.links or {}
 
+local SERVER_ADDR = DEPLOY_OPTIONS["server-addr"] or "localhost"
+local SERVER_PORT = DEPLOY_OPTIONS["server-port"] or "7011"
+
+local TLS = DEPLOY_OPTIONS.tls or {}
+local TLS_CERT = TLS.cert
+local TLS_CERTCHAIN = TLS.certchain
+local TLS_KEY = TLS.key
+local TLS_KEYPASS = TLS.keypass
+local TLS_DH = TLS.dh
+
 local JQUERY_VERSION = "2.1.4"
 local YUI_VERSION = "2.4.8"
 local FONTAWESOME_VERSION = "4.5.0"
@@ -21,6 +31,8 @@ local HTML_TRANSLATE = {
   TITLE = HTML_TITLE,
   JQUERY_VERSION = JQUERY_VERSION,
   FONTAWESOME_VERSION = FONTAWESOME_VERSION,
+  SERVER_ADDR = SERVER_ADDR,
+  SERVER_PORT = SERVER_PORT,
   META = function()
     local s = ""
     for k, v in pairs(HTML_META) do
@@ -31,16 +43,22 @@ local HTML_TRANSLATE = {
   CSS = function()
     local s = ""
     for _, v in ipairs(GAME_CL_CSS) do
-      if not GAME_COMPILED then v = "../../".. v end
-      s = s .."<link rel=\"stylesheet\" type=\"text/css\" href=\"".. v .."\">"
+      if GAME_COMPILED then
+        s = s .."<link rel=\"stylesheet\" type=\"text/css\" href=\"".. v .."\">"
+      else
+        s = s .."<link rel=\"stylesheet\" type=\"text/css\" href=\"file://".. path.getabsolute(v) .."\">"
+      end
     end
     return s
   end,
   JS = function()
     local s = ""
     for _, v in ipairs(GAME_CL) do
-      if not GAME_COMPILED then v = "../../".. v end
-      s = s .."<script type=\"text/javascript\" src=\"".. v .."\"></script>"
+      if GAME_COMPILED then
+        s = s .."<script type=\"text/javascript\" src=\"".. v .."\"></script>"
+      else
+        s = s .."<script type=\"text/javascript\" src=\"file://".. path.getabsolute(v) .."\"></script>"
+      end
     end
     return s
   end,
@@ -269,6 +287,15 @@ local function genServerConfig()
     end
     f:close()
   end
+
+  local f = io.open("deploy/server/server.cfg", "w+")
+  f:write("debug="..tostring(not GAME_COMPILED).."\n")
+  if TLS_CERT then f:write("tls.cert="..TLS_CERT.."\n") end
+  if TLS_CERTCHAIN then f:write("tls.certchain="..TLS_CERTCHAIN.."\n") end
+  if TLS_KEY then f:write("tls.key="..TLS_KEY.."\n") end
+  if TLS_KEYPASS then f:write("tls.pass="..TLS_KEYPASS.."\n") end
+  if TLS_DH then f:write("tls.dh="..TLS_DH.."\n") end
+  f:close()
 end
 
 -- ///////////////////////////////////////////////////// --
