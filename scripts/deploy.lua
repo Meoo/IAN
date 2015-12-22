@@ -23,6 +23,7 @@ local FONTAWESOME_VERSION = "4.5.0"
 local GAME_COMPILED = false
 
 local GAME_RC     = {}
+local GAME_RC_CNT = 0
 local GAME_CL     = {}
 local GAME_CL_CSS = {}
 local GAME_SV     = {}
@@ -112,6 +113,7 @@ local function findGameFiles()
         premake.warn("Resource ".. res .." match multiple files")
       else
         GAME_RC[res] = filename
+        GAME_RC_CNT = GAME_RC_CNT + 1
       end
 
     else
@@ -268,7 +270,7 @@ end
 
 
 local function copyResources()
-  print("Copying client resources ("..#GAME_RC.." file(s))")
+  print("Copying client resources ("..GAME_RC_CNT.." file(s))")
   for dest, src in pairs(GAME_RC) do
     os.mkdir("deploy/client/"..path.getdirectory(dest))
     local ok, err = os.copyfile(src, "deploy/client/"..dest)
