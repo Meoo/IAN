@@ -244,7 +244,7 @@ local function compileGameFiles()
   -- Client CSS
   print("Compiling client CSS (".. filesString(#GAME_CL_CSS) ..")")
   local tmp = mw.concattextfiles(GAME_CL_CSS)
-  s = os.execute("java -jar third-party/yui/yuicompressor-"..YUI_VERSION..".jar -o deploy/client/ian.css --type css "..tmp)
+  s = os.execute("java -jar third-party/yui/yuicompressor-"..YUI_VERSION..".jar -o deploy/client/ian.css --type css ".. tmp)
   if s ~= 0 then
     premake.error("Could not compile client CSS")
   end
@@ -252,8 +252,8 @@ local function compileGameFiles()
 
   -- Client JS
   print("Compiling client JS (".. filesString(#GAME_CL) ..")")
-  local tmp = mw.concattextfiles(GAME_CL)
-  s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/client/ian.js --js "..tmp)
+  --local tmp = mw.concattextfiles(GAME_CL)
+  s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/client/ian.js --js ".. table.concat(GAME_CL, " "))
   if s ~= 0 then
     premake.error("Could not compile client JS")
   end
@@ -261,8 +261,8 @@ local function compileGameFiles()
 
   -- Server JS
   print("Compiling server JS (".. filesString(#GAME_SV) ..")")
-  local tmp = mw.concattextfiles(GAME_SV)
-  s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/server/ian.js --js "..tmp)
+  --local tmp = mw.concattextfiles(GAME_SV)
+  s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/server/ian.js --js ".. table.concat(GAME_SV, " "))
   if s ~= 0 then
     premake.error("Could not compile server JS")
   end
