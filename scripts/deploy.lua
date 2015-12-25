@@ -74,6 +74,11 @@ local HTML_TRANSLATE = {
 
 -- ///////////////////////////////////////////////////// --
 
+local function filesString(count)
+  return count == 1 and "1 file" or count .." files"
+end
+
+
 local function prepareFolders()
     os.rmdir("deploy/client")
     os.rmdir("deploy/server")
@@ -168,7 +173,7 @@ local function findGameFiles()
   end
 
   if ignored_files > 0 then
-    premake.warn("Ignored ".. ignored_files .." file(s) in game folder")
+    premake.warn("Ignored ".. filesString(ignored_files) .." in game folder")
   end
 end
 
@@ -237,7 +242,7 @@ local function compileGameFiles()
   local s
 
   -- Client CSS
-  print("Compiling client CSS ("..#GAME_CL_CSS.." file(s))")
+  print("Compiling client CSS (".. filesString(#GAME_CL_CSS) ..")")
   local tmp = mw.concattextfiles(GAME_CL_CSS)
   s = os.execute("java -jar third-party/yui/yuicompressor-"..YUI_VERSION..".jar -o deploy/client/ian.css --type css "..tmp)
   if s ~= 0 then
@@ -246,7 +251,7 @@ local function compileGameFiles()
   os.remove(tmp)
 
   -- Client JS
-  print("Compiling client JS ("..#GAME_CL.." file(s))")
+  print("Compiling client JS (".. filesString(#GAME_CL) ..")")
   local tmp = mw.concattextfiles(GAME_CL)
   s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/client/ian.js --js "..tmp)
   if s ~= 0 then
@@ -255,7 +260,7 @@ local function compileGameFiles()
   os.remove(tmp)
 
   -- Server JS
-  print("Compiling server JS ("..#GAME_SV.." file(s))")
+  print("Compiling server JS (".. filesString(#GAME_SV) ..")")
   local tmp = mw.concattextfiles(GAME_SV)
   s = os.execute("java -jar third-party/closure/compiler.jar --js_output_file deploy/server/ian.js --js "..tmp)
   if s ~= 0 then
@@ -270,7 +275,7 @@ end
 
 
 local function copyResources()
-  print("Copying client resources ("..GAME_RC_CNT.." file(s))")
+  print("Copying client resources (".. filesString(GAME_RC_CNT) ..")")
   for dest, src in pairs(GAME_RC) do
     os.mkdir("deploy/client/"..path.getdirectory(dest))
     local ok, err = os.copyfile(src, "deploy/client/"..dest)
