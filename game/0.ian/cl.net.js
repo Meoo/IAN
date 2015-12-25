@@ -6,14 +6,14 @@ var ian_net = (function() {
 
   // Websocket callbacks
   var onOpen = function(event) {
-    jQuery("#ian-loading-text").text("Connected");
+    jQ("#ian-loading-text").text("Connected");
 
 
   }
 
   var onClose = function(event) {
-    jQuery("#ian-login").show();
-    jQuery("#ian-loading").hide();
+    jQ("#ian-login").show();
+    jQ("#ian-loading").hide();
 
     alert("onClose " + event.code + " " + event.reason);
   }
@@ -33,9 +33,9 @@ var ian_net = (function() {
     // Called when the user press the "Connect" button on the login form
     connect: function(server, credentials) {
       // Hide the login form and show a wait message
-      jQuery("#ian-login").hide();
-      jQuery("#ian-loading-text").text("Connecting");
-      jQuery("#ian-loading").show();
+      jQ("#ian-login").hide();
+      jQ("#ian-loading-text").text("Connecting");
+      jQ("#ian-loading").show();
 
       socket = new WebSocket(server);
       socket.binaryType = "arraybuffer";

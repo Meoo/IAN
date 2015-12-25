@@ -49,12 +49,12 @@
     </div>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-$JQUERY_VERSION$.min.js"></script>
-    <script type="text/javascript">$.noConflict();</script>
+    <script type="text/javascript">var jQ = jQuery.noConflict();</script>
     $JS$
     <script type="text/javascript">
       var SERVER_ADDR = "wss://$SERVER_ADDR$:$SERVER_PORT$";
       ian.onScriptsReady();
-      jQuery(window).load(function() { ian.onWindowReady(); });
+      jQ(window).load(function() { ian.onWindowReady(); });
     </script>
   </body>
 </html> 
