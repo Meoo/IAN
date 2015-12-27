@@ -39,7 +39,8 @@ end
 -- ####################################
 
 function mw.external(name)
-  virtualproject(name)
+  project(name)
+    virtualproject(true)
     location(MAKE_DIR)
 end
 
