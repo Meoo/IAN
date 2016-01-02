@@ -8,23 +8,28 @@ var ian_net = (function() {
   var onOpen = function(event) {
     jQ("#ian-loading-text").text("Connected");
 
-
+    // Send handshake
   }
 
   var onClose = function(event) {
     jQ("#ian-login").show();
     jQ("#ian-loading").hide();
 
-    alert("onClose " + event.code + " " + event.reason);
+    ian_wm.notify("onClose " + event.code + " " + event.reason);
   }
 
   var onError = function(event) {
-    alert("onError");
+    ian_wm.notify("onError", "error");
+  }
+
+  var onHandshakeMessage = function(event) {
+
+    socket.onmessage = onMessage;
   }
 
   var onMessage = function(event) {
 
-    alert("onMessage " + event.data);
+    ian_wm.notify("onMessage " + event.data);
   }
 
   // ian_net public functions
@@ -42,7 +47,7 @@ var ian_net = (function() {
       socket.onopen = onOpen;
       socket.onclose = onClose;
       socket.onerror = onError;
-      socket.onmessage = onMessage;
+      socket.onmessage = onHandshakeMessage;
     }
 
   };
