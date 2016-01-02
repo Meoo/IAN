@@ -1,0 +1,29 @@
+
+#ian-notif-container
+{
+  position: absolute;
+  z-index: 195;
+  top: 12px;
+  left: 12px;
+  max-width: 500px;
+}
+
+.ian-notif
+{
+  background-color: white;
+  border-radius: 5px;
+  padding: 4px 8px 4px 8px;
+  margin: 12px;
+  color: black;
+  display: table; /* I don't like it but it works */
+}
+
+.ian-notif-error
+{
+  background-color: #F78;
+}
+
+.ian-notif-info
+{
+  background-color: #BEF;
+}
