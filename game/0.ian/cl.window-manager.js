@@ -2,7 +2,7 @@
 var ian_wm = (function() {
 
   // Create a div to contain and display notifications
-  var notifContainer = jQ("<div>", {id:"ian-notif-container"}).appendTo("#ian-main");
+  var notifContainer = jQ("<div>", {id:"ian-notif-container"}).appendTo("body");
 
   // ian_wm public functions
   return {
