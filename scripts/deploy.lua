@@ -108,66 +108,69 @@ end
 
 local function findGameFiles()
   local ignored_files = 0
+  local skip_files = { "game/client.html" }
 
   for _, filename in ipairs(os.matchfiles("game/**")) do
-    local res = filename:match("/rc%.(.*)$")
-    if res then
-      -- Folder or file starts with rc.
-      -- File is a resource
-      if GAME_RC[res] then
-        premake.warn("Resource ".. res .." match multiple files")
-      else
-        GAME_RC[res] = filename
-        GAME_RC_CNT = GAME_RC_CNT + 1
-      end
-
-    else
-      -- Folder or file starts with /cl. or /0.cl.
-      local cl = filename:find("/cl%.") or filename:find("/%d+%.cl%.")
-      -- Folder or file starts with /sv. or /0.sv.
-      local sv = filename:find("/sv%.") or filename:find("/%d+%.sv%.")
-
-      if cl and sv then
-        premake.warn("Both cl. and sv. found in path : ".. filename)
-      end
-
-      if cl and (not sv or cl < sv) then
-        -- If /cl. only or if /cl. appears before /sv.
-        -- Client file
-        local ext = path.getextension(filename)
-        if ext == ".js" then
-          table.insert(GAME_CL, filename)
-        elseif ext == ".css" then
-          table.insert(GAME_CL_CSS, filename)
+    if not table.contains(skip_files, filename) then
+      local res = filename:match("/rc%.(.*)$")
+      if res then
+        -- Folder or file starts with rc.
+        -- File is a resource
+        if GAME_RC[res] then
+          premake.warn("Resource ".. res .." match multiple files")
         else
-          ignored_files = ignored_files + 1
-        end
-
-      elseif sv and (not cl or sv < cl) then
-        -- If /sv. only or if /sv. appears before /cl.
-        -- Server file
-        local ext = path.getextension(filename)
-        if ext == ".js" then
-          table.insert(GAME_SV, filename)
-        elseif ext == ".css" then
-          premake.warn("Found CSS in server files : ".. filename)
-          ignored_files = ignored_files + 1
-        else
-          ignored_files = ignored_files + 1
+          GAME_RC[res] = filename
+          GAME_RC_CNT = GAME_RC_CNT + 1
         end
 
       else
-        -- Shared file
-        local ext = path.getextension(filename)
-        if ext == ".js" then
-          table.insert(GAME_SV, filename)
-          table.insert(GAME_CL, filename)
-        elseif ext == ".css" then
-          table.insert(GAME_CL_CSS, filename)
-        else
-          ignored_files = ignored_files + 1
+        -- Folder or file starts with /cl. or /0.cl.
+        local cl = filename:find("/cl%.") or filename:find("/%d+%.cl%.")
+        -- Folder or file starts with /sv. or /0.sv.
+        local sv = filename:find("/sv%.") or filename:find("/%d+%.sv%.")
+
+        if cl and sv then
+          premake.warn("Both cl. and sv. found in path : ".. filename)
         end
 
+        if cl and (not sv or cl < sv) then
+          -- If /cl. only or if /cl. appears before /sv.
+          -- Client file
+          local ext = path.getextension(filename)
+          if ext == ".js" then
+            table.insert(GAME_CL, filename)
+          elseif ext == ".css" then
+            table.insert(GAME_CL_CSS, filename)
+          else
+            ignored_files = ignored_files + 1
+          end
+
+        elseif sv and (not cl or sv < cl) then
+          -- If /sv. only or if /sv. appears before /cl.
+          -- Server file
+          local ext = path.getextension(filename)
+          if ext == ".js" then
+            table.insert(GAME_SV, filename)
+          elseif ext == ".css" then
+            premake.warn("Found CSS in server files : ".. filename)
+            ignored_files = ignored_files + 1
+          else
+            ignored_files = ignored_files + 1
+          end
+
+        else
+          -- Shared file
+          local ext = path.getextension(filename)
+          if ext == ".js" then
+            table.insert(GAME_SV, filename)
+            table.insert(GAME_CL, filename)
+          elseif ext == ".css" then
+            table.insert(GAME_CL_CSS, filename)
+          else
+            ignored_files = ignored_files + 1
+          end
+
+        end
       end
     end
   end
