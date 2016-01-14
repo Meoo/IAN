@@ -9,6 +9,8 @@ local CORNER_LINKS = DEPLOY_OPTIONS.links or {}
 local SERVER_ADDR = DEPLOY_OPTIONS["server-addr"] or "localhost"
 local SERVER_PORT = DEPLOY_OPTIONS["server-port"] or "7011"
 
+local MAGIC = DEPLOY_OPTIONS["magic"] or "49616e49616e49616e49616e49616e21"
+
 local TLS = DEPLOY_OPTIONS.tls or {}
 local TLS_CERT = TLS.cert
 local TLS_CERTCHAIN = TLS.certchain
@@ -34,6 +36,7 @@ local HTML_TRANSLATE = {
   FONTAWESOME_VERSION = FONTAWESOME_VERSION,
   SERVER_ADDR = SERVER_ADDR,
   SERVER_PORT = SERVER_PORT,
+  GAME_MAGIC = MAGIC,
   META = function()
     local s = ""
     for k, v in pairs(HTML_META) do
@@ -300,6 +303,7 @@ local function genServerConfig()
 
   local f = io.open("deploy/server/server.cfg", "w+")
   f:write("debug="..tostring(not GAME_COMPILED).."\n")
+  f:write("magic="..MAGIC.."\n")
   if TLS_CERT then f:write("tls.cert="..TLS_CERT.."\n") end
   if TLS_CERTCHAIN then f:write("tls.certchain="..TLS_CERTCHAIN.."\n") end
   if TLS_KEY then f:write("tls.key="..TLS_KEY.."\n") end

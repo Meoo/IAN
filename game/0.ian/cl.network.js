@@ -15,21 +15,65 @@ var ian_net = (function() {
     jQ("#ian-login").show();
     jQ("#ian-loading").hide();
 
-    ian_wm.notify("onClose " + event.code + " " + event.reason);
+    if (event.reason !== "") {
+      ian_wm.notify("Connection closed : " + event.reason, "error");
+    }
+    else {
+      if (event.code === 1000) {
+        ian_wm.notify("Disconnected from server");
+      }
+      else if (event.code === 1006) {
+        ian_wm.notify("Connection error", "error");
+      }
+      else {
+        ian_wm.notify("net:onClose " + event.code);
+      }
+    }
   }
 
   var onError = function(event) {
-    ian_wm.notify("onError", "error");
-  }
-
-  var onHandshakeMessage = function(event) {
-
-    socket.onmessage = onMessage;
+    ian_wm.notify("net:onError");
   }
 
   var onMessage = function(event) {
 
-    ian_wm.notify("onMessage " + event.data);
+  }
+
+  var onHandshakeMessage = function(event) {
+    try {
+      var data = new DataView(event.data);
+
+      // Received magic
+      var k1 = data.getInt32(0);
+      var k2 = data.getInt32(4);
+      var k3 = data.getInt32(8);
+      var k4 = data.getInt32(12);
+
+      // Our magic
+      var m1 = parseInt(GAME_MAGIC.slice(0, 7), 16) << 0;
+      var m2 = parseInt(GAME_MAGIC.slice(8, 15), 16) << 0;
+      var m3 = parseInt(GAME_MAGIC.slice(16, 23), 16) << 0;
+      var m4 = parseInt(GAME_MAGIC.slice(24, 31), 16) << 0;
+
+      // Check our magic against received magic
+      if (k1 === m1 && k2 === m2 && k3 === m3 && k4 === m4) {
+
+        // Magic is valid
+        ian_wm.notify("net:onHandshakeMessage good magic", "info");
+
+        // TODO Send credentials
+
+        socket.onmessage = onMessage;
+      }
+      else {
+        ian_wm.notify("net:onHandshakeMessage bad magic", "error");
+        socket.close(); // TODO Error code
+      }
+    }
+    catch(err) {
+      ian_wm.notify("net:onHandshakeMessage exception", "error");
+      socket.close(); // TODO Error code
+    }
   }
 
   // ian_net public functions
