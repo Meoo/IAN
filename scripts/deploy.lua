@@ -1,5 +1,9 @@
 
-local _, DEPLOY_OPTIONS = pcall(dofile, _MAIN_SCRIPT_DIR.."/deploy-options.lua")
+local success, DEPLOY_OPTIONS = pcall(dofile, _MAIN_SCRIPT_DIR.."/deploy-options.lua")
+
+if not success and (_ACTION == "deploy" or _ACTION == "deploy-dev") then
+  premake.warn("No deploy-options.lua, using default values")
+end
 
 local HTML_TITLE  = DEPLOY_OPTIONS.title or "IAN Client"
 local HTML_META   = DEPLOY_OPTIONS.meta or {}

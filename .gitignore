@@ -7,6 +7,7 @@ premake5
 premake5.exe 
 
 user-options.lua
+deploy-options.lua
 
 # Visual Studio
 IAN.sln
