@@ -58,9 +58,8 @@ function mw.processfile(input, output, translations)
   fout:close()
 end
 
-function mw.concattextfiles(filesArray)
-  local tmp = os.tmpname()
-  local fout = io.open(tmp, "w+")
+function mw.concattextfiles(filesArray, target)
+  local fout = io.open(target, "w+")
 
   for _, input in ipairs(filesArray) do
     local fin = io.open(input, "r")
@@ -71,5 +70,4 @@ function mw.concattextfiles(filesArray)
   end
 
   fout:close()
-  return tmp
 end

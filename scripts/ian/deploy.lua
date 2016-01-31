@@ -313,10 +313,7 @@ local mergedTextMeta = {
       os.mkdir(p)
     end
 
-    local tmp = mw.concattextfiles(self.sources)
-    if not os.rename(tmp, self.filename) then
-      error("Failed to move merged text file to destination '"..self.filename.."'", 0)
-    end
+    mw.concattextfiles(self.sources, self.filename)
   end
 
 }
@@ -336,6 +333,11 @@ end
 local transformedTextMeta = {
   
   deploy = function(self, release)
+    local p = path.getdirectory(self.filename)
+    if not os.isdir(p) then
+      os.mkdir(p)
+    end
+
     mw.processfile(self.source, self.filename, self.transform)
   end
 
