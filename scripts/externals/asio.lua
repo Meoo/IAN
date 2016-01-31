@@ -30,7 +30,7 @@ end
 
 -- ///////////////////////////////////////////////////// --
 
-mw.external "asio"
+ian.external "asio"
   export "*"
     if ASIO_DIR then
       includedirs { ASIO_DIR .."/include" }

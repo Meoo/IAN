@@ -43,7 +43,7 @@ end
 
 -- ///////////////////////////////////////////////////// --
 
-mw.external "websocketpp"
+ian.external "websocketpp"
   export "*"
     if WEBSOCKETPP_DIR then
       includedirs { WEBSOCKETPP_DIR }

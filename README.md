@@ -5,13 +5,18 @@ IAN is a multiplayer game engine in early development.
 The client is web-based, and written in full Javascript, supported by HTML and CSS.
 The server is written in C++, using Javascript for game logic.
 
-The server will be supported for Windows, Linux and MacOSX.
+The server will be supported for Windows, Linux and maybe MacOSX.
 
 
-## Dependencies
+## Dependencies 
 
 The most important tool used in IAN is [Premake](https://premake.github.io) (5.0 alpha7).
-Unless you want to work on the server's C++ code, this is the only tool that you will need.
+
+Premake is enough to deploy IAN's client, but if you want to work with C++ code you will have to install aditionnal tools.
+
+To compile C++ modules targeting Javascript, you must have:
+
+* [Emscripten](https://kripken.github.io/emscripten-site/)
 
 To compile the server, you will need to get the following libraries:
 
@@ -36,30 +41,22 @@ The project also uses the following tools internally:
 
 ## Project folders
 
-### game
 
-Contains game code and resources.
-The deploy script identifies the different files by name:
+### source
 
-client.html is the template for the client HTML page.
+Contains all the code.
 
-A file or folder starting with "rc." will be deployed as a client resource.
-For example "my-game/rc.img/tileset.png" will be copied as "img/tileset.png" in the client files.
+Each folder in "source" is a package. Each package contains a package.lua file which is loaded by the build system.
 
-Game files can be Javascript files (.js) or CSS files (.css).
-A file or folder starting with "cl." will be considered as client-only. CSS files are always client-only.
-On the other hand, a file or folder starting with "sv." will be considered as server-only.
+Each package can contain Javascript code and C++ code. The C++ code can be compiled to a native server module or to Javascript using Emscripten.
 
-All the files in a folder will always be executed before the files in the sub-folders.
-Finally you can add a number tag "123." at the very beginning of your files and folders to change the execution order. The lowest number ("0.") has the highest priority.
-For example "1.first.js" will be executed before "2.second.js". Both files will be executed before "third.js", a file without a priority tag in the same folder.
+Packages are sorted and loaded by alphanumerical order (numbers first, then upper-case, then lower-case).
 
-Priority and client / server tags can be combined, priority first ("1.cl.hello.lua").
+The two default packages are :
 
+* 000-ian-shell : IAN's client shell.
 
-### src
-
-Contains server's C++ code.
+* 100-ian-core :  IAN's client libraries and server code.
 
 
 ### scripts
@@ -69,5 +66,4 @@ Contains all the Lua scripts used by Premake.
 
 ## License
 
-The code is licensed under AGPLv3 for now (see LICENSE file).
-I am also considering the MIT license, which is less restrictive.
+The code is licensed under Mozilla Public License 2.0 (see LICENSE file).

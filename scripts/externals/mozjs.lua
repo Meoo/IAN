@@ -28,6 +28,11 @@ local MOZJS_NSPR_INCLUDE_DIR
 local MOZJS_LIBS_DIR
 local MOZJS_LINKS
 
+-- Search for default in /usr/local
+if not MOZJS_INSTALL_DIR and os.matchfiles("/usr/local/bin/js-config") == 1 then
+  MOZJS_INSTALL_DIR = "/usr/local"
+end
+
 -- Try to find in install directory
 if MOZJS_INSTALL_DIR then
   -- Auto detect version
@@ -35,7 +40,7 @@ if MOZJS_INSTALL_DIR then
     local incdirs = os.matchdirs(MOZJS_INSTALL_DIR .."/include/mozjs-*")
 
     if #incdirs == 1 then
-      MOZJS_VERSION = incdirs[1]:match("\-([\.0-9]*)$")
+      MOZJS_VERSION = incdirs[1]:match("%-([%.0-9a-z]*)$")
       if MOZJS_VERSION then
         print("SpiderMonkey version : ".. MOZJS_VERSION)
       end
@@ -51,7 +56,8 @@ if MOZJS_INSTALL_DIR then
     MOZJS_LIBS_DIR = MOZJS_INSTALL_DIR .."/lib"
 
     -- Check libraries
-    if #os.matchfiles(MOZJS_LIBS_DIR .."/mozjs-".. MOZJS_VERSION ..".*") == 0 then
+    if #os.matchfiles(MOZJS_LIBS_DIR .."/mozjs-".. MOZJS_VERSION ..".*") == 0
+    and #os.matchfiles(MOZJS_LIBS_DIR .."/libmozjs-".. MOZJS_VERSION ..".*") == 0 then
       premake.warn("No SpiderMonkey libraries found : ".. MOZJS_LIBS_DIR)
     end
 
@@ -60,7 +66,6 @@ if MOZJS_INSTALL_DIR then
     if f then
       local nsprinc
       local libs
-      local ext
 
       for l in f:lines() do
         if not nsprinc then
@@ -69,18 +74,15 @@ if MOZJS_INSTALL_DIR then
         if not libs then
           libs = l:match("^JS_CONFIG_LIBS='(.*)'$")
         end
-        if not ext then
-          ext = l:match("^MOZ_JS_LIBS='.*(%.[liba]+)'$")
-        end
 
-        if nsprinc and libs and ext then break end
+        if nsprinc and libs then break end
       end
 
       f:close()
 
       MOZJS_NSPR_INCLUDE_DIR = nsprinc
-      MOZJS_LINKS = string.explode(libs, " +")
-      table.insert(MOZJS_LINKS, 1, MOZJS_LIBS_DIR .."/mozjs-".. MOZJS_VERSION .. ext)
+      MOZJS_LINKS = string.explode(libs, " +") -- TODO Remove -l and empty
+      table.insert(MOZJS_LINKS, 1, "mozjs-".. MOZJS_VERSION)
     else
       premake.warn("Could not find js-config in ".. MOZJS_INSTALL_DIR .."/bin")
     end
@@ -94,7 +96,7 @@ if MOZJS_BUILD_DIR then
     local mozlibs = os.matchfiles(MOZJS_BUILD_DIR .."/dist/lib/mozjs-*")
 
     if #mozlibs == 1 then
-      MOZJS_VERSION = mozlibs[1]:match("%-([%.0-9]*)%.[liba]+$")
+      MOZJS_VERSION = mozlibs[1]:match("%-([%.0-9a-z]*)%.[liba]+$")
       if MOZJS_VERSION then
         print("SpiderMonkey version : ".. MOZJS_VERSION)
       end
@@ -114,7 +116,6 @@ if MOZJS_BUILD_DIR then
     if f then
       local nsprinc
       local libs
-      local ext
 
       local l = f:read("*l")
       while l do
@@ -124,11 +125,8 @@ if MOZJS_BUILD_DIR then
         if not libs then
           libs = l:match("^JS_CONFIG_LIBS='(.*)'$")
         end
-        if not ext then
-          ext = l:match("^MOZ_JS_LIBS='.*(%.[liba]+)'$")
-        end
 
-        if nsprinc and libs and ext then break end
+        if nsprinc and libs then break end
 
         l = f:read("*l")
       end
@@ -136,8 +134,8 @@ if MOZJS_BUILD_DIR then
       f:close()
 
       MOZJS_NSPR_INCLUDE_DIR = nsprinc
-      MOZJS_LINKS = string.explode(libs, " +")
-      table.insert(MOZJS_LINKS, 1, MOZJS_LIBS_DIR .."/mozjs-".. MOZJS_VERSION .. ext)
+      MOZJS_LINKS = string.explode(libs, " +") -- TODO Remove -l and empty
+      table.insert(MOZJS_LINKS, 1, "mozjs-".. MOZJS_VERSION)
     else
       premake.warn("Could not find js-config in ".. MOZJS_BUILD_DIR .."/js/src")
     end
@@ -151,8 +149,9 @@ end
 
 -- ///////////////////////////////////////////////////// --
 
-mw.external "mozjs"
+ian.external "mozjs"
   export "*"
     includedirs ( MOZJS_INCLUDE_DIR )
     includedirs ( MOZJS_NSPR_INCLUDE_DIR )
+    libdirs     ( MOZJS_LIBS_DIR )
     links       ( MOZJS_LINKS )

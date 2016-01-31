@@ -5,7 +5,6 @@
     <title>$TITLE$</title>
     $META$
     <link rel="icon" type="image/x-icon" href="icons/default.ico" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/$FONTAWESOME_VERSION$/css/font-awesome.min.css">
     $CSS$
   </head>
   <body>
@@ -48,14 +47,6 @@
       <a id="ian-settings-button" href="#" style="display:none"><i class="fa fa-cog fa-2x"></i>Settings</a>
     </div>
 
-    <script type="text/javascript" src="https://code.jquery.com/jquery-$JQUERY_VERSION$.min.js"></script>
-    <script type="text/javascript">var jQ = jQuery.noConflict();</script>
     $JS$
-    <script type="text/javascript">
-      var SERVER_ADDR = "wss://$SERVER_ADDR$:$SERVER_PORT$";
-      var GAME_MAGIC = "$GAME_MAGIC$";
-      ian.onScriptsReady();
-      jQ(window).load(function() { ian.onWindowReady(); });
-    </script>
   </body>
 </html> 

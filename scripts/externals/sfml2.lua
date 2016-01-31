@@ -145,7 +145,7 @@ local function sfmllib(name)
     end
 end
 
-mw.external "sfml2"
+ian.external "sfml2"
   export "*"
     -- SFML paths
     includedirs { SFML_DIR .."/include" }

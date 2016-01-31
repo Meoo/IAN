@@ -5,11 +5,6 @@ require "virtualproject"
 mw = {}
 
 
-BIN_DIR   = _WORKING_DIR.."/bin"
-OBJ_DIR   = _WORKING_DIR.."/bin/obj"
-MAKE_DIR  = _WORKING_DIR.."/bin/make"
-
-
 -- ####################################
 -- ###      OPTIONS
 -- ####################################
@@ -33,36 +28,6 @@ function mw.booloption(option, default)
   premake.error(value.." is not a valid boolean value", 1)
 end
 
-
--- ####################################
--- ###      EXTERNALS
--- ####################################
-
-function mw.external(name)
-  project(name)
-    virtualproject(true)
-    location(MAKE_DIR)
-end
-
-
--- ####################################
--- ###      MODULES
--- ####################################
-
-function mw.module(name)
-  project(name)
-    location(MAKE_DIR)
-end
-
-
--- ####################################
--- ###      PROJECTS
--- ####################################
-
-function mw.project(name)
-  project(name)
-    location(MAKE_DIR)
-end
 
 -- ####################################
 -- ###      UTILS

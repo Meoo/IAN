@@ -1,29 +1,10 @@
 
+require "scripts/ian"
 require "scripts/mwb"
 
 
-solution "IAN"
+ian.solution "IAN"
   language "C++"
-  configurations { "Release", "Debug" }
-
-  -- DIRECTORIES
-  targetdir( BIN_DIR )
-  objdir   ( OBJ_DIR )
-  
-  -- PLATFORMS
-  if os.is64bit() then
-    platforms { "native64", "native32" }
-    defaultplatform "native64"
-  else
-    platforms { "native32", "native64" }
-    defaultplatform "native32"
-  end
-
-  filter "platforms:*32"
-    architecture "x86"
-  filter "platforms:*64"
-    architecture "x86_64"
-  filter {}
 
   -- HELPERS
   defines { [[__USER__="\"]].. (os.getenv("USERNAME") or "Unknown"):gsub("[\\\"]", "?") ..[[\""]] }
@@ -55,8 +36,9 @@ solution "IAN"
     include(external)
   end
 
-  -- Projects
-  include "src"
-
-  -- Other actions
-  include "scripts/deploy"
+  -- Packages
+  local packages = os.matchfiles("source/*/package.lua")
+  table.sort(packages)
+  for _, pkg in ipairs(packages) do
+    ian.loadPackage(string.explode(pkg, '/')[2], pkg)
+  end

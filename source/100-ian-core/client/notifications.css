@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Bastien Brunnenstein
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 #ian-notif-container
 {
@@ -5,7 +12,9 @@
   z-index: 195;
   top: 12px;
   left: 12px;
+  bottom: 0;
   max-width: 500px;
+  overflow: hidden;
 }
 
 .ian-notif
@@ -20,6 +29,7 @@
   border-width: 2px;
   border-style: solid;
   border-color: black;
+  cursor: pointer;
 }
 
 .ian-notif-error

@@ -8,7 +8,7 @@ newoption {
 newoption {
   trigger     = "openssl-suffix",
   value       = "string",
-  description = "OpenSSL library suffix"
+  description = "OpenSSL library suffix (windows only)"
 }
 
 -- ///////////////////////////////////////////////////// --
@@ -20,11 +20,12 @@ local OPENSSL_64_DIRS = false
 
 local OPENSSL_INCLUDE_DIR
 local OPENSSL_LIBS_DIR
-local OPENSSL_LINKS = { "libeay32", "ssleay32" }
+local OPENSSL_LINKS = { "crypto", "ssl" }
+local OPENSSL_LINKS_WINDOWS = { "libeay32", "ssleay32" }
 
 if OPENSSL_LIB_SUFFIX then
-  OPENSSL_LINKS =
-    table.translate(OPENSSL_LINKS, function(v) return v..OPENSSL_LIB_SUFFIX end)
+  OPENSSL_LINKS_WINDOWS =
+    table.translate(OPENSSL_LINKS_WINDOWS, function(v) return v..OPENSSL_LIB_SUFFIX end)
 end
 
 -- Try to find in install directory
@@ -67,7 +68,7 @@ end
 
 -- ///////////////////////////////////////////////////// --
 
-mw.external "openssl"
+ian.external "openssl"
   export "*"
 
     if OPENSSL_64_DIRS then
@@ -91,4 +92,10 @@ mw.external "openssl"
       includedirs ( OPENSSL_INCLUDE_DIR )
     end
 
-    links       ( OPENSSL_LINKS )
+    filter { "system:windows" }
+      links ( OPENSSL_LINKS_WINDOWS )
+
+    filter { "system:not windows" }
+      links ( OPENSSL_LINKS )
+
+    filter {}
