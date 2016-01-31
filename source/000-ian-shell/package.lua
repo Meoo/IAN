@@ -15,7 +15,9 @@ local CR = id.dev and "\n" or ""
 
 is.html = id.transformedTextFile("client/index.html", "shell.html")
 
+
 is.html.transform.TITLE = id.getOption("ian.shell.title", "IAN Client")
+
 
 is.html.transform.META = function()
   local s = ""
@@ -24,6 +26,16 @@ is.html.transform.META = function()
   end
   return s
 end
+
+
+is.html.transform.CORNER_LINKS = function()
+  local s = ""
+  for _, v in ipairs(id.getOption("ian.shell.links", {})) do
+    s = s .."<a href=\""..v[3].."\"><i class=\"fa fa-"..v[2].." fa-2x\"></i>"..v[1].."</a>"
+  end
+  return s
+end
+
 
 is.html.cssFiles = {}
 
@@ -34,6 +46,7 @@ is.html.transform.CSS = function()
   end
   return s
 end
+
 
 is.html.jsFiles = {}
 
