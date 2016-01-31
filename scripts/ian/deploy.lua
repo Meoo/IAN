@@ -114,7 +114,8 @@ local function runClosureCompiler(target, files)
     os.remove(tmp)
   end
 
-  --local tmp = mw.concattextfiles(GAME_CL)
+  --local tmp = os.tmpname()
+  --mw.concattextfiles(files, tmp)
   local ok = os.execute("java -jar ".. THIRDPARTY_DIR .."/closure/compiler.jar --js_output_file ".. target .." --js ".. table.concat(files, " "))
   --os.remove(tmp)
   if ok ~= 0 then
@@ -131,9 +132,10 @@ local function runYuiCompressor(target, files)
     os.remove(tmp)
   end
 
-  --local tmp = mw.concattextfiles(GAME_CL_CSS)
-  local ok = os.execute("java -jar ".. THIRDPARTY_DIR .."/yui/yuicompressor-"..YUI_VERSION..".jar -o ".. target .." --type css ".. table.concat(files, " "))
-  --os.remove(tmp)
+  local tmp = os.tmpname()
+  mw.concattextfiles(files, tmp)
+  local ok = os.execute("java -jar ".. THIRDPARTY_DIR .."/yui/yuicompressor-"..YUI_VERSION..".jar -o ".. target .." --type css ".. tmp)
+  os.remove(tmp)
   if ok ~= 0 then
     error("CSS compilation failed", 0)
   end
