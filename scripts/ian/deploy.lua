@@ -116,7 +116,7 @@ local function runClosureCompiler(target, files)
 
   --local tmp = os.tmpname()
   --mw.concattextfiles(files, tmp)
-  local ok = os.execute("java -jar ".. THIRDPARTY_DIR .."/closure/compiler.jar --js_output_file ".. target .." --js ".. table.concat(files, " "))
+  local ok = os.execute("java -jar ".. THIRDPARTY_DIR .."/closure/compiler.jar --js_output_file ".. target .." --js ".. table.concat(files, " --js "))
   --os.remove(tmp)
   if ok ~= 0 then
     error("JS compilation failed", 0)
