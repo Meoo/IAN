@@ -7,6 +7,7 @@
  */
 
 var ian_net = (function() {
+  "use strict";
 
   // Keep a local reference of sensitive data
   var GAME_MAGIC = ian_cfg.magic;

@@ -7,6 +7,7 @@
  */
 
 var ian_wm = (function() {
+  "use strict";
 
   // Create a div to contain and display notifications
   var notifContainer = jQ("<div>", {id:"ian-notif-container"}).appendTo("body");

@@ -13,6 +13,7 @@
   */
 
 var ian_dev = (function() {
+  "use strict";
 
   var loading = false;
   var activeLoadQueue;
