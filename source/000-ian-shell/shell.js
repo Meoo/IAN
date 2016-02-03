@@ -6,4 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+/* The following comment is preserved in release deploy */
+/** @preserve
+  This file has been compiled from multiple source files, which must comply with their respective licenses.
+  Generated using IAN (https://github.com/Meoo/IAN)
+*/
+
 var jQ = jQuery.noConflict();
