@@ -1,0 +1,84 @@
+/*
+ * Copyright (c) 2016 Bastien Brunnenstein
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#ian-loading
+{
+  position: fixed;
+  z-index: 199;
+  width: 250px;
+  height: 100px;
+  line-height: 100px;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -125px;
+  background-color: white;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 1.4em;
+  color: black;
+}
+
+#ian-login
+{
+  position: fixed;
+  width: 250px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  margin-top: -150px;
+  margin-left: -125px;
+  background-color: white;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 1.4em;
+  color: black;
+}
+
+#ian-login div
+{
+  margin-bottom: 10px;
+}
+
+.ian-corner
+{
+  position: fixed;
+  bottom: 22px;
+}
+
+.ian-corner a
+{
+  position: relative;
+  text-decoration:none;
+  color: #777;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.ian-bl
+{
+  left: 16px;
+}
+
+.ian-br
+{
+  right: 16px;
+}
+
+.ian-corner a:hover
+{
+  color: white;
+}
+
+.ian-corner a .fa
+{
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  bottom: 0.6em;
+}

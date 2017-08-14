@@ -1,9 +1,17 @@
 
 set_property(GLOBAL PROPERTY IAN_SHELL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+set_property(GLOBAL PROPERTY IAN_CLIENT_BODY_FILES)
 set_property(GLOBAL PROPERTY IAN_CLIENT_JS_FILES)
 set_property(GLOBAL PROPERTY IAN_CLIENT_CSS_FILES)
 
+
+function(ian_client_add_body)
+  foreach(BODY_FILE ${ARGV})
+    get_filename_component(BODY_FULLPATH ${BODY_FILE} ABSOLUTE)
+    set_property(GLOBAL APPEND PROPERTY IAN_CLIENT_BODY_FILES ${BODY_FULLPATH})
+  endforeach()
+endfunction()
 
 function(ian_client_add_js)
   foreach(JS_FILE ${ARGV})
@@ -37,6 +45,17 @@ function(ian_client_finalize)
 
 
   set(IAN_SHELL_HEAD "<title>IAN dev</title>")
+
+
+  set(IAN_SHELL_BODY)
+
+  get_property(BODY_FILES GLOBAL PROPERTY IAN_CLIENT_BODY_FILES)
+  list(LENGTH BODY_FILES BODY_FILES_COUNT)
+  message(STATUS "* ${BODY_FILES_COUNT} body parts")
+  foreach(BODY_FILE ${BODY_FILES})
+    file(READ ${BODY_FILE} BODY_CONTENT)
+    set(IAN_SHELL_BODY "${IAN_SHELL_BODY}${BODY_CONTENT}")
+  endforeach(BODY_FILE)
 
 
   file(RELATIVE_PATH JS_DEV_REL ${OUT_PATH} ${SHELL_DIR}/dev.js)
@@ -80,9 +99,4 @@ function(ian_client_finalize)
 
 endfunction()
 
-
-ian_client_add_js("https://code.jquery.com/jquery-${IAN_JQUERY_VERSION}.js")
-ian_client_add_js(shell.js)
-
-ian_client_add_css("https://maxcdn.bootstrapcdn.com/font-awesome/${IAN_FONTAWESOME_VERSION}/css/font-awesome.min.css")
 ian_client_add_css(shell.css)

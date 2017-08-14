@@ -14,40 +14,35 @@
 
 var ian_dev = (function() {
 
-  var loading = false;
-  var activeLoadQueue;
+  var scriptsLoadQueue;
+  var htmlIncludes;
 
-  var doLoadNext = function() {
-    if (activeLoadQueue.length === 0) return;
 
-    var filename = activeLoadQueue.splice(0, 1)[0];
+  var doLoadNextScript = function() {
+    if (scriptsLoadQueue.length === 0) return;
+
+    var filename = scriptsLoadQueue.splice(0, 1)[0];
 
     var script = document.createElement("script");
     script.setAttribute("type","text/javascript");
     script.setAttribute("src", filename);
     document.getElementsByTagName("head")[0].appendChild(script);
 
-    loading = true;
-
     script.addEventListener("load", function() {
-      loading = false;
-      doLoadNext();
+      doLoadNextScript();
     });
   }
+
 
   return {
 
     // Load a list of javascript files
     load: function(files) {
-      if (files.length === 0) return;
+      // Delete itself
+      ian_dev.load = null;
 
-      if (!loading) {
-        activeLoadQueue = files;
-        doLoadNext();
-      }
-      else {
-        activeLoadQueue = files.concat(activeLoadQueue);
-      }
+      scriptsLoadQueue = files;
+      doLoadNextScript();
     }
 
   };

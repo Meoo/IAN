@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2016 Bastien Brunnenstein
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#ian-notif-container
+{
+  position: absolute;
+  z-index: 195;
+  top: 12px;
+  left: 12px;
+  bottom: 0;
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.ian-notif
+{
+  background-color: white;
+  border-radius: 5px;
+  padding: 4px 8px 4px 8px;
+  margin: 8px;
+  color: black;
+  font-weight: bold;
+  display: table; /* I don't like it but it works */
+  border-width: 2px;
+  border-style: solid;
+  border-color: black;
+  cursor: pointer;
+}
+
+.ian-notif-error
+{
+  background-color: #FCD;
+  border-color: red;
+}
+
+.ian-notif-info
+{
+  background-color: #BEF;
+  border-color: blue;
+}

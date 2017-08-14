@@ -23,12 +23,6 @@ set(CMAKE_CXX_STANDARD 14)
 # Target Windows 7
 set(IAN_WINDOWS_VERSION 0x0601)
 
-# jQuery
-set(IAN_JQUERY_VERSION "3.2.1.slim.min")
-
-# Fontawesome
-set(IAN_FONTAWESOME_VERSION "4.7.0")
-
 
 function(ian_version_required VER)
   if(${IAN_VERSION} VERSION_LESS ${VER})
