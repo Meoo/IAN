@@ -1,2 +1,2 @@
 
-hunter_config(flatbuffers VERSION 1.3.0-p3 CMAKE_ARGS FLATBUFFERS_BUILD_FLATC=ON)
+hunter_config(flatbuffers VERSION ${HUNTER_flatbuffers_VERSION} CMAKE_ARGS FLATBUFFERS_BUILD_FLATC=ON)
