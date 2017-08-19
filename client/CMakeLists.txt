@@ -55,7 +55,7 @@ function(ian_client_finalize)
   foreach(BODY_FILE ${BODY_FILES})
     file(READ ${BODY_FILE} BODY_CONTENT)
     set(IAN_SHELL_BODY "${IAN_SHELL_BODY}\n<!--${BODY_FILE}-->\n${BODY_CONTENT}")
-  endforeach(BODY_FILE)
+  endforeach()
 
 
   file(RELATIVE_PATH JS_DEV_REL ${OUT_PATH} ${SHELL_DIR}/dev.js)
@@ -72,7 +72,7 @@ function(ian_client_finalize)
       file(RELATIVE_PATH JS_REL ${OUT_PATH} ${JS_FILE})
       list(APPEND JS_LIST ${JS_REL})
     endif()
-  endforeach(JS_FILE)
+  endforeach()
 
   string (REPLACE ";" "\",\n\"" JS_LIST_EX "${JS_LIST}")
   set(IAN_SHELL_JS "${IAN_SHELL_JS}<script type=\"text/javascript\">")
@@ -92,7 +92,7 @@ function(ian_client_finalize)
       file(RELATIVE_PATH CSS_REL ${OUT_PATH} ${CSS_FILE})
       set(IAN_SHELL_CSS "${IAN_SHELL_CSS}<link rel=\"stylesheet\" type=\"text/css\" href=\"${CSS_REL}\">\n")
     endif()
-  endforeach(CSS_FILE)
+  endforeach()
 
 
   configure_file(${SHELL_DIR}/shell.html ${OUT_PATH}/index.html @ONLY)

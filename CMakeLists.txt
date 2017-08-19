@@ -41,3 +41,4 @@ add_subdirectory(modules)
 
 
 ian_client_finalize()
+ian_server_finalize()
