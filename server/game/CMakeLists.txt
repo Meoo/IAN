@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common
+  server-module-sdk
   Lua::lua_lib)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "game")

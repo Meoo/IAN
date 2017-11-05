@@ -1,5 +1,7 @@
 
 add_subdirectory(common)
+add_subdirectory(module-sdk)
+
 add_subdirectory(node)
 add_subdirectory(front)
 add_subdirectory(game)

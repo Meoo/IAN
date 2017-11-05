@@ -2,10 +2,7 @@
 project(server-node)
 
 add_executable(${PROJECT_NAME}
-  auth/IAuthentication.hpp
-  dispatcher/IDispatcher.hpp
-  master/IMaster.hpp
-  server_master.cpp)
+  server_node.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common

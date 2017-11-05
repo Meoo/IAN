@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.9)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.19.57.tar.gz"
-  SHA1 "f83ea762f0609c48a583d0e877a6358f6fbfe0d7"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.131.tar.gz"
+    SHA1 "bc0eec34712af8854085c2dc6a90b78df17a9743"
   LOCAL
 )
 
@@ -29,6 +29,15 @@ function(ian_version_required VER)
     message(FATAL_ERROR "IAN version ${VER} required (current version is ${IAN_VERSION})")
   endif()
 endfunction()
+
+
+# Options
+set(IAN_ENABLE_EASY_PROFILER OFF CACHE BOOL "Enable easy_profiler profiling")
+set(IAN_EASY_PROFILER_INSTALL_PATH "" CACHE PATH "easy_profiler install path")
+
+if(IAN_ENABLE_EASY_PROFILER AND IAN_EASY_PROFILER_INSTALL_PATH)
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${IAN_EASY_PROFILER_INSTALL_PATH}/lib/cmake/easy_profiler)
+endif()
 
 
 

@@ -1,23 +1,15 @@
 
-project(server-common)
-
-hunter_add_package(spdlog)
-find_package(spdlog CONFIG REQUIRED)
-
-hunter_add_package(Boost COMPONENTS system)
-find_package(Boost CONFIG REQUIRED system)
+project(server-module-sdk)
 
 add_library(${PROJECT_NAME} STATIC
-  include/common/EasyProfiler.hpp
+  include/modulesdk/EasyProfiler.hpp
+  include/modulesdk/IModule.hpp
+  include/modulesdk/IModuleHost.hpp
   common.cpp)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  spdlog::spdlog
-  Boost::system)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "iancommon")
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ianmodulesdk")
 
 if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE WINVER=${IAN_WINDOWS_VERSION} _WIN32_WINNT=${IAN_WINDOWS_VERSION})
