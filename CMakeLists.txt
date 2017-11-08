@@ -1,11 +1,11 @@
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.7)
 
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.131.tar.gz"
-    SHA1 "bc0eec34712af8854085c2dc6a90b78df17a9743"
+  URL "https://github.com/ruslo/hunter/archive/v0.19.144.tar.gz"
+  SHA1 "e3efd470f8b60468db8730eac8c04792f77fe1b1"
   LOCAL
 )
 
@@ -18,7 +18,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Target Windows 7
 set(IAN_WINDOWS_VERSION 0x0601)
