@@ -7,6 +7,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 
 
@@ -29,6 +31,8 @@ public:
 
 
 private:
+  std::shared_ptr<spdlog::logger> logger_;
+
   TcpSocket socket_;
   WsStream stream_;
 

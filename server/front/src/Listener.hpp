@@ -3,6 +3,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 
 
@@ -24,6 +26,8 @@ public:
 
 
 private:
+  std::shared_ptr<spdlog::logger> logger_;
+
   SslContext ssl_context_;
   TcpAcceptor acceptor_;
   TcpSocket socket_;

@@ -12,6 +12,7 @@ ClientConnection::ClientConnection(TcpSocket && socket, SslContext & ssl_ctx)
   , strand_(socket_.get_io_service())
   , timer_(socket_.get_io_service())
 {
+  logger_ = spdlog::get("front");
 }
 
 void ClientConnection::run()

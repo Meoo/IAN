@@ -14,6 +14,8 @@ int main(int argc, char** argv)
   EASY_MAIN_THREAD;
 
 
+  // Init logger
+  //spdlog::set_async_mode(128); ?
   auto logger = spdlog::stdout_color_mt("front");
 
   // Init config
@@ -56,6 +58,8 @@ int main(int argc, char** argv)
   }
 
   asio.run();
+
+  spdlog::drop_all();
 
   return 0;
 }

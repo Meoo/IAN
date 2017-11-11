@@ -7,12 +7,7 @@
 
 namespace
 {
-  namespace pt = boost::property_tree;
-
-  pt::ptree config_tree;
-
-  // Use const accessor for get functions
-  inline const pt::ptree& cfg() { return config_tree; }
+  boost::property_tree::ptree config_tree;
 }
 
 
@@ -20,11 +15,10 @@ namespace config
 {
   bool init(const std::string& file)
   {
-    namespace pt = boost::property_tree;
-
     try
     {
-      pt::read_info(file.empty() ? "config.info" : file, config_tree);
+      boost::property_tree::read_info(
+        file.empty() ? "config.info" : file, ::config_tree);
     }
     catch (...)
     {
@@ -35,31 +29,16 @@ namespace config
 
   bool getBool(const std::string& key, bool default)
   {
-    auto it = cfg().find(key);
-
-    if (it == cfg().not_found())
-      return default;
-
-    return it->second.get_value<bool>();
+    return ::config_tree.get(key, default);
   }
 
   std::string getString(const std::string& key, const std::string& default)
   {
-    auto it = cfg().find(key);
-
-    if (it == cfg().not_found())
-      return default;
-
-    return it->second.get_value<std::string>();
+    return ::config_tree.get(key, default);
   }
 
   int getInt(const std::string& key, int default)
   {
-    auto it = cfg().find(key);
-
-    if (it == cfg().not_found())
-      return default;
-
-    return it->second.get_value<int>();
+    return ::config_tree.get(key, default);
   }
 }

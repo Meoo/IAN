@@ -4,6 +4,7 @@
 
 namespace config
 {
+  // Call only once in main
   bool init(const std::string& file = std::string());
 
   bool getBool(const std::string& key, bool default);

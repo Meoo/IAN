@@ -15,13 +15,16 @@ Listener::Listener(boost::asio::io_service & asio)
   , acceptor_(asio)
   , socket_(asio)
 {
+  logger_ = spdlog::get("front");
+
   // Config
   std::string listenAddr = config::getString("front.listen_ip", "0.0.0.0");
-  int listenPort = config::getInt("front.listen_port", 8080);
+  int listenPort = config::getInt("front.listen_port", 7011);
 
   std::string certChain = config::getString("front.certificate_chain", "cert.pem");
   std::string privKey = config::getString("front.private_key", "cert.pem");
   std::string dh = config::getString("front.dh", "dh.pem");
+  std::string password = config::getString("front.private_key_password");
 
   ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
 
@@ -36,7 +39,7 @@ Listener::Listener(boost::asio::io_service & asio)
       boost::asio::ssl::context::no_sslv3 |
       boost::asio::ssl::context::single_dh_use);
 
-    ssl_context_.set_password_callback(std::bind([] { return "IANkey"; })); // Use bind to ignore args
+    ssl_context_.set_password_callback(std::bind([password] { return password; })); // Use bind to ignore args
     ssl_context_.use_certificate_chain_file(certChain);
     ssl_context_.use_private_key_file(privKey, boost::asio::ssl::context::pem);
     ssl_context_.use_tmp_dh_file(dh);
@@ -46,11 +49,13 @@ Listener::Listener(boost::asio::io_service & asio)
         ) != 1)
     {
       // TODO
+      logger_->error("Failed to initialize SSL cipher list");
     }
   }
-  catch (std::exception&)
+  catch (std::exception& ex)
   {
     // TODO
+    logger_->error("Failed to initialize SSL context: {}", ex.what());
   }
 
   // Init acceptor
@@ -60,13 +65,17 @@ Listener::Listener(boost::asio::io_service & asio)
   if (ec)
   {
     // TODO
+    logger_->error("Failed to open acceptor: {}", ec.message());
   }
 
   acceptor_.bind(endpoint, ec);
   if (ec)
   {
     // TODO
+    logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
   }
+
+  logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
 }
 
 void Listener::run()
@@ -78,7 +87,10 @@ void Listener::run()
   if (ec)
   {
     // TODO
+    logger_->error("Acceptor failed to listen for clients: {}", ec.message());
   }
+
+  logger_->info("Acceptor listening for clients");
 
   do_accept();
 }
@@ -100,9 +112,13 @@ void Listener::on_accept(boost::system::error_code ec)
   if (ec)
   {
     // TODO
+    logger_->error("Accept failed: {}", ec.message());
   }
   else
   {
+    logger_->info("Accepting client {}:{}",
+      socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port());
+
     auto client = std::make_shared<ClientConnection>(std::move(socket_), ssl_context_);
     client->run();
   }
