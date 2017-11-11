@@ -3,6 +3,7 @@
 
 #include "ClientConnection.hpp"
 
+#include <common/Config.hpp>
 #include <common/EasyProfiler.hpp>
 
 namespace ssl = boost::asio::ssl;
@@ -15,7 +16,14 @@ Listener::Listener(boost::asio::io_service & asio)
   , socket_(asio)
 {
   // Config
-  ip::tcp::endpoint endpoint(ip::address::from_string("0.0.0.0"), 8080);
+  std::string listenAddr = config::getString("front.listen_ip", "0.0.0.0");
+  int listenPort = config::getInt("front.listen_port", 8080);
+
+  std::string certChain = config::getString("front.certificate_chain", "cert.pem");
+  std::string privKey = config::getString("front.private_key", "cert.pem");
+  std::string dh = config::getString("front.dh", "dh.pem");
+
+  ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
 
   // SSL setup
   try
@@ -29,9 +37,9 @@ Listener::Listener(boost::asio::io_service & asio)
       boost::asio::ssl::context::single_dh_use);
 
     ssl_context_.set_password_callback(std::bind([] { return "IANkey"; })); // Use bind to ignore args
-    ssl_context_.use_certificate_chain_file("cert.pem");
-    ssl_context_.use_private_key_file("cert.pem", boost::asio::ssl::context::pem);
-    ssl_context_.use_tmp_dh_file("dh.pem");
+    ssl_context_.use_certificate_chain_file(certChain);
+    ssl_context_.use_private_key_file(privKey, boost::asio::ssl::context::pem);
+    ssl_context_.use_tmp_dh_file(dh);
 
     if (SSL_CTX_set_cipher_list(ssl_context_.native_handle(),
         "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS"

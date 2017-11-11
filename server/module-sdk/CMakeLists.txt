@@ -1,11 +1,18 @@
 
 project(server-module-sdk)
 
+hunter_add_package(spdlog)
+find_package(spdlog CONFIG REQUIRED)
+
 add_library(${PROJECT_NAME} STATIC
   include/modulesdk/EasyProfiler.hpp
   include/modulesdk/IModule.hpp
   include/modulesdk/IModuleHost.hpp
   common.cpp)
+
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  spdlog::spdlog)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 

@@ -6,6 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <spdlog/logger.h>
+
 
 class IModuleHost
 {
@@ -15,5 +17,8 @@ public:
 
   IModuleHost(const IModuleHost&) = delete;
   IModuleHost& operator=(const IModuleHost&) = delete;
+
+
+  virtual std::shared_ptr<spd::logger> getLogger(const std::string& name);
 
 };

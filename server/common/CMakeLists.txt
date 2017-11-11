@@ -8,8 +8,9 @@ hunter_add_package(Boost COMPONENTS system)
 find_package(Boost CONFIG REQUIRED system)
 
 add_library(${PROJECT_NAME} STATIC
+  include/common/Config.hpp
   include/common/EasyProfiler.hpp
-  common.cpp)
+  src/Config.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog::spdlog
