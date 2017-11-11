@@ -1,16 +1,12 @@
 
 project(server-game)
 
-hunter_add_package(Lua)
-find_package(Lua CONFIG REQUIRED)
-
 add_executable(${PROJECT_NAME}
   server_game.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common
-  server-module-sdk
-  Lua::lua_lib)
+  server-module-sdk)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "game")
 
