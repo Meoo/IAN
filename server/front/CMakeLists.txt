@@ -9,8 +9,8 @@ find_package(OpenSSL REQUIRED)
 
 add_executable(${PROJECT_NAME}
   src/Main.cpp
-  src/Listener.hpp
-  src/Listener.cpp
+  src/ClientListener.hpp
+  src/ClientListener.cpp
   src/ClientConnection.hpp
   src/ClientConnection.cpp)
 

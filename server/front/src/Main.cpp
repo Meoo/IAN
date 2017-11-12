@@ -1,5 +1,5 @@
 
-#include "Listener.hpp"
+#include "ClientListener.hpp"
 
 #include <common/Config.hpp>
 #include <common/EasyProfiler.hpp>
@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
 
   // Init logger
-  //spdlog::set_async_mode(128); ?
+  //spdlog::set_async_mode(512); ?
   auto logger = spdlog::stdout_color_mt("front");
 
   // Init config
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 
   // Start listener
   {
-    auto listener = std::make_shared<Listener>(asio);
+    auto listener = std::make_shared<ClientListener>(asio);
     listener->run();
   }
 
@@ -59,6 +59,7 @@ int main(int argc, char** argv)
 
   asio.run();
 
+  logger->info("Front shutting down");
   spdlog::drop_all();
 
   return 0;

@@ -1,5 +1,5 @@
 
-#include "Listener.hpp"
+#include "ClientListener.hpp"
 
 #include "ClientConnection.hpp"
 
@@ -10,7 +10,7 @@ namespace ssl = boost::asio::ssl;
 namespace ip = boost::asio::ip;
 
 
-Listener::Listener(boost::asio::io_service & asio)
+ClientListener::ClientListener(boost::asio::io_service & asio)
   : ssl_context_(ssl::context::sslv23)
   , acceptor_(asio)
   , socket_(asio)
@@ -78,7 +78,7 @@ Listener::Listener(boost::asio::io_service & asio)
   logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
 }
 
-void Listener::run()
+void ClientListener::run()
 {
   boost::system::error_code ec;
 
@@ -95,17 +95,17 @@ void Listener::run()
   do_accept();
 }
 
-void Listener::do_accept()
+void ClientListener::do_accept()
 {
   acceptor_.async_accept(
     socket_,
     std::bind(
-      &Listener::on_accept,
+      &ClientListener::on_accept,
       shared_from_this(),
       std::placeholders::_1));
 }
 
-void Listener::on_accept(boost::system::error_code ec)
+void ClientListener::on_accept(boost::system::error_code ec)
 {
   EASY_FUNCTION();
 

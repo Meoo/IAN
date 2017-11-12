@@ -8,7 +8,7 @@
 #include <memory>
 
 
-class Listener : public std::enable_shared_from_this<Listener>
+class ClientListener : public std::enable_shared_from_this<ClientListener>
 {
 public:
   using SslContext = boost::asio::ssl::context;
@@ -16,10 +16,10 @@ public:
   using TcpSocket = boost::asio::ip::tcp::socket;
 
 
-  explicit Listener(boost::asio::io_service & asio);
+  explicit ClientListener(boost::asio::io_service & asio);
 
-  Listener(const Listener&) = delete;
-  Listener& operator=(const Listener&) = delete;
+  ClientListener(const ClientListener&) = delete;
+  ClientListener& operator=(const ClientListener&) = delete;
 
 
   void run();
