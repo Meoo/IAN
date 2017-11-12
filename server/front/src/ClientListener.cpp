@@ -45,9 +45,9 @@ ClientListener::ClientListener(boost::asio::io_service & asio)
     ssl_context_.set_options(
       boost::asio::ssl::context::default_workarounds |
       boost::asio::ssl::context::no_sslv2 |
+      boost::asio::ssl::context::no_sslv3 |
       boost::asio::ssl::context::no_tlsv1 |
       boost::asio::ssl::context::no_tlsv1_1 |
-      boost::asio::ssl::context::no_sslv3 |
       boost::asio::ssl::context::single_dh_use);
 
     ssl_context_.set_password_callback(std::bind([password] { return password; })); // Use bind to ignore args
@@ -137,6 +137,10 @@ void ClientListener::on_accept(boost::system::error_code ec)
   {
     logger_->info("Accepting client {}:{}",
       socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port());
+
+    // Disable Nagle
+    boost::asio::ip::tcp::no_delay no_delay(true);
+    socket_.set_option(no_delay);
 
     auto client = std::make_shared<ClientConnection>(std::move(socket_), ssl_context_);
     client->run();
