@@ -10,6 +10,16 @@ namespace ssl = boost::asio::ssl;
 namespace ip = boost::asio::ip;
 
 
+namespace
+{
+  const char default_listen_ip[] = "0.0.0.0";
+  const int default_listen_port = 7011;
+  const char default_cert[] = "cert.pem";
+  // Mozilla modern (as of 12/11/2017) https://wiki.mozilla.org/Security/Server_Side_TLS
+  const char default_cipher_list[] = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256";
+}
+
+
 ClientListener::ClientListener(boost::asio::io_service & asio)
   : ssl_context_(ssl::context::sslv23)
   , acceptor_(asio)
@@ -18,13 +28,14 @@ ClientListener::ClientListener(boost::asio::io_service & asio)
   logger_ = spdlog::get("front");
 
   // Config
-  std::string listenAddr = config::getString("front.listen_ip", "0.0.0.0");
-  int listenPort = config::getInt("front.listen_port", 7011);
+  std::string listenAddr = config::getString("front.listen_ip", ::default_listen_ip);
+  int listenPort = config::getInt("front.listen_port", ::default_listen_port);
 
-  std::string certChain = config::getString("front.certificate_chain", "cert.pem");
-  std::string privKey = config::getString("front.private_key", "cert.pem");
-  std::string dh = config::getString("front.dh", "dh.pem");
+  std::string certChain = config::getString("front.certificate_chain", ::default_cert);
+  std::string privKey = config::getString("front.private_key", ::default_cert);
+  std::string dh = config::getString("front.dh");
   std::string password = config::getString("front.private_key_password");
+  std::string cipherList = config::getString("front.cipher_list", ::default_cipher_list);
 
   ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
 
@@ -42,14 +53,22 @@ ClientListener::ClientListener(boost::asio::io_service & asio)
     ssl_context_.set_password_callback(std::bind([password] { return password; })); // Use bind to ignore args
     ssl_context_.use_certificate_chain_file(certChain);
     ssl_context_.use_private_key_file(privKey, boost::asio::ssl::context::pem);
-    ssl_context_.use_tmp_dh_file(dh);
+    if (!dh.empty())
+      ssl_context_.use_tmp_dh_file(dh);
 
-    if (SSL_CTX_set_cipher_list(ssl_context_.native_handle(),
-        "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS"
-        ) != 1)
+    if (SSL_CTX_set_dh_auto(ssl_context_.native_handle(), 1) != 1)
     {
-      // TODO
-      logger_->error("Failed to initialize SSL cipher list");
+      logger_->warn("Failed to initialize SSL dh auto");
+    }
+
+    if (SSL_CTX_set_ecdh_auto(ssl_context_.native_handle(), 1) != 1)
+    {
+      logger_->warn("Failed to initialize SSL ecdh auto");
+    }
+
+    if (SSL_CTX_set_cipher_list(ssl_context_.native_handle(), cipherList.c_str()) != 1)
+    {
+      logger_->warn("Failed to initialize SSL cipher list");
     }
   }
   catch (std::exception& ex)
