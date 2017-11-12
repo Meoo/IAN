@@ -9,8 +9,10 @@ find_package(Boost CONFIG REQUIRED system)
 
 add_library(${PROJECT_NAME} STATIC
   include/common/Config.hpp
+  include/common/ConfigView.hpp
   include/common/EasyProfiler.hpp
-  src/Config.cpp)
+  src/Config.cpp
+  src/ConfigView.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog::spdlog
