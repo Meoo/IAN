@@ -27,18 +27,18 @@ namespace config
     return true;
   }
 
-  bool getBool(const std::string& key, bool default)
+  bool getBool(const std::string& key, bool default_val)
   {
-    return ::config_tree.get(key, default);
+    return ::config_tree.get(key, default_val);
   }
 
-  std::string getString(const std::string& key, const std::string& default)
+  std::string getString(const std::string& key, const std::string& default_val)
   {
-    return ::config_tree.get(key, default);
+    return ::config_tree.get(key, default_val);
   }
 
-  int getInt(const std::string& key, int default)
+  int getInt(const std::string& key, int default_val)
   {
-    return ::config_tree.get(key, default);
+    return ::config_tree.get(key, default_val);
   }
 }
