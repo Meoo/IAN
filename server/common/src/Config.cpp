@@ -20,6 +20,7 @@ namespace
 
 namespace config
 {
+
   bool init(const std::string& file)
   {
     try
@@ -48,4 +49,5 @@ namespace config
   {
     return ::config_tree.get(key, default_val);
   }
-}
+
+} // config

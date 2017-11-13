@@ -6,6 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#pragma once
+
 #include <beast/websocket.hpp>
 #include <beast/http/string_body.hpp>
 #include <boost/asio/steady_timer.hpp>
