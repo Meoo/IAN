@@ -44,7 +44,7 @@ namespace
 namespace modbundle
 {
 
-  void load_modules(IModuleHost * host)
+  IAN_BUNDLE_API void load_modules(IModuleHost * host)
   {
   }
 

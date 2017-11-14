@@ -32,6 +32,15 @@ endfunction()
 
 
 # Options
+set(IAN_BUILD_CLIENT ON CACHE BOOL "Build IAN client")
+set(IAN_BUILD_SERVER ON CACHE BOOL "Build IAN server")
+set(IAN_BUILD_SERVER_MODULES ON CACHE BOOL "Build IAN server modules")
+set(IAN_SERVER_BUNDLE_STATIC OFF CACHE BOOL "Link server modules statically")
+
+if(IAN_BUILD_SERVER AND IAN_SERVER_BUNDLE_STATIC AND NOT IAN_BUILD_SERVER_MODULES)
+  message(FATAL_ERROR "Server modules must be enabled when building module bundle statically")
+endif()
+
 set(IAN_ENABLE_EASY_PROFILER OFF CACHE BOOL "Enable easy_profiler profiling")
 set(IAN_EASY_PROFILER_INSTALL_PATH "" CACHE PATH "easy_profiler install path")
 

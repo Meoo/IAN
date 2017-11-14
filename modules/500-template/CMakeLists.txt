@@ -6,6 +6,9 @@ return()
 # Global
 
 
+# Please prefix all you projects and libraries with "module-"
+project(module-template)
+
 # Minimal IAN version required
 ian_version_required(1.0)
 
@@ -19,11 +22,10 @@ ian_module_version(template 1.0.0.0)
 
 # Server
 
-# Use this instead of CMake's project function
-# "module-" prefix is added, and project will be linked to the module bundle
+# Use this instead of add_library
+# The library will be linked to the module bundle
 # Module SDK is also linked to this project automatically
-# You should use ${PROJECT_NAME} variable for all your CMake commands
-ian_server_module(template
+ian_server_module(module-template
   src/TemplateModule.hpp
   src/TemplateModule.cpp)
 

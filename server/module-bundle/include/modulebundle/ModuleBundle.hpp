@@ -29,7 +29,6 @@
 #     define IAN_BUNDLE_API __declspec(dllimport)
 #   endif
 # endif
-# define IAN_BUNDLE_LOCAL
 #else
 # if __GNUC__ >= 4
 #   define IAN_BUNDLE_API __attribute__ ((visibility ("default")))

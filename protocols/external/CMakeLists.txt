@@ -42,11 +42,11 @@ foreach(SRC_FBS ${FBS_FILES})
   list(APPEND GENERATED_FILES_JS ${GEN_JS})
 endforeach()
 
-add_custom_target(${PROJECT_NAME}-gen
+add_custom_target(${PROJECT_NAME}-gen ALL
   DEPENDS ${GENERATED_FILES}
   SOURCES ${FBS_FILES})
 
-add_custom_target(${PROJECT_NAME}-gen-js
+add_custom_target(${PROJECT_NAME}-gen-js ALL
   DEPENDS ${GENERATED_FILES_JS}
   SOURCES ${FBS_FILES})
 
