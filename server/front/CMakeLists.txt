@@ -15,8 +15,7 @@ add_executable(${PROJECT_NAME}
   src/ClientConnection.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  server-common
-  protocols-external
+  server-bin-common
   Beast::Beast
   OpenSSL::SSL OpenSSL::Crypto)
 
@@ -27,6 +26,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     crypt32.lib)
-
-  target_compile_definitions(${PROJECT_NAME} PRIVATE WINVER=${IAN_WINDOWS_VERSION} _WIN32_WINNT=${IAN_WINDOWS_VERSION})
 endif()

@@ -13,7 +13,7 @@ add_library(${PROJECT_NAME} ${IAN_BUNDLE_BUILD_MODE}
   src/ModuleBundle.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  server-module-sdk)
+  server-common)
 
 
 # Link to all declared modules
@@ -37,8 +37,4 @@ if(NOT IAN_SERVER_BUNDLE_STATIC)
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "ianbundle")
-#set_target_properties(${PROJECT_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-
-if(WIN32)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE WINVER=${IAN_WINDOWS_VERSION} _WIN32_WINNT=${IAN_WINDOWS_VERSION})
-endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)

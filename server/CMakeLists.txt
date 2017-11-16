@@ -3,12 +3,15 @@
 
 
 if(IAN_BUILD_SERVER OR IAN_BUILD_SERVER_MODULES)
+  add_subdirectory(common)
+endif()
+
+if(IAN_BUILD_SERVER_MODULES)
   add_subdirectory(module-sdk)
 endif()
 
 if(IAN_BUILD_SERVER)
-  add_subdirectory(common)
-
+  add_subdirectory(bin-common)
   add_subdirectory(node)
   add_subdirectory(front)
   add_subdirectory(game)

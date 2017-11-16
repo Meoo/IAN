@@ -10,8 +10,8 @@
 
 #include "ClientConnection.hpp"
 
-#include <common/Config.hpp>
 #include <common/EasyProfiler.hpp>
+#include <bincommon/Config.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip = boost::asio::ip;

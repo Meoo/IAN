@@ -8,8 +8,8 @@
 
 #include "ClientListener.hpp"
 
-#include <common/Config.hpp>
 #include <common/EasyProfiler.hpp>
+#include <bincommon/Config.hpp>
 
 #include <spdlog/spdlog.h>
 

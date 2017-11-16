@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <modulesdk/IModule.hpp>
-#include <modulesdk/IModuleHost.hpp>
+#include <common/IModule.hpp>
+#include <common/IModuleHost.hpp>
 
 
 #ifdef IAN_BUNDLE_SHARED
