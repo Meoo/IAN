@@ -25,7 +25,7 @@ public:
   using TcpSocket = boost::asio::ip::tcp::socket;
 
 
-  explicit ClientListener(boost::asio::io_service & asio);
+  ClientListener(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_service & asio);
 
   ClientListener(const ClientListener&) = delete;
   ClientListener& operator=(const ClientListener&) = delete;

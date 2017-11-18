@@ -33,7 +33,7 @@ int main(int argc, char** argv)
   }
 
 
-  const size_t threads = config::getInt("front.threads", 2);
+  const size_t threads = config::get_int("front.threads", 2);
 
   logger->info("Front starting with {} thread(s)...", threads);
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
   // Start listener
   {
-    auto listener = std::make_shared<ClientListener>(asio);
+    auto listener = std::make_shared<ClientListener>(logger, asio);
     listener->run();
   }
 

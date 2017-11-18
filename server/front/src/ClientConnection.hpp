@@ -30,7 +30,7 @@ public:
   using WsStream = beast::websocket::stream<SslStream>;
 
 
-  ClientConnection(TcpSocket && socket, SslContext & ssl_ctx);
+  ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket, SslContext & ssl_ctx);
 
   ClientConnection(const ClientConnection&) = delete;
   ClientConnection& operator=(const ClientConnection&) = delete;
@@ -53,10 +53,15 @@ private:
   beast::multi_buffer write_buffer_;
 
 
+  void abort();
+  void shutdown();
+
+
   void set_timeout(const boost::asio::steady_timer::duration & delay);
 
 
   void on_timer(boost::system::error_code ec);
+  void on_shutdown(boost::system::error_code ec);
 
   void on_ssl_handshake(boost::system::error_code ec);
   void on_read_request(boost::system::error_code ec);
@@ -64,5 +69,8 @@ private:
 
   void on_read(boost::system::error_code ec);
   void on_write(boost::system::error_code ec);
+
+
+  void handle_read_error(boost::system::error_code ec);
 
 };

@@ -27,13 +27,12 @@ namespace
 }
 
 
-ClientListener::ClientListener(boost::asio::io_service & asio)
-  : ssl_context_(ssl::context::sslv23)
+ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_service & asio)
+  : logger_(logger)
+  , ssl_context_(ssl::context::sslv23)
   , acceptor_(asio)
   , socket_(asio)
 {
-  logger_ = spdlog::get("front");
-
   // Config
   std::string listenAddr = config::get_string("front.listen_ip", ::default_listen_ip);
   int listenPort = config::get_int("front.listen_port", ::default_listen_port);
@@ -149,7 +148,7 @@ void ClientListener::on_accept(boost::system::error_code ec)
     boost::asio::ip::tcp::no_delay no_delay(true);
     socket_.set_option(no_delay);
 
-    auto client = std::make_shared<ClientConnection>(std::move(socket_), ssl_context_);
+    auto client = std::make_shared<ClientConnection>(logger_, std::move(socket_), ssl_context_);
     client->run();
   }
 
