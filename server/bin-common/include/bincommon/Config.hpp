@@ -14,7 +14,7 @@ namespace config
   // Call only once in main
   bool init(const std::string& file = std::string());
 
-  bool getBool(const std::string& key, bool default_val);
-  std::string getString(const std::string& key, const std::string& default_val = std::string());
-  int getInt(const std::string& key, int default_val = 0);
+  bool get_bool(const std::string& key, bool default_val);
+  std::string get_string(const std::string& key, const std::string& default_val = std::string());
+  int get_int(const std::string& key, int default_val = 0);
 }

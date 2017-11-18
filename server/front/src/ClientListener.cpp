@@ -35,14 +35,14 @@ ClientListener::ClientListener(boost::asio::io_service & asio)
   logger_ = spdlog::get("front");
 
   // Config
-  std::string listenAddr = config::getString("front.listen_ip", ::default_listen_ip);
-  int listenPort = config::getInt("front.listen_port", ::default_listen_port);
+  std::string listenAddr = config::get_string("front.listen_ip", ::default_listen_ip);
+  int listenPort = config::get_int("front.listen_port", ::default_listen_port);
 
-  std::string certChain = config::getString("front.certificate_chain", ::default_cert);
-  std::string privKey = config::getString("front.private_key", ::default_cert);
-  std::string dh = config::getString("front.dh");
-  std::string password = config::getString("front.private_key_password");
-  std::string cipherList = config::getString("front.cipher_list", ::default_cipher_list);
+  std::string certChain = config::get_string("front.certificate_chain", ::default_cert);
+  std::string privKey = config::get_string("front.private_key", ::default_cert);
+  std::string dh = config::get_string("front.dh");
+  std::string password = config::get_string("front.private_key_password");
+  std::string cipherList = config::get_string("front.cipher_list", ::default_cipher_list);
 
   ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
 

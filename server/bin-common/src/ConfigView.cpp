@@ -15,22 +15,22 @@ ConfigView::ConfigView(const std::string& group)
 {
 }
 
-bool ConfigView::getBool(const std::string& key, bool default_val)
+bool ConfigView::get_bool(const std::string& key, bool default_val)
 {
-  return config::getBool(prefix_ + key, default_val);
+  return config::get_bool(prefix_ + key, default_val);
 }
 
-std::string ConfigView::getString(const std::string& key, const std::string& default_val)
+std::string ConfigView::get_string(const std::string& key, const std::string& default_val)
 {
-  return config::getString(prefix_ + key, default_val);
+  return config::get_string(prefix_ + key, default_val);
 }
 
-int ConfigView::getInt(const std::string& key, int default_val)
+int ConfigView::get_int(const std::string& key, int default_val)
 {
-  return config::getInt(prefix_ + key, default_val);
+  return config::get_int(prefix_ + key, default_val);
 }
 
-ConfigView ConfigView::subView(const std::string& group)
+ConfigView ConfigView::sub_view(const std::string& group)
 {
   return ConfigView(prefix_ + group);
 }

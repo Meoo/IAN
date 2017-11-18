@@ -35,17 +35,17 @@ namespace config
     return true;
   }
 
-  bool getBool(const std::string& key, bool default_val)
+  bool get_bool(const std::string& key, bool default_val)
   {
     return ::config_tree.get(key, default_val);
   }
 
-  std::string getString(const std::string& key, const std::string& default_val)
+  std::string get_string(const std::string& key, const std::string& default_val)
   {
     return ::config_tree.get(key, default_val);
   }
 
-  int getInt(const std::string& key, int default_val)
+  int get_int(const std::string& key, int default_val)
   {
     return ::config_tree.get(key, default_val);
   }
