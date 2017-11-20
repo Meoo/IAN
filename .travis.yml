@@ -22,27 +22,27 @@ dist:
 matrix:
   include:
     # Linux {
-    - os: linux
-      env: CONFIG=Release TOOLCHAIN=clang-libstdcxx
-    - os: linux
-      env: CONFIG=Debug TOOLCHAIN=clang-libstdcxx
+    #- os: linux
+    #  env: CONFIG=Release TOOLCHAIN=clang-libstdcxx
+    #- os: linux
+    #  env: CONFIG=Debug TOOLCHAIN=clang-libstdcxx
     - os: linux
       env: CONFIG=Release TOOLCHAIN=gcc
     - os: linux
       env: CONFIG=Debug TOOLCHAIN=gcc
 
-    - os: linux
-      env: CONFIG=Release TOOLCHAIN=analyze
-    - os: linux
-      env: CONFIG=Debug TOOLCHAIN=analyze
-    - os: linux
-      env: CONFIG=Release TOOLCHAIN=sanitize-address
-    - os: linux
-      env: CONFIG=Debug TOOLCHAIN=sanitize-address
-    - os: linux
-      env: CONFIG=Release TOOLCHAIN=sanitize-leak
-    - os: linux
-      env: CONFIG=Debug TOOLCHAIN=sanitize-leak
+    #- os: linux
+    #  env: CONFIG=Release TOOLCHAIN=analyze
+    #- os: linux
+    #  env: CONFIG=Debug TOOLCHAIN=analyze
+    #- os: linux
+    #  env: CONFIG=Release TOOLCHAIN=sanitize-address
+    #- os: linux
+    #  env: CONFIG=Debug TOOLCHAIN=sanitize-address
+    #- os: linux
+    #  env: CONFIG=Release TOOLCHAIN=sanitize-leak
+    #- os: linux
+    #  env: CONFIG=Debug TOOLCHAIN=sanitize-leak
     # FIXME: https://github.com/ruslo/hunter/issues/718#issuecomment-290610583
     # - os: linux
     #   env: CONFIG=Release TOOLCHAIN=sanitize-thread

@@ -6,22 +6,22 @@ environment:
     - TOOLCHAIN: "vs-14-2015"
       CONFIG: Release
 
-    - TOOLCHAIN: "vs-14-2015"
-      CONFIG: Debug
+    #- TOOLCHAIN: "vs-14-2015"
+    #  CONFIG: Debug
 
     ###
     - TOOLCHAIN: "vs-14-2015-win64"
       CONFIG: Release
 
-    - TOOLCHAIN: "vs-14-2015-win64"
-      CONFIG: Debug
+    #- TOOLCHAIN: "vs-14-2015-win64"
+    #  CONFIG: Debug
 
     ###
-    - TOOLCHAIN: "msys"
-      CONFIG: Release
+    #- TOOLCHAIN: "msys"
+    #  CONFIG: Release
 
-    - TOOLCHAIN: "msys"
-      CONFIG: Debug
+    #- TOOLCHAIN: "msys"
+    #  CONFIG: Debug
 
 install:
   # Python 3
