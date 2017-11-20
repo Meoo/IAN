@@ -1,0 +1,53 @@
+# Windows (https://github.com/travis-ci-tester/toolchain-table)
+
+environment:
+  matrix:
+    ###
+    - TOOLCHAIN: "vs-14-2015"
+      CONFIG: Release
+
+    - TOOLCHAIN: "vs-14-2015"
+      CONFIG: Debug
+
+    ###
+    - TOOLCHAIN: "vs-14-2015-win64"
+      CONFIG: Release
+
+    - TOOLCHAIN: "vs-14-2015-win64"
+      CONFIG: Debug
+
+    ###
+    - TOOLCHAIN: "msys"
+      CONFIG: Release
+
+    - TOOLCHAIN: "msys"
+      CONFIG: Debug
+
+install:
+  # Python 3
+  - cmd: set PATH=C:\Python34-x64;C:\Python34-x64\Scripts;%PATH%
+
+  # Install Python package 'requests'
+  - cmd: pip install requests
+
+  # Install latest Polly toolchains and scripts
+  - cmd: appveyor DownloadFile https://github.com/ruslo/polly/archive/master.zip
+  - cmd: 7z x master.zip
+  - cmd: set POLLY_ROOT=%cd%\polly-master
+
+  # Install dependencies (CMake, Ninja)
+  - cmd: python %POLLY_ROOT%\bin\install-ci-dependencies.py
+
+  # Tune locations
+  - cmd: set PATH=%cd%\_ci\cmake\bin;%PATH%
+  - cmd: set PATH=%cd%\_ci\ninja;%PATH%
+
+  # If submodules used
+  # - git submodule update --init --recursive
+
+  # MSYS2 location
+  - cmd: set MSYS_PATH=C:\msys64\usr\bin
+
+build_script:
+  # --verbose --test
+  - cmd: python %POLLY_ROOT%\bin\build.py --toolchain "%TOOLCHAIN%" --config "%CONFIG%"
