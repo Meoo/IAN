@@ -1,5 +1,5 @@
 
-#include <modulebundle/ModuleBundle.hpp>
+#include <module-bundle/ModuleBundle.hpp>
 
 
 int main(int argc, char ** argv)

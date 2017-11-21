@@ -2,7 +2,7 @@
 project(protocols-external)
 
 
-set(INCLUDE_DIR "proto_external")
+set(INCLUDE_DIR "proto-ext")
 
 set(FBS_FILES
   test.fbs

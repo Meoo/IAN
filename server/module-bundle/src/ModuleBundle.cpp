@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <modulebundle/ModuleBundle.hpp>
+#include <module-bundle/ModuleBundle.hpp>
 
 #include <modules/mod_headers.gen.h>
 

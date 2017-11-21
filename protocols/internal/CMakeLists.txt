@@ -2,7 +2,7 @@
 project(protocols-internal)
 
 
-set(INCLUDE_DIR "proto_internal")
+set(INCLUDE_DIR "proto-in")
 
 set(FBS_FILES
   test.fbs)

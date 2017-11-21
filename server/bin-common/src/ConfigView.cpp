@@ -6,8 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bincommon/Config.hpp>
-#include <bincommon/ConfigView.hpp>
+#include <bin-common/Config.hpp>
+#include <bin-common/ConfigView.hpp>
 
 
 ConfigView::ConfigView(const std::string& group)

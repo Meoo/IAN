@@ -11,8 +11,8 @@
 
 namespace config
 {
-  // Call only once in main
-  bool init(const std::string& file = std::string());
+  // Not thread safe, call only for initialization
+  bool load(const std::string& file = std::string());
 
   bool get_bool(const std::string& key, bool default_val);
   std::string get_string(const std::string& key, const std::string& default_val = std::string());

@@ -9,7 +9,7 @@
 #include "ClientListener.hpp"
 
 #include <common/EasyProfiler.hpp>
-#include <bincommon/Config.hpp>
+#include <bin-common/Config.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -25,8 +25,8 @@ int main(int argc, char** argv)
   //spdlog::set_async_mode(512); ?
   auto logger = spdlog::stdout_color_mt("front");
 
-  // Init config
-  if (!config::init())
+  // Load config file
+  if (!config::load())
   {
     logger->critical("Failed to read config file");
     return 1;

@@ -5,8 +5,8 @@ hunter_add_package(Boost COMPONENTS system)
 find_package(Boost CONFIG REQUIRED system)
 
 add_library(${PROJECT_NAME} STATIC
-  include/bincommon/Config.hpp
-  include/bincommon/ConfigView.hpp
+  include/bin-common/Config.hpp
+  include/bin-common/ConfigView.hpp
   src/Config.cpp
   src/ConfigView.cpp)
 

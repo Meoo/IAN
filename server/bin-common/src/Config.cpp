@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bincommon/Config.hpp>
+#include <bin-common/Config.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
@@ -21,7 +21,7 @@ namespace
 namespace config
 {
 
-  bool init(const std::string& file)
+  bool load(const std::string& file)
   {
     try
     {

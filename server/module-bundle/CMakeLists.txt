@@ -9,7 +9,7 @@ endif()
 
 
 add_library(${PROJECT_NAME} ${IAN_BUNDLE_BUILD_MODE}
-  include/modulebundle/ModuleBundle.hpp
+  include/module-bundle/ModuleBundle.hpp
   src/ModuleBundle.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
