@@ -13,48 +13,42 @@
 
 #include <spdlog/spdlog.h>
 
+#include <csignal>
+#include <cstdlib>
 #include <thread>
 
 
-int main(int argc, char** argv)
+namespace signals
 {
-  EASY_MAIN_THREAD;
+  bool shouldStop = false;
+  bool shouldReload = false;
+  boost::asio::io_service* asio;
 
-
-  // Init logger
-  //spdlog::set_async_mode(512); ?
-  auto logger = spdlog::stdout_color_mt("front");
-
-  // Load config file
-  if (!config::load())
+  extern "C" void sigStop(int)
   {
-    logger->critical("Failed to read config file");
-    return 1;
+    shouldStop = true;
+    asio->stop();
   }
 
-
-  const size_t threads = config::get_int("front.threads", 2);
-
-  logger->info("Front starting with {} thread(s)...", threads);
-
-
-  boost::asio::io_service asio(threads);
-
-  // Start listener
+  extern "C" void sigReload(int)
   {
-    auto listener = std::make_shared<ClientListener>(logger, asio);
-    listener->run();
+    shouldReload = true;
+    asio->stop();
   }
+}
 
+
+void runAsio(size_t threads, boost::asio::io_service& asio)
+{
   // Thread pool
-  std::vector<std::thread> v;
+  std::vector<std::thread> pool;
 
   if (threads > 1)
   {
-    v.reserve(threads - 1);
+    pool.reserve(threads - 1);
     for (auto i = threads - 1; i > 0; --i)
     {
-      v.emplace_back(
+      pool.emplace_back(
         [&asio]
         {
           EASY_THREAD_SCOPE("ASIO Worker");
@@ -66,8 +60,84 @@ int main(int argc, char** argv)
 
   asio.run();
 
-  logger->info("Front shutting down");
-  spdlog::drop_all();
+  for (auto& thread : pool)
+  {
+    thread.join();
+  }
+}
 
+
+int main(int argc, char** argv)
+{
+  EASY_MAIN_THREAD;
+
+
+  // Init logger
+  //spdlog::set_async_mode(512); ?
+  auto logger = spdlog::stdout_color_mt("front");
+  std::atexit(spdlog::drop_all);
+
+  // Load config file
+  if (!config::load())
+  {
+    logger->critical("Failed to read config file");
+    spdlog::drop_all();
+    return 1;
+  }
+
+
+  // ASIO & listener
+  size_t threads = config::get_int("front.threads", 2);
+  boost::asio::io_service asio(threads);
+
+  {
+    auto listener = std::make_shared<ClientListener>(logger, asio);
+    listener->run();
+  }
+
+
+  // Install signal handlers
+  signals::asio = &asio;
+
+  std::signal(SIGINT, signals::sigStop);
+  std::signal(SIGTERM, signals::sigStop);
+#ifdef SIGHUP
+  std::signal(SIGHUP, signals::sigReload);
+#endif
+
+
+  // Loop when reloading configuration
+  for(;;)
+  {
+    logger->info("Ready with {} thread(s)", threads);
+
+    runAsio(threads, asio);
+
+    if (signals::shouldStop)
+    {
+      logger->info("Received stop signal");
+      break;
+    }
+
+    if (signals::shouldReload)
+    {
+      if (!config::load())
+      {
+        logger->critical("Failed to reload config file");
+        return 1;
+      }
+      threads = config::get_int("front.threads", 2);
+
+      logger->info("Config reloaded");
+      asio.reset();
+      signals::shouldReload = false;
+      continue;
+    }
+
+    logger->error("ASIO stopped without signal");
+    return 1;
+  }
+
+  logger->info("Shutting down");
   return 0;
 }
