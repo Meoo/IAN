@@ -25,6 +25,13 @@ ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logge
 {
 }
 
+ClientConnection::~ClientConnection()
+{
+  // Close must be called last or using LOG_SOCKET_TUPLE will throw
+  boost::system::error_code ec;
+  socket_.close(ec);
+}
+
 void ClientConnection::run()
 {
   // 5s timeout for connection setup
@@ -47,14 +54,14 @@ void ClientConnection::abort()
   // Ignore errors
   timer_.cancel(ec);
 
-  if (!socket_.is_open())
+  if (dropped_)
     return;
 
   logger_->info("Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
-  socket_.close(ec);
+  dropped_ = true;
 }
 
 void ClientConnection::shutdown()
@@ -91,11 +98,7 @@ void ClientConnection::set_timeout(const boost::asio::steady_timer::duration & d
 
 void ClientConnection::on_timer(boost::system::error_code ec)
 {
-  if (ec == boost::asio::error::operation_aborted)
-    return;
-
-  // Race condition when connection is aborted
-  if (!socket_.is_open())
+  if (dropped_ || ec == boost::asio::error::operation_aborted)
     return;
 
   logger_->info("Client timed out: {}:{}", LOG_SOCKET_TUPLE);
@@ -104,6 +107,9 @@ void ClientConnection::on_timer(boost::system::error_code ec)
 
 void ClientConnection::on_shutdown(boost::system::error_code ec)
 {
+  if (dropped_)
+    return;
+
   if (ec)
   {
     if (ec != boost::asio::error::connection_aborted
@@ -115,11 +121,13 @@ void ClientConnection::on_shutdown(boost::system::error_code ec)
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
-  socket_.close(ec);
 }
 
 void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
 {
+  if (dropped_)
+    return;
+
   if (ec)
   {
     logger_->warn("SSL handshake failed for client: {}:{} : {}", LOG_SOCKET_TUPLE, ec.message());
@@ -174,6 +182,9 @@ void ClientConnection::on_read_request(boost::system::error_code ec)
 
 void ClientConnection::on_ws_handshake(boost::system::error_code ec)
 {
+  if (dropped_)
+    return;
+
   if (ec)
   {
     logger_->warn("Websocket handshake failed for client: {}:{} : {}", LOG_SOCKET_TUPLE, ec.message());
@@ -215,6 +226,9 @@ void ClientConnection::on_write(boost::system::error_code ec)
 
 void ClientConnection::handle_read_error(boost::system::error_code ec)
 {
+  if (dropped_)
+    return;
+
   if (ec == boost::asio::error::connection_aborted
    || ec == boost::asio::error::connection_reset)
   {

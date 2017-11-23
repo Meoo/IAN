@@ -31,6 +31,7 @@ public:
 
 
   ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket, SslContext & ssl_ctx);
+  ~ClientConnection();
 
   ClientConnection(const ClientConnection&) = delete;
   ClientConnection& operator=(const ClientConnection&) = delete;
@@ -42,6 +43,7 @@ public:
 private:
   std::shared_ptr<spdlog::logger> logger_;
 
+  bool dropped_ = false;
   TcpSocket socket_;
   WsStream stream_;
 
