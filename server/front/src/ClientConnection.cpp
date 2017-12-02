@@ -11,6 +11,7 @@
 #include <common/EasyProfiler.hpp>
 
 #include <beast/http/read.hpp>
+#include <beast/websocket/ssl.hpp>
 
 
 #define LOG_SOCKET_TUPLE socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
@@ -34,8 +35,8 @@ ClientConnection::~ClientConnection()
 
 void ClientConnection::run()
 {
-  // 5s timeout for connection setup
-  set_timeout(std::chrono::seconds(5));
+  // 3s timeout for connection setup
+  set_timeout(std::chrono::seconds(3));
 
   // SSL handshake
   stream_.next_layer().async_handshake(
@@ -91,12 +92,12 @@ void ClientConnection::set_timeout(const boost::asio::steady_timer::duration & d
   timer_.async_wait(
     strand_.wrap(
       std::bind(
-        &ClientConnection::on_timer,
+        &ClientConnection::on_timeout,
         shared_from_this(),
         std::placeholders::_1)));
 }
 
-void ClientConnection::on_timer(boost::system::error_code ec)
+void ClientConnection::on_timeout(boost::system::error_code ec)
 {
   if (dropped_ || ec == boost::asio::error::operation_aborted)
     return;
@@ -114,7 +115,7 @@ void ClientConnection::on_shutdown(boost::system::error_code ec)
   {
     if (ec != boost::asio::error::connection_aborted
      && ec != boost::asio::error::connection_reset)
-      logger_->warn("Shutdown error for client: {}:{} : {}", LOG_SOCKET_TUPLE, ec.message());
+      logger_->warn("Shutdown error for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(), ec.value());
   }
 
   logger_->info("Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
@@ -130,7 +131,7 @@ void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
 
   if (ec)
   {
-    logger_->warn("SSL handshake failed for client: {}:{} : {}", LOG_SOCKET_TUPLE, ec.message());
+    logger_->warn("SSL handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(), ec.value());
     abort();
     return;
   }
@@ -152,6 +153,12 @@ void ClientConnection::on_read_request(boost::system::error_code ec)
   {
     handle_read_error(ec);
     return;
+  }
+
+  if (read_buffer_.size() > 0)
+  {
+    logger_->warn("Data left in buffer after request read (size {}) for client: {}:{}", read_buffer_.size(), LOG_SOCKET_TUPLE);
+    read_buffer_ = beast::flat_buffer();
   }
 
   if (beast::websocket::is_upgrade(request_))
@@ -187,7 +194,7 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
 
   if (ec)
   {
-    logger_->warn("Websocket handshake failed for client: {}:{} : {}", LOG_SOCKET_TUPLE, ec.message());
+    logger_->warn("Websocket handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(), ec.value());
     shutdown();
     return;
   }
@@ -196,10 +203,19 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
 
   stream_.binary(true);
   //stream_.auto_fragment(true);
+  stream_.read_message_max(0x4000);
 
   // Refresh timeout
   set_timeout(std::chrono::seconds(30));
 
+  // Start reading packets
+  stream_.async_read(
+    read_buffer_,
+    strand_.wrap(
+      std::bind(
+        &ClientConnection::on_read,
+        shared_from_this(),
+        std::placeholders::_1)));
 }
 
 void ClientConnection::on_read(boost::system::error_code ec)
@@ -210,7 +226,24 @@ void ClientConnection::on_read(boost::system::error_code ec)
     return;
   }
 
-  // TODO
+  // Get data
+  beast::flat_buffer read_buffer;
+  std::swap(read_buffer_, read_buffer);
+
+  // Start reading next
+  stream_.async_read(
+    read_buffer_,
+    strand_.wrap(
+      std::bind(
+        &ClientConnection::on_read,
+        shared_from_this(),
+        std::placeholders::_1)));
+
+  // Reset timeout if required
+  if (timer_.expires_from_now() <= std::chrono::seconds(15))
+    set_timeout(std::chrono::seconds(30));
+
+  // TODO Process data
 }
 
 void ClientConnection::on_write(boost::system::error_code ec)

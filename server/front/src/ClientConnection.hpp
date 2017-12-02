@@ -51,8 +51,8 @@ private:
   boost::asio::steady_timer timer_;
 
   beast::http::request<beast::http::string_body> request_;
-  beast::multi_buffer read_buffer_;
-  beast::multi_buffer write_buffer_;
+  beast::flat_buffer read_buffer_;
+  beast::flat_buffer write_buffer_;
 
 
   void abort();
@@ -62,7 +62,7 @@ private:
   void set_timeout(const boost::asio::steady_timer::duration & delay);
 
 
-  void on_timer(boost::system::error_code ec);
+  void on_timeout(boost::system::error_code ec);
   void on_shutdown(boost::system::error_code ec);
 
   void on_ssl_handshake(boost::system::error_code ec);
