@@ -1,0 +1,14 @@
+include "Status.fbs";
+
+namespace proto;
+
+
+union CoreMessageType {
+  Status
+}
+
+table CoreMessage {
+  message:CoreMessageType;
+}
+
+root_type CoreMessage;

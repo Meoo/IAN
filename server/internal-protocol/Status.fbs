@@ -1,0 +1,6 @@
+namespace proto;
+
+
+table Status {
+  test:string;
+}

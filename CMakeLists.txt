@@ -49,11 +49,22 @@ if(IAN_ENABLE_EASY_PROFILER AND IAN_EASY_PROFILER_INSTALL_PATH)
 endif()
 
 
+# Global dependencies
+hunter_add_package(flatbuffers)
+find_package(flatbuffers CONFIG REQUIRED)
+
+if(WIN32)
+  set(FLATBUFFERS_FLATC_EXECUTABLE "${FLATBUFFERS_ROOT}/bin/flatc.exe")
+else()
+  set(FLATBUFFERS_FLATC_EXECUTABLE "${FLATBUFFERS_ROOT}/bin/flatc")
+endif()
+
+
+
+add_subdirectory(protocols)
 
 add_subdirectory(client)
 add_subdirectory(server)
-
-add_subdirectory(protocols)
 
 add_subdirectory(modules)
 

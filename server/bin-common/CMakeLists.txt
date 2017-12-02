@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME} STATIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common
+  server-internal-protocol
   Boost::system)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)

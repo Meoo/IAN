@@ -7,8 +7,6 @@ find_package(spdlog CONFIG REQUIRED)
 add_library(${PROJECT_NAME} INTERFACE)
 
 target_link_libraries(${PROJECT_NAME} INTERFACE
-  protocols-internal
-  protocols-external
   spdlog::spdlog)
 
 target_include_directories(${PROJECT_NAME} INTERFACE include)

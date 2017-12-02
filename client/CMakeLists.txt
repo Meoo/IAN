@@ -8,15 +8,18 @@ if(IAN_BUILD_CLIENT)
   set_property(GLOBAL PROPERTY IAN_CLIENT_CSS_FILES)
 
 
-  function(ian_client_add_body)
-    foreach(BODY_FILE ${ARGV})
+  function(ian_client_add)
+    set(opts)
+    set(oneArgs)
+    set(multiArgs BODY JS CSS)
+    cmake_parse_arguments(ARG "${opts}" "${oneArgs}" "${multiArgs}" ${ARGN})
+
+    foreach(BODY_FILE ${ARG_BODY})
       get_filename_component(BODY_FULLPATH ${BODY_FILE} ABSOLUTE)
       set_property(GLOBAL APPEND PROPERTY IAN_CLIENT_BODY_FILES ${BODY_FULLPATH})
     endforeach()
-  endfunction()
 
-  function(ian_client_add_js)
-    foreach(JS_FILE ${ARGV})
+    foreach(JS_FILE ${ARG_JS})
       if (JS_FILE MATCHES "^https?://")
         set_property(GLOBAL APPEND PROPERTY IAN_CLIENT_JS_FILES ${JS_FILE})
       else()
@@ -24,10 +27,8 @@ if(IAN_BUILD_CLIENT)
         set_property(GLOBAL APPEND PROPERTY IAN_CLIENT_JS_FILES ${JS_FULLPATH})
       endif()
     endforeach()
-  endfunction()
 
-  function(ian_client_add_css)
-    foreach(CSS_FILE ${ARGV})
+    foreach(CSS_FILE ${ARG_CSS})
       if (CSS_FILE MATCHES "^https?://")
         set_property(GLOBAL APPEND PROPERTY IAN_CLIENT_CSS_FILES ${CSS_FILE})
       else()
@@ -101,16 +102,10 @@ if(IAN_BUILD_CLIENT)
 
   endfunction()
 
-  ian_client_add_css(shell.css)
+  ian_client_add(CSS shell.css)
 
 else()
-  function(ian_client_add_body)
-  endfunction()
-
-  function(ian_client_add_js)
-  endfunction()
-
-  function(ian_client_add_css)
+  function(ian_client_add)
   endfunction()
 
   function(ian_client_finalize)

@@ -40,11 +40,14 @@ ian_server_add_module_class(Template)
 # Client
 
 
-# Add HTML chunk to client
-#ian_client_add_body(template.html)
+# Add HTML chunks to client
+#ian_client_add(BODY template.html)
 
-# Add JS file to client
-#ian_client_add_js(template.js)
+# Add JS files to client
+#ian_client_add(JS template1.js template2.js)
 
-# Add CSS file to client
-#ian_client_add_css(template.css)
+# Add CSS files to client
+#ian_client_add(CSS template.css)
+
+# Can be combined
+#ian_client_add(BODY file.html JS file.js CSS file1.css file2.css)
