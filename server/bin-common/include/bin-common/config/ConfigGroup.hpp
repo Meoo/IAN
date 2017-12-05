@@ -6,20 +6,22 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#pragma once
+
 #include <string>
 
 
-class ConfigView
+class ConfigGroup
 {
 public:
-  ConfigView(const std::string& group);
+  ConfigGroup(const std::string& group);
 
 
   bool get_bool(const std::string& key, bool default_val);
   std::string get_string(const std::string& key, const std::string& default_val = std::string());
   int get_int(const std::string& key, int default_val = 0);
 
-  ConfigView sub_view(const std::string& group);
+  ConfigGroup get_subgroup(const std::string& group);
 
 
 private:

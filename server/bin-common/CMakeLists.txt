@@ -5,10 +5,16 @@ hunter_add_package(Boost COMPONENTS system)
 find_package(Boost CONFIG REQUIRED system)
 
 add_library(${PROJECT_NAME} STATIC
-  include/bin-common/Config.hpp
-  include/bin-common/ConfigView.hpp
-  src/Config.cpp
-  src/ConfigView.cpp)
+  include/bin-common/config/Config.hpp
+  include/bin-common/config/ConfigGroup.hpp
+  include/bin-common/config/ConfigListener.hpp
+  include/bin-common/config/ConfigValue.hpp
+  src/config/Config.cpp
+  src/config/ConfigGroup.cpp
+  src/config/ConfigListener.cpp
+  src/config/ConfigListeners.cpp
+  src/config/ConfigListeners.hpp
+  src/config/ConfigValue.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common

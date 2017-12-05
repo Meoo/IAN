@@ -6,10 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/Config.hpp>
+#include <bin-common/config/Config.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
+
+#include "ConfigListeners.hpp"
 
 
 namespace
@@ -27,6 +29,8 @@ namespace config
     {
       boost::property_tree::read_info(
         file.empty() ? "config.info" : file, ::config_tree);
+
+      impl::invoke_config_listeners();
     }
     catch (...)
     {

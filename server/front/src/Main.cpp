@@ -9,7 +9,8 @@
 #include "ClientListener.hpp"
 
 #include <common/EasyProfiler.hpp>
-#include <bin-common/Config.hpp>
+#include <bin-common/config/Config.hpp>
+#include <bin-common/config/ConfigValue.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -87,7 +88,7 @@ int main(int argc, char** argv)
 
 
   // ASIO & listener
-  size_t threads = config::get_int("front.threads", 2);
+  ConfigIntValue threads("front.threads", 2);
   boost::asio::io_service asio(threads);
 
   {
@@ -126,7 +127,6 @@ int main(int argc, char** argv)
         logger->critical("Failed to reload config file");
         return 1;
       }
-      threads = config::get_int("front.threads", 2);
 
       logger->info("Config reloaded");
       asio.reset();

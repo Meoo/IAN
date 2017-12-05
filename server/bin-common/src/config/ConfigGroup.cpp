@@ -6,31 +6,31 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/Config.hpp>
-#include <bin-common/ConfigView.hpp>
+#include <bin-common/config/Config.hpp>
+#include <bin-common/config/ConfigGroup.hpp>
 
 
-ConfigView::ConfigView(const std::string& group)
+ConfigGroup::ConfigGroup(const std::string& group)
   : prefix_(group + ".")
 {
 }
 
-bool ConfigView::get_bool(const std::string& key, bool default_val)
+bool ConfigGroup::get_bool(const std::string& key, bool default_val)
 {
   return config::get_bool(prefix_ + key, default_val);
 }
 
-std::string ConfigView::get_string(const std::string& key, const std::string& default_val)
+std::string ConfigGroup::get_string(const std::string& key, const std::string& default_val)
 {
   return config::get_string(prefix_ + key, default_val);
 }
 
-int ConfigView::get_int(const std::string& key, int default_val)
+int ConfigGroup::get_int(const std::string& key, int default_val)
 {
   return config::get_int(prefix_ + key, default_val);
 }
 
-ConfigView ConfigView::sub_view(const std::string& group)
+ConfigGroup ConfigGroup::get_subgroup(const std::string& group)
 {
-  return ConfigView(prefix_ + group);
+  return ConfigGroup(prefix_ + group);
 }
