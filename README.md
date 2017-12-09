@@ -1,9 +1,15 @@
 
 # IAN
 
+
 ## Building
 
-CMake >= 3.7 required.
+CMake >= 3.7 is required.
+
+
+### Server
+
+A compiler supporting C++14 is required to build the server.
 
 Dependencies are managed through [CMake](http://cmake.org/) and [hunter](https://github.com/ruslo/hunter).
 
@@ -20,6 +26,18 @@ Dependencies (automated with hunter):
 Optional dependencies:
 
 * [easy_profiler](https://github.com/yse/easy_profiler) (has to be built manually)
+
+
+### Client
+
+Client is built using [webpack](https://webpack.js.org/).
+
+Dependencies (have to be installed):
+
+* [npm](https://www.npmjs.com/)
+* [yarn](https://yarnpkg.com/) (optional but recommended)
+
+
 
 ## License
 

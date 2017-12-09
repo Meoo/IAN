@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 
-include("cmake/HunterGate.cmake")
+include(cmake/HunterGate.cmake)
 HunterGate(
   URL "https://github.com/ruslo/hunter/archive/v0.19.148.tar.gz"
   SHA1 "63631441d472a0f8d80f8efefa02b544193aafea"
@@ -37,6 +37,8 @@ set(IAN_BUILD_SERVER ON CACHE BOOL "Build IAN server")
 set(IAN_BUILD_SERVER_MODULES ON CACHE BOOL "Build IAN server modules")
 set(IAN_SERVER_BUNDLE_STATIC OFF CACHE BOOL "Link server modules statically")
 
+set(IAN_FLATBUFFERS_USE_TYPESCRIPT ON CACHE BOOL "Build TypeScript instead of JavaScript for flatbuffers")
+
 if(IAN_BUILD_SERVER AND IAN_SERVER_BUNDLE_STATIC AND NOT IAN_BUILD_SERVER_MODULES)
   message(FATAL_ERROR "Server modules must be enabled when building module bundle statically")
 endif()
@@ -61,7 +63,7 @@ endif()
 
 
 
-add_subdirectory(protocols)
+include(cmake/protocols.cmake)
 
 add_subdirectory(client)
 add_subdirectory(server)
