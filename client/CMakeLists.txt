@@ -64,10 +64,13 @@ if(IAN_BUILD_CLIENT)
 
 
     configure_file(${SHELL_DIR}/package.json ${OUT_PATH}/package.json @ONLY)
+    configure_file(${SHELL_DIR}/src/ian.js ${OUT_PATH}/src/ian.js @ONLY)
+    configure_file(${SHELL_DIR}/src/loader.js ${OUT_PATH}/src/loader.js @ONLY)
+    configure_file(${SHELL_DIR}/src/shell.css ${OUT_PATH}/src/shell.css @ONLY)
+    configure_file(${SHELL_DIR}/src/shell.html ${OUT_PATH}/src/shell.html @ONLY)
     configure_file(${SHELL_DIR}/webpack.common.js ${OUT_PATH}/webpack.common.js @ONLY)
     configure_file(${SHELL_DIR}/webpack.dev.js ${OUT_PATH}/webpack.dev.js @ONLY)
     configure_file(${SHELL_DIR}/webpack.prod.js ${OUT_PATH}/webpack.prod.js @ONLY)
-    configure_file(${SHELL_DIR}/ian.js ${OUT_PATH}/ian.js @ONLY)
 
   endfunction()
 
