@@ -13,27 +13,25 @@ module.exports = {
   },
 
   plugins: [
-    new CleanWebpackPlugin(['dist']),
-    new ExtractTextPlugin('[name].css'),
+    new CleanWebpackPlugin([path.resolve('@CMAKE_INSTALL_PREFIX@/client/assets')]),
+    new ExtractTextPlugin('[name].[contenthash].css'),
     new HtmlWebpackPlugin({
       title: 'IAN',
+      filename: global.ian_dev ? "index.html" : '../ian.html',
       chunks: ['loader'],
       template: 'src/shell.html',
-      minify: {
-        collapseWhitespace: !!global.ian_prod
-      }
+      minify: global.ian_prod ? {
+        collapseWhitespace: true
+      } : null
     })
   ],
 
   target: "web",
 
-  externals: {
-    jquery: 'jQuery'
-  },
-
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].js'
+    path: path.resolve('@CMAKE_INSTALL_PREFIX@/client/assets'),
+    publicPath: global.ian_dev ? "" : "/assets/",
+    filename: '[name].[chunkhash].js'
   },
 
   module: {

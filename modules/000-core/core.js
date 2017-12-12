@@ -6,6 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-import jQuery from 'jquery';
+//import jQuery from 'jquery';
 
-var jQ = jQuery.noConflict();
+//var jQ = jQuery.noConflict();
