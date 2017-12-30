@@ -8,9 +8,9 @@
 
 #include "ClientListener.hpp"
 
-#include <common/EasyProfiler.hpp>
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
+#include <common/EasyProfiler.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -21,25 +21,25 @@
 
 namespace signals
 {
-  bool shouldStop = false;
-  bool shouldReload = false;
-  boost::asio::io_service* asio;
+bool shouldStop   = false;
+bool shouldReload = false;
+boost::asio::io_service * asio;
 
-  extern "C" void sigStop(int)
-  {
-    shouldStop = true;
-    asio->stop();
-  }
-
-  extern "C" void sigReload(int)
-  {
-    shouldReload = true;
-    asio->stop();
-  }
+extern "C" void sigStop(int)
+{
+  shouldStop = true;
+  asio->stop();
 }
 
+extern "C" void sigReload(int)
+{
+  shouldReload = true;
+  asio->stop();
+}
+} // namespace signals
 
-void runAsio(size_t threads, boost::asio::io_service& asio)
+
+void runAsio(size_t threads, boost::asio::io_service & asio)
 {
   // Thread pool
   std::vector<std::thread> pool;
@@ -49,32 +49,29 @@ void runAsio(size_t threads, boost::asio::io_service& asio)
     pool.reserve(threads - 1);
     for (auto i = threads - 1; i > 0; --i)
     {
-      pool.emplace_back(
-        [&asio]
-        {
-          EASY_THREAD_SCOPE("ASIO Worker");
-          asio.run();
-        }
-      );
+      pool.emplace_back([&asio] {
+        EASY_THREAD_SCOPE("ASIO Worker");
+        asio.run();
+      });
     }
   }
 
   asio.run();
 
-  for (auto& thread : pool)
+  for (auto & thread : pool)
   {
     thread.join();
   }
 }
 
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
   EASY_MAIN_THREAD;
 
 
   // Init logger
-  //spdlog::set_async_mode(512); ?
+  // spdlog::set_async_mode(512); ?
   auto logger = spdlog::stdout_color_mt("front");
   std::atexit(spdlog::drop_all);
 
@@ -108,7 +105,7 @@ int main(int argc, char** argv)
 
 
   // Loop when reloading configuration
-  for(;;)
+  for (;;)
   {
     logger->info("Ready with {} thread(s)", threads);
 

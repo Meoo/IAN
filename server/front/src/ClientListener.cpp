@@ -10,37 +10,40 @@
 
 #include "ClientConnection.hpp"
 
-#include <common/EasyProfiler.hpp>
 #include <bin-common/config/Config.hpp>
+#include <common/EasyProfiler.hpp>
 
 namespace ssl = boost::asio::ssl;
-namespace ip = boost::asio::ip;
+namespace ip  = boost::asio::ip;
 
 
 namespace
 {
-  const char default_listen_ip[] = "0.0.0.0";
-  const int default_listen_port = 7011;
-  const char default_cert[] = "cert.pem";
-  // Mozilla modern (as of 12/11/2017) https://wiki.mozilla.org/Security/Server_Side_TLS
-  const char default_cipher_list[] = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256";
-}
+
+const char default_listen_ip[] = "0.0.0.0";
+const int default_listen_port  = 7011;
+const char default_cert[]      = "cert.pem";
+// Mozilla modern (as of 12/11/2017) https://wiki.mozilla.org/Security/Server_Side_TLS
+const char default_cipher_list[] =
+    "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-"
+    "RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-"
+    "AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256";
+
+} // namespace
 
 
-ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_service & asio)
-  : logger_(logger)
-  , ssl_context_(ssl::context::sslv23)
-  , acceptor_(asio)
-  , socket_(asio)
+ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger,
+                               boost::asio::io_service & asio)
+    : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
 {
   // Config
   std::string listenAddr = config::get_string("front.listen_ip", ::default_listen_ip);
-  int listenPort = config::get_int("front.listen_port", ::default_listen_port);
+  int listenPort         = config::get_int("front.listen_port", ::default_listen_port);
 
-  std::string certChain = config::get_string("front.certificate_chain", ::default_cert);
-  std::string privKey = config::get_string("front.private_key", ::default_cert);
-  std::string dh = config::get_string("front.dh");
-  std::string password = config::get_string("front.private_key_password");
+  std::string certChain  = config::get_string("front.certificate_chain", ::default_cert);
+  std::string privKey    = config::get_string("front.private_key", ::default_cert);
+  std::string dh         = config::get_string("front.dh");
+  std::string password   = config::get_string("front.private_key_password");
   std::string cipherList = config::get_string("front.cipher_list", ::default_cipher_list);
 
   ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
@@ -49,14 +52,12 @@ ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger, b
   try
   {
     ssl_context_.set_options(
-      boost::asio::ssl::context::default_workarounds |
-      boost::asio::ssl::context::no_sslv2 |
-      boost::asio::ssl::context::no_sslv3 |
-      boost::asio::ssl::context::no_tlsv1 |
-      boost::asio::ssl::context::no_tlsv1_1 |
-      boost::asio::ssl::context::single_dh_use);
+        boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 |
+        boost::asio::ssl::context::no_sslv3 | boost::asio::ssl::context::no_tlsv1 |
+        boost::asio::ssl::context::no_tlsv1_1 | boost::asio::ssl::context::single_dh_use);
 
-    ssl_context_.set_password_callback(std::bind([password] { return password; })); // Use bind to ignore args
+    ssl_context_.set_password_callback(
+        std::bind([password] { return password; })); // Use bind to ignore args
     ssl_context_.use_certificate_chain_file(certChain);
     ssl_context_.use_private_key_file(privKey, boost::asio::ssl::context::pem);
     if (!dh.empty())
@@ -77,7 +78,7 @@ ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger, b
       logger_->warn("Failed to initialize SSL cipher list");
     }
   }
-  catch (std::exception& ex)
+  catch (std::exception & ex)
   {
     // TODO
     logger_->error("Failed to initialize SSL context: {}", ex.what());
@@ -107,8 +108,7 @@ void ClientListener::run()
 {
   boost::system::error_code ec;
 
-  acceptor_.listen(
-    boost::asio::socket_base::max_connections, ec);
+  acceptor_.listen(boost::asio::socket_base::max_connections, ec);
   if (ec)
   {
     // TODO
@@ -123,11 +123,7 @@ void ClientListener::run()
 void ClientListener::do_accept()
 {
   acceptor_.async_accept(
-    socket_,
-    std::bind(
-      &ClientListener::on_accept,
-      shared_from_this(),
-      std::placeholders::_1));
+      socket_, std::bind(&ClientListener::on_accept, shared_from_this(), std::placeholders::_1));
 }
 
 void ClientListener::on_accept(boost::system::error_code ec)
@@ -141,8 +137,8 @@ void ClientListener::on_accept(boost::system::error_code ec)
   }
   else
   {
-    logger_->info("Accepting client {}:{}",
-      socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port());
+    logger_->info("Accepting client {}:{}", socket_.remote_endpoint().address().to_string(),
+                  socket_.remote_endpoint().port());
 
     // Disable Nagle
     boost::asio::ip::tcp::no_delay no_delay(true);

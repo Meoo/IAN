@@ -13,15 +13,17 @@ namespace config
 {
 namespace impl
 {
-  std::mutex mutex = {};
-  std::set<ConfigListener*> listeners = {};
 
-  void invoke_config_listeners()
-  {
-    std::unique_lock<std::mutex> guard(config::impl::mutex);
+std::mutex mutex                     = {};
+std::set<ConfigListener *> listeners = {};
 
-    for (auto listener : listeners)
-      listener->on_update();
-  }
+void invoke_config_listeners()
+{
+  std::unique_lock<std::mutex> guard(config::impl::mutex);
+
+  for (auto listener : listeners)
+    listener->on_update();
 }
-}
+
+} // namespace impl
+} // namespace config

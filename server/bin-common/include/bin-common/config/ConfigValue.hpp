@@ -15,65 +15,63 @@
 
 class ConfigBoolValue : public ConfigListener
 {
-public:
-  ConfigBoolValue(const std::string& key, bool default_val);
+ public:
+  ConfigBoolValue(const std::string & key, bool default_val);
 
-  const std::string& get_key() const { return key_; }
+  const std::string & get_key() const { return key_; }
   bool get_value() const { return value_; }
   operator bool() const { return value_; }
 
 
-protected:
+ protected:
   void on_update() override;
 
 
-private:
+ private:
   std::string key_;
   bool default_val_;
   bool value_;
-
 };
 
 
 class ConfigStringValue : public ConfigListener
 {
-public:
-  explicit ConfigStringValue(const std::string& key, const std::string& default_val = std::string());
+ public:
+  explicit ConfigStringValue(const std::string & key,
+                             const std::string & default_val = std::string());
 
-  const std::string& get_key() const { return key_; }
-  const std::string& get_value() const { return value_; }
-  operator const std::string&() const { return value_; }
+  const std::string & get_key() const { return key_; }
+  const std::string & get_value() const { return value_; }
+  operator const std::string &() const { return value_; }
 
 
-protected:
+ protected:
   void on_update() override;
 
 
-private:
+ private:
   std::string key_;
   std::string default_val_;
   std::string value_;
-
 };
 
 
 class ConfigIntValue : public ConfigListener
 {
-public:
-  explicit ConfigIntValue(const std::string& key, int default_val = 0);
+ public:
+  explicit ConfigIntValue(const std::string & key, int default_val = 0);
 
-  const std::string& get_key() const { return key_; }
+  const std::string & get_key() const { return key_; }
   int get_value() const { return value_; }
   operator int() const { return value_; }
 
 
-protected:
+ protected:
   void on_update() override;
 
 
-private:
+ private:
   std::string key_;
   int default_val_;
   int value_;
-
 };

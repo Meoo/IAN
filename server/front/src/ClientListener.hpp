@@ -19,22 +19,22 @@
 
 class ClientListener : public std::enable_shared_from_this<ClientListener>
 {
-public:
-  using SslContext = boost::asio::ssl::context;
+ public:
+  using SslContext  = boost::asio::ssl::context;
   using TcpAcceptor = boost::asio::ip::tcp::acceptor;
-  using TcpSocket = boost::asio::ip::tcp::socket;
+  using TcpSocket   = boost::asio::ip::tcp::socket;
 
 
   ClientListener(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_service & asio);
 
-  ClientListener(const ClientListener&) = delete;
-  ClientListener& operator=(const ClientListener&) = delete;
+  ClientListener(const ClientListener &) = delete;
+  ClientListener & operator=(const ClientListener &) = delete;
 
 
   void run();
 
 
-private:
+ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   SslContext ssl_context_;
@@ -44,5 +44,4 @@ private:
 
   void do_accept();
   void on_accept(boost::system::error_code ec);
-
 };

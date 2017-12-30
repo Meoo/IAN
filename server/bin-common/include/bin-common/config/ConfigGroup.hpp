@@ -13,18 +13,17 @@
 
 class ConfigGroup
 {
-public:
-  ConfigGroup(const std::string& group);
+ public:
+  ConfigGroup(const std::string & group);
 
 
-  bool get_bool(const std::string& key, bool default_val);
-  std::string get_string(const std::string& key, const std::string& default_val = std::string());
-  int get_int(const std::string& key, int default_val = 0);
+  bool get_bool(const std::string & key, bool default_val);
+  std::string get_string(const std::string & key, const std::string & default_val = std::string());
+  int get_int(const std::string & key, int default_val = 0);
 
-  ConfigGroup get_subgroup(const std::string& group);
+  ConfigGroup get_subgroup(const std::string & group);
 
 
-private:
+ private:
   std::string prefix_;
-
 };

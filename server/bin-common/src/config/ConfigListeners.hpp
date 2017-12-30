@@ -18,9 +18,11 @@ namespace config
 {
 namespace impl
 {
-  void invoke_config_listeners();
 
-  extern std::mutex mutex;
-  extern std::set<ConfigListener*> listeners;
-}
-}
+void invoke_config_listeners();
+
+extern std::mutex mutex;
+extern std::set<ConfigListener *> listeners;
+
+} // namespace impl
+} // namespace config

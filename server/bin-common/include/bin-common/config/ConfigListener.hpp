@@ -13,22 +13,22 @@ namespace config
 {
 namespace impl
 {
-  void invoke_config_listeners();
-}
-}
+void invoke_config_listeners();
+} // namespace impl
+} // namespace config
 
 
 class ConfigListener
 {
-public:
+ public:
   ConfigListener();
   virtual ~ConfigListener();
 
-  ConfigListener(const ConfigListener&) = delete;
-  ConfigListener& operator=(const ConfigListener&) = delete;
+  ConfigListener(const ConfigListener &) = delete;
+  ConfigListener & operator=(const ConfigListener &) = delete;
 
 
-protected:
+ protected:
   friend void config::impl::invoke_config_listeners();
 
   // Override this function
@@ -36,5 +36,4 @@ protected:
   // action that could create or destroy a ConfigListener (including this)
   // or a deadlock will happen.
   virtual void on_update() = 0;
-
 };

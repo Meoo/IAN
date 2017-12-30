@@ -14,38 +14,37 @@
 
 
 // Better error messages in some cases
-namespace modules {}
+namespace modules
+{
+}
 
 
 namespace
 {
 
-  class ModuleEntry
+class ModuleEntry
+{
+ public:
+  ModuleEntry(const char * name, std::function<IModule *()> factory) : name(name), factory(factory)
   {
-  public:
-    ModuleEntry(const char * name, std::function<IModule*()> factory)
-      : name(name), factory(factory) {}
+  }
 
-    const char * name;
-    std::function<IModule*()> factory;
-  };
+  const char * name;
+  std::function<IModule *()> factory;
+};
 
-  const ModuleEntry module_list[] =
-  {
-#   define IAN_MODULE_MACRO(mod) {#mod, []() { return static_cast<IModule*>(new modules::mod); }},
-#   include <modules/mod_list.gen>
-#   undef IAN_MODULE_MACRO
-    { nullptr, []() { return nullptr; } }
-  };
+const ModuleEntry module_list[] = {
+#define IAN_MODULE_MACRO(mod) {#mod, []() { return static_cast<IModule *>(new modules::mod); }},
+#include <modules/mod_list.gen>
+#undef IAN_MODULE_MACRO
+    {nullptr, []() { return nullptr; }}};
 
-} // unnamed
+} // namespace
 
 
 namespace modbundle
 {
 
-  IAN_BUNDLE_API void load_modules(IModuleHost * host)
-  {
-  }
+IAN_BUNDLE_API void load_modules(IModuleHost * host) {}
 
-}
+} // namespace modbundle

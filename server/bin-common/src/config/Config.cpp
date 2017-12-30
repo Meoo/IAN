@@ -8,50 +8,49 @@
 
 #include <bin-common/config/Config.hpp>
 
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "ConfigListeners.hpp"
 
 
 namespace
 {
-  boost::property_tree::ptree config_tree;
+boost::property_tree::ptree config_tree;
 }
 
 
 namespace config
 {
 
-  bool load(const std::string& file)
+bool load(const std::string & file)
+{
+  try
   {
-    try
-    {
-      boost::property_tree::read_info(
-        file.empty() ? "config.info" : file, ::config_tree);
+    boost::property_tree::read_info(file.empty() ? "config.info" : file, ::config_tree);
 
-      impl::invoke_config_listeners();
-    }
-    catch (...)
-    {
-      return false;
-    }
-    return true;
+    impl::invoke_config_listeners();
   }
-
-  bool get_bool(const std::string& key, bool default_val)
+  catch (...)
   {
-    return ::config_tree.get(key, default_val);
+    return false;
   }
+  return true;
+}
 
-  std::string get_string(const std::string& key, const std::string& default_val)
-  {
-    return ::config_tree.get(key, default_val);
-  }
+bool get_bool(const std::string & key, bool default_val)
+{
+  return ::config_tree.get(key, default_val);
+}
 
-  int get_int(const std::string& key, int default_val)
-  {
-    return ::config_tree.get(key, default_val);
-  }
+std::string get_string(const std::string & key, const std::string & default_val)
+{
+  return ::config_tree.get(key, default_val);
+}
 
-} // config
+int get_int(const std::string & key, int default_val)
+{
+  return ::config_tree.get(key, default_val);
+}
+
+} // namespace config

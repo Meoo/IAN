@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include <beast/websocket.hpp>
 #include <beast/http/string_body.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/asio/strand.hpp>
+#include <beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/strand.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -23,24 +23,25 @@
 
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
-public:
+ public:
   using SslContext = boost::asio::ssl::context;
-  using TcpSocket = boost::asio::ip::tcp::socket;
-  using SslStream = boost::asio::ssl::stream<TcpSocket&>;
-  using WsStream = beast::websocket::stream<SslStream>;
+  using TcpSocket  = boost::asio::ip::tcp::socket;
+  using SslStream  = boost::asio::ssl::stream<TcpSocket &>;
+  using WsStream   = beast::websocket::stream<SslStream>;
 
 
-  ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket, SslContext & ssl_ctx);
+  ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
+                   SslContext & ssl_ctx);
   ~ClientConnection();
 
-  ClientConnection(const ClientConnection&) = delete;
-  ClientConnection& operator=(const ClientConnection&) = delete;
+  ClientConnection(const ClientConnection &) = delete;
+  ClientConnection & operator=(const ClientConnection &) = delete;
 
 
   void run();
 
 
-private:
+ private:
   std::shared_ptr<spdlog::logger> logger_;
 
   bool dropped_ = false;
@@ -74,5 +75,4 @@ private:
 
 
   void handle_read_error(boost::system::error_code ec);
-
 };
