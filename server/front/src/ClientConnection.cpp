@@ -10,8 +10,14 @@
 
 #include <common/EasyProfiler.hpp>
 
-#include <beast/http/read.hpp>
-#include <beast/websocket/ssl.hpp>
+#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/websocket/ssl.hpp>
+
+
+namespace asio = boost::asio;
+namespace http = boost::beast::http;
+namespace ws   = boost::beast::websocket;
 
 
 #define LOG_SOCKET_TUPLE                                                                           \
@@ -39,7 +45,7 @@ void ClientConnection::run()
 
   // SSL handshake
   stream_.next_layer().async_handshake(
-      boost::asio::ssl::stream_base::server,
+      asio::ssl::stream_base::server,
       strand_.wrap(std::bind(&ClientConnection::on_ssl_handshake, shared_from_this(),
                              std::placeholders::_1)));
 }
@@ -75,7 +81,7 @@ void ClientConnection::shutdown()
       std::bind(&ClientConnection::on_shutdown, shared_from_this(), std::placeholders::_1)));
 }
 
-void ClientConnection::set_timeout(const boost::asio::steady_timer::duration & delay)
+void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
 {
   boost::system::error_code ec;
   timer_.cancel(ec); // Errors ignored
@@ -101,7 +107,7 @@ void ClientConnection::on_shutdown(boost::system::error_code ec)
 
   if (ec)
   {
-    if (ec != boost::asio::error::connection_aborted && ec != boost::asio::error::connection_reset)
+    if (ec != asio::error::connection_aborted && ec != asio::error::connection_reset)
       logger_->warn("Shutdown error for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                     ec.value());
   }
@@ -128,9 +134,9 @@ void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
   logger_->trace("SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   // Read HTTP header
-  beast::http::async_read(stream_.next_layer(), read_buffer_, request_,
-                          strand_.wrap(std::bind(&ClientConnection::on_read_request,
-                                                 shared_from_this(), std::placeholders::_1)));
+  http::async_read(stream_.next_layer(), read_buffer_, request_,
+                   strand_.wrap(std::bind(&ClientConnection::on_read_request, shared_from_this(),
+                                          std::placeholders::_1)));
 }
 
 void ClientConnection::on_read_request(boost::system::error_code ec)
@@ -145,27 +151,28 @@ void ClientConnection::on_read_request(boost::system::error_code ec)
   {
     logger_->warn("Data left in buffer after request read (size {}) for client: {}:{}",
                   read_buffer_.size(), LOG_SOCKET_TUPLE);
-    read_buffer_ = beast::flat_buffer();
+    read_buffer_ = boost::beast::flat_buffer();
   }
 
-  if (beast::websocket::is_upgrade(request_))
+  if (ws::is_upgrade(request_))
   {
     logger_->trace("Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // Accept the websocket handshake
-    stream_.async_accept(request_,
-                         strand_.wrap(std::bind(&ClientConnection::on_ws_handshake,
-                                                shared_from_this(), std::placeholders::_1)));
+    stream_.async_accept(
+        request_,
+        asio::bind_executor(strand_, std::bind(&ClientConnection::on_ws_handshake,
+                                               shared_from_this(), std::placeholders::_1)));
   }
   else
   {
     logger_->trace("Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // TODO http
-    beast::http::response<beast::http::string_body> response;
-    response.result(beast::http::status::not_implemented);
-    response.body = "Not implemented";
-    beast::http::write(stream_.next_layer(), response, ec);
+    http::response<http::string_body> response;
+    response.result(http::status::not_implemented);
+    response.body() = "Not implemented";
+    http::write(stream_.next_layer(), response, ec);
     shutdown();
   }
 }
@@ -193,12 +200,13 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
   set_timeout(std::chrono::seconds(30));
 
   // Start reading packets
-  stream_.async_read(read_buffer_,
-                     strand_.wrap(std::bind(&ClientConnection::on_read, shared_from_this(),
-                                            std::placeholders::_1)));
+  stream_.async_read(
+      read_buffer_,
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read, shared_from_this(),
+                                             std::placeholders::_1, std::placeholders::_2)));
 }
 
-void ClientConnection::on_read(boost::system::error_code ec)
+void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 {
   if (ec)
   {
@@ -207,13 +215,14 @@ void ClientConnection::on_read(boost::system::error_code ec)
   }
 
   // Get data
-  beast::flat_buffer read_buffer;
+  boost::beast::flat_buffer read_buffer;
   std::swap(read_buffer_, read_buffer);
 
   // Start reading next
-  stream_.async_read(read_buffer_,
-                     strand_.wrap(std::bind(&ClientConnection::on_read, shared_from_this(),
-                                            std::placeholders::_1)));
+  stream_.async_read(
+      read_buffer_,
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read, shared_from_this(),
+                                             std::placeholders::_1, std::placeholders::_2)));
 
   // Reset timeout if required
   if (timer_.expires_from_now() <= std::chrono::seconds(15))
@@ -222,7 +231,7 @@ void ClientConnection::on_read(boost::system::error_code ec)
   // TODO Process data
 }
 
-void ClientConnection::on_write(boost::system::error_code ec)
+void ClientConnection::on_write(boost::system::error_code ec, std::size_t writelen)
 {
   if (ec)
   {
@@ -238,7 +247,7 @@ void ClientConnection::handle_read_error(boost::system::error_code ec)
   if (dropped_)
     return;
 
-  if (ec == boost::asio::error::connection_aborted || ec == boost::asio::error::connection_reset)
+  if (ec == asio::error::connection_aborted || ec == asio::error::connection_reset)
   {
     abort();
     return;

@@ -8,13 +8,14 @@
 
 #pragma once
 
-#include <beast/http/string_body.hpp>
-#include <beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/string_body.hpp>
+#include <boost/beast/websocket.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -27,7 +28,7 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   using SslContext = boost::asio::ssl::context;
   using TcpSocket  = boost::asio::ip::tcp::socket;
   using SslStream  = boost::asio::ssl::stream<TcpSocket &>;
-  using WsStream   = beast::websocket::stream<SslStream>;
+  using WsStream   = boost::beast::websocket::stream<SslStream>;
 
 
   ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
@@ -48,12 +49,12 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   TcpSocket socket_;
   WsStream stream_;
 
-  boost::asio::io_service::strand strand_;
+  boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
 
-  beast::http::request<beast::http::string_body> request_;
-  beast::flat_buffer read_buffer_;
-  beast::flat_buffer write_buffer_;
+  boost::beast::http::request<boost::beast::http::string_body> request_;
+  boost::beast::flat_buffer read_buffer_;
+  boost::beast::flat_buffer write_buffer_;
 
 
   void abort();
@@ -70,8 +71,8 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   void on_read_request(boost::system::error_code ec);
   void on_ws_handshake(boost::system::error_code ec);
 
-  void on_read(boost::system::error_code ec);
-  void on_write(boost::system::error_code ec);
+  void on_read(boost::system::error_code ec, std::size_t readlen);
+  void on_write(boost::system::error_code ec, std::size_t writelen);
 
 
   void handle_read_error(boost::system::error_code ec);

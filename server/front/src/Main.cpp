@@ -23,7 +23,7 @@ namespace signals
 {
 bool shouldStop   = false;
 bool shouldReload = false;
-boost::asio::io_service * asio;
+boost::asio::io_context * asio;
 
 extern "C" void sigStop(int)
 {
@@ -39,7 +39,7 @@ extern "C" void sigReload(int)
 } // namespace signals
 
 
-void runAsio(size_t threads, boost::asio::io_service & asio)
+void runAsio(size_t threads, boost::asio::io_context & asio)
 {
   // Thread pool
   std::vector<std::thread> pool;
@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
 
   // ASIO & listener
   ConfigIntValue threads("front.threads", 2);
-  boost::asio::io_service asio(threads);
+  boost::asio::io_context asio(threads);
 
   {
     auto listener = std::make_shared<ClientListener>(logger, asio);

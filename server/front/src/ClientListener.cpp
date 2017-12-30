@@ -33,7 +33,7 @@ const char default_cipher_list[] =
 
 
 ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger,
-                               boost::asio::io_service & asio)
+                               boost::asio::io_context & asio)
     : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
 {
   // Config
