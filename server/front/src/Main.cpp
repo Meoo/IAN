@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClientListener.hpp"
+#include "ClientAcceptor.hpp"
 
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
@@ -89,8 +89,8 @@ int main(int argc, char ** argv)
   boost::asio::io_context asio(threads);
 
   {
-    auto listener = std::make_shared<ClientListener>(logger, asio);
-    listener->run();
+    auto acceptor = std::make_shared<ClientAcceptor>(logger, asio);
+    acceptor->run();
   }
 
 

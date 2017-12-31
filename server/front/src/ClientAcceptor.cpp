@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClientListener.hpp"
+#include "ClientAcceptor.hpp"
 
 #include "ClientConnection.hpp"
 
@@ -32,7 +32,7 @@ const char default_cipher_list[] =
 } // namespace
 
 
-ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger,
+ClientAcceptor::ClientAcceptor(const std::shared_ptr<spdlog::logger> & logger,
                                boost::asio::io_context & asio)
     : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
 {
@@ -104,7 +104,7 @@ ClientListener::ClientListener(const std::shared_ptr<spdlog::logger> & logger,
   logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
 }
 
-void ClientListener::run()
+void ClientAcceptor::run()
 {
   boost::system::error_code ec;
 
@@ -120,13 +120,13 @@ void ClientListener::run()
   do_accept();
 }
 
-void ClientListener::do_accept()
+void ClientAcceptor::do_accept()
 {
   acceptor_.async_accept(
-      socket_, std::bind(&ClientListener::on_accept, shared_from_this(), std::placeholders::_1));
+      socket_, std::bind(&ClientAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
 }
 
-void ClientListener::on_accept(boost::system::error_code ec)
+void ClientAcceptor::on_accept(boost::system::error_code ec)
 {
   EASY_FUNCTION();
 

@@ -6,8 +6,8 @@ find_package(OpenSSL REQUIRED)
 
 add_executable(${PROJECT_NAME}
   src/Main.cpp
-  src/ClientListener.hpp
-  src/ClientListener.cpp
+  src/ClientAcceptor.hpp
+  src/ClientAcceptor.cpp
   src/ClientConnection.hpp
   src/ClientConnection.cpp)
 
