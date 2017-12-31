@@ -27,7 +27,7 @@ namespace ws   = boost::beast::websocket;
 ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logger,
                                    TcpSocket && socket, SslContext & ssl_ctx)
     : logger_(logger), socket_(std::move(socket)), stream_(socket_, ssl_ctx),
-      strand_(socket_.get_io_service()), timer_(socket_.get_io_service())
+      strand_(socket_.get_io_context()), timer_(socket_.get_io_context())
 {
 }
 
@@ -46,8 +46,8 @@ void ClientConnection::run()
   // SSL handshake
   stream_.next_layer().async_handshake(
       asio::ssl::stream_base::server,
-      strand_.wrap(std::bind(&ClientConnection::on_ssl_handshake, shared_from_this(),
-                             std::placeholders::_1)));
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_ssl_handshake,
+                                             shared_from_this(), std::placeholders::_1)));
 }
 
 void ClientConnection::abort()
@@ -77,8 +77,9 @@ void ClientConnection::shutdown()
   if (!socket_.is_open())
     return;
 
-  stream_.next_layer().async_shutdown(strand_.wrap(
-      std::bind(&ClientConnection::on_shutdown, shared_from_this(), std::placeholders::_1)));
+  stream_.next_layer().async_shutdown(
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_shutdown, shared_from_this(),
+                                             std::placeholders::_1)));
 }
 
 void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
@@ -87,8 +88,9 @@ void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
   timer_.cancel(ec); // Errors ignored
 
   timer_.expires_from_now(delay);
-  timer_.async_wait(strand_.wrap(
-      std::bind(&ClientConnection::on_timeout, shared_from_this(), std::placeholders::_1)));
+  timer_.async_wait(
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_timeout, shared_from_this(),
+                                             std::placeholders::_1)));
 }
 
 void ClientConnection::on_timeout(boost::system::error_code ec)
@@ -134,9 +136,10 @@ void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
   logger_->trace("SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   // Read HTTP header
-  http::async_read(stream_.next_layer(), read_buffer_, request_,
-                   strand_.wrap(std::bind(&ClientConnection::on_read_request, shared_from_this(),
-                                          std::placeholders::_1)));
+  http::async_read(
+      stream_.next_layer(), read_buffer_, request_,
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read_request, shared_from_this(),
+                                             std::placeholders::_1)));
 }
 
 void ClientConnection::on_read_request(boost::system::error_code ec)
@@ -214,6 +217,8 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
     return;
   }
 
+  logger_->trace("Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
+
   // Get data
   boost::beast::flat_buffer read_buffer;
   std::swap(read_buffer_, read_buffer);
@@ -231,6 +236,7 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
   // TODO Process data
 }
 
+
 void ClientConnection::on_write(boost::system::error_code ec, std::size_t writelen)
 {
   if (ec)
@@ -238,6 +244,8 @@ void ClientConnection::on_write(boost::system::error_code ec, std::size_t writel
     // TODO
     return;
   }
+
+  logger_->trace("Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
 
   // TODO
 }
