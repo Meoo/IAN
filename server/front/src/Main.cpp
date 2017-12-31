@@ -21,25 +21,25 @@
 
 namespace signals
 {
-bool shouldStop   = false;
-bool shouldReload = false;
+bool should_stop   = false;
+bool should_reload = false;
 boost::asio::io_context * asio;
 
-extern "C" void sigStop(int)
+extern "C" void sig_stop(int)
 {
-  shouldStop = true;
+  should_stop = true;
   asio->stop();
 }
 
-extern "C" void sigReload(int)
+extern "C" void sig_reload(int)
 {
-  shouldReload = true;
+  should_reload = true;
   asio->stop();
 }
 } // namespace signals
 
 
-void runAsio(size_t threads, boost::asio::io_context & asio)
+void run_asio(size_t threads, boost::asio::io_context & asio)
 {
   // Thread pool
   std::vector<std::thread> pool;
@@ -97,10 +97,10 @@ int main(int argc, char ** argv)
   // Install signal handlers
   signals::asio = &asio;
 
-  std::signal(SIGINT, signals::sigStop);
-  std::signal(SIGTERM, signals::sigStop);
+  std::signal(SIGINT, signals::sig_stop);
+  std::signal(SIGTERM, signals::sig_stop);
 #ifdef SIGHUP
-  std::signal(SIGHUP, signals::sigReload);
+  std::signal(SIGHUP, signals::sig_reload);
 #endif
 
 
@@ -109,15 +109,15 @@ int main(int argc, char ** argv)
   {
     logger->info("Ready with {} thread(s)", threads);
 
-    runAsio(threads, asio);
+    run_asio(threads, asio);
 
-    if (signals::shouldStop)
+    if (signals::should_stop)
     {
       logger->info("Received stop signal");
       break;
     }
 
-    if (signals::shouldReload)
+    if (signals::should_reload)
     {
       if (!config::load())
       {
@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
 
       logger->info("Config reloaded");
       asio.reset();
-      signals::shouldReload = false;
+      signals::should_reload = false;
       continue;
     }
 
