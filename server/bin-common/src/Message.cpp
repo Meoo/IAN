@@ -8,7 +8,9 @@
 
 #include <bin-common/Message.hpp>
 
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 
 #define PAYLOAD_OFFSET offsetof(Message::MessageData, message.payload_ptr)
