@@ -9,12 +9,17 @@ add_library(${PROJECT_NAME} STATIC
   include/bin-common/config/ConfigGroup.hpp
   include/bin-common/config/ConfigListener.hpp
   include/bin-common/config/ConfigValue.hpp
+  include/bin-common/Dispatcher.hpp
+  include/bin-common/Message.hpp
+  include/bin-common/MessageQueue.hpp
   src/config/Config.cpp
   src/config/ConfigGroup.cpp
   src/config/ConfigListener.cpp
   src/config/ConfigListeners.cpp
   src/config/ConfigListeners.hpp
-  src/config/ConfigValue.cpp)
+  src/config/ConfigValue.cpp
+  src/Message.cpp
+  src/MessageQueue.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common

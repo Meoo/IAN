@@ -11,6 +11,7 @@
 #include <common/EasyProfiler.hpp>
 
 #include <boost/asio/bind_executor.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
@@ -26,8 +27,9 @@ namespace ws   = boost::beast::websocket;
 
 ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logger,
                                    TcpSocket && socket, SslContext & ssl_ctx)
-    : logger_(logger), socket_(std::move(socket)), stream_(socket_, ssl_ctx),
-      strand_(socket_.get_io_context()), timer_(socket_.get_io_context())
+    : logger_(logger), stream_(std::move(socket), ssl_ctx),
+      socket_(stream_.next_layer().next_layer()), strand_(socket_.get_io_context()),
+      timer_(socket_.get_io_context())
 {
 }
 
@@ -48,6 +50,28 @@ void ClientConnection::run()
       asio::ssl::stream_base::server,
       asio::bind_executor(strand_, std::bind(&ClientConnection::on_ssl_handshake,
                                              shared_from_this(), std::placeholders::_1)));
+}
+
+void ClientConnection::send_message(const Message & message)
+{
+  if (message.is_null())
+  {
+    logger_->error("send_message: message is null");
+    return;
+  }
+
+  // Execute in strand
+  asio::dispatch(strand_, [this, self{shared_from_this()}, message{message}]() mutable {
+    if (!is_writing_)
+    {
+      is_writing_ = true;
+      do_write_message(std::move(message));
+    }
+    else
+    {
+      message_queue_.push(std::move(message));
+    }
+  });
 }
 
 void ClientConnection::abort()
@@ -80,6 +104,17 @@ void ClientConnection::shutdown()
   stream_.next_layer().async_shutdown(
       asio::bind_executor(strand_, std::bind(&ClientConnection::on_shutdown, shared_from_this(),
                                              std::placeholders::_1)));
+}
+
+void ClientConnection::do_write_message(Message && message)
+{
+  message_outbound_ = std::move(message);
+
+  stream_.async_write(
+      asio::buffer(message_outbound_.get_message(), message_outbound_.get_message_size()),
+      asio::bind_executor(strand_,
+                          std::bind(&ClientConnection::on_write_message, shared_from_this(),
+                                    std::placeholders::_1, std::placeholders::_2)));
 }
 
 void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
@@ -185,6 +220,9 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
   if (dropped_)
     return;
 
+  // Clear request data (not used anymore)
+  request_ = decltype(request_)();
+
   if (ec)
   {
     logger_->warn("Websocket handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
@@ -196,8 +234,8 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
   logger_->trace("Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   stream_.binary(true);
-  // stream_.auto_fragment(true);
-  stream_.read_message_max(0x4000);
+  stream_.auto_fragment(true);
+  stream_.read_message_max(0x4000); // TODO
 
   // Refresh timeout
   set_timeout(std::chrono::seconds(30));
@@ -234,11 +272,15 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
     set_timeout(std::chrono::seconds(30));
 
   // TODO Process data
+  // if(stream_.got_binary())
 }
 
 
-void ClientConnection::on_write(boost::system::error_code ec, std::size_t writelen)
+void ClientConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
 {
+  // Clear data that was begin sent
+  message_outbound_ = Message();
+
   if (ec)
   {
     // TODO
@@ -247,7 +289,19 @@ void ClientConnection::on_write(boost::system::error_code ec, std::size_t writel
 
   logger_->trace("Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
 
-  // TODO
+  if (dropped_)
+    return;
+
+  // Write next message
+  Message message;
+  if (message_queue_.try_pop(message))
+  {
+    do_write_message(std::move(message));
+  }
+  else
+  {
+    is_writing_ = false;
+  }
 }
 
 void ClientConnection::handle_read_error(boost::system::error_code ec)
