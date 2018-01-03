@@ -3,8 +3,8 @@
 environment:
   matrix:
     ###
-    - TOOLCHAIN: "vs-14-2015"
-      CONFIG: Release
+    #- TOOLCHAIN: "vs-14-2015"
+    #  CONFIG: Release
 
     #- TOOLCHAIN: "vs-14-2015"
     #  CONFIG: Debug
@@ -13,7 +13,14 @@ environment:
     - TOOLCHAIN: "vs-14-2015-win64"
       CONFIG: Release
 
-    #- TOOLCHAIN: "vs-14-2015-win64"
+    - TOOLCHAIN: "vs-14-2015-win64"
+      CONFIG: Debug
+
+    ###
+    #- TOOLCHAIN: "vs-15-2017-win64"
+    #  CONFIG: Release
+
+    #- TOOLCHAIN: "vs-15-2017-win64"
     #  CONFIG: Debug
 
     ###
