@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <cstdlib>
 
 
 #define PAYLOAD_OFFSET offsetof(Message::MessageData, message.payload_ptr)
@@ -47,8 +48,7 @@ Message Message::create_empty(size_t payload_size)
 {
   const size_t total_size = payload_size + PAYLOAD_OFFSET;
   Message ret;
-  ret.data_ = std::shared_ptr<MessageData>((MessageData *)std::malloc(total_size), std::free);
-  std::memset(ret.data_.get(), 0, total_size);
+  ret.data_ = std::shared_ptr<MessageData>((MessageData *)std::calloc(1, total_size), std::free);
   ret.data_->payload_size = payload_size;
   return ret;
 }
