@@ -16,8 +16,12 @@
 
 namespace
 {
-boost::property_tree::ptree config_tree;
+inline boost::property_tree::ptree & get_config_tree()
+{
+  static boost::property_tree::ptree config_tree;
+  return config_tree;
 }
+} // namespace
 
 
 namespace config
@@ -27,7 +31,7 @@ bool load(const std::string & file)
 {
   try
   {
-    boost::property_tree::read_info(file.empty() ? "config.info" : file, ::config_tree);
+    boost::property_tree::read_info(file.empty() ? "config.info" : file, ::get_config_tree());
 
     impl::invoke_config_listeners();
   }
@@ -40,17 +44,17 @@ bool load(const std::string & file)
 
 bool get_bool(const std::string & key, bool default_val)
 {
-  return ::config_tree.get(key, default_val);
+  return ::get_config_tree().get(key, default_val);
 }
 
 std::string get_string(const std::string & key, const std::string & default_val)
 {
-  return ::config_tree.get(key, default_val);
+  return ::get_config_tree().get(key, default_val);
 }
 
 int get_int(const std::string & key, int default_val)
 {
-  return ::config_tree.get(key, default_val);
+  return ::get_config_tree().get(key, default_val);
 }
 
 } // namespace config

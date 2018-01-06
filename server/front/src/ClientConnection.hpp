@@ -56,12 +56,14 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   WsStream stream_;
   TcpSocket & socket_;
 
-  MessageQueue message_queue_;
-  Message message_outbound_;
-
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
 
+  // Outbound
+  MessageQueue message_queue_;
+  Message message_outbound_;
+
+  // Inbound
   boost::beast::http::request<boost::beast::http::string_body> request_;
   boost::beast::flat_buffer read_buffer_;
 

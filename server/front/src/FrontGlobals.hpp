@@ -8,21 +8,18 @@
 
 #pragma once
 
-#include <bin-common/config/ConfigListener.hpp>
-
-#include <mutex>
-#include <set>
+#include <bin-common/config/ConfigValue.hpp>
 
 
-namespace config
-{
-namespace impl
+namespace front
 {
 
-std::mutex & get_mutex();
-std::set<ConfigListener *> & get_listeners();
+// Global
+extern ConfigIntValue message_max_size;
 
-void invoke_config_listeners();
+// Websockets
+extern ConfigBoolValue ws_message_auto_fragment;
+extern ConfigIntValue ws_setup_timeout;
+extern ConfigIntValue ws_timeout;
 
-} // namespace impl
-} // namespace config
+} // namespace front

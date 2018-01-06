@@ -9,7 +9,9 @@ add_executable(${PROJECT_NAME}
   src/ClientAcceptor.hpp
   src/ClientAcceptor.cpp
   src/ClientConnection.hpp
-  src/ClientConnection.cpp)
+  src/ClientConnection.cpp
+  src/FrontGlobals.hpp
+  src/FrontGlobals.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-bin-common

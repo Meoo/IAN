@@ -15,6 +15,8 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
+#include "FrontGlobals.hpp"
+
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
@@ -43,7 +45,7 @@ ClientConnection::~ClientConnection()
 void ClientConnection::run()
 {
   // 3s timeout for connection setup
-  set_timeout(std::chrono::seconds(3));
+  set_timeout(std::chrono::seconds(front::ws_setup_timeout));
 
   // SSL handshake
   stream_.next_layer().async_handshake(
@@ -234,11 +236,11 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
   logger_->trace("Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   stream_.binary(true);
-  stream_.auto_fragment(true);
-  stream_.read_message_max(0x4000); // TODO
+  stream_.auto_fragment(front::ws_message_auto_fragment);
+  stream_.read_message_max(front::message_max_size);
 
   // Refresh timeout
-  set_timeout(std::chrono::seconds(30));
+  set_timeout(std::chrono::seconds(front::ws_timeout + 5));
 
   // Start reading packets
   stream_.async_read(
@@ -268,8 +270,8 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
                                              std::placeholders::_1, std::placeholders::_2)));
 
   // Reset timeout if required
-  if (timer_.expires_from_now() <= std::chrono::seconds(15))
-    set_timeout(std::chrono::seconds(30));
+  if (timer_.expires_from_now() <= std::chrono::seconds(front::ws_timeout))
+    set_timeout(std::chrono::seconds(front::ws_timeout + 5));
 
   // TODO Process data
   // if(stream_.got_binary())
