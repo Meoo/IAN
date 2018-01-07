@@ -10,6 +10,8 @@ add_executable(${PROJECT_NAME}
   src/ClientAcceptor.cpp
   src/ClientConnection.hpp
   src/ClientConnection.cpp
+  src/ClientState.hpp
+  src/ClientState.cpp
   src/FrontGlobals.hpp
   src/FrontGlobals.cpp)
 
