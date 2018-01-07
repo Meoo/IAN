@@ -31,7 +31,7 @@ ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logge
                                    TcpSocket && socket, SslContext & ssl_ctx)
     : logger_(logger), stream_(std::move(socket), ssl_ctx),
       socket_(stream_.next_layer().next_layer()), strand_(socket_.get_io_context()),
-      timer_(socket_.get_io_context())
+      timer_(socket_.get_io_context()), state_timer_(socket_.get_io_context())
 {
 }
 
@@ -78,13 +78,16 @@ void ClientConnection::send_message(const Message & message)
 
 void ClientConnection::abort()
 {
+  if (dropped_)
+    return;
+
   boost::system::error_code ec;
 
   // Ignore errors
   timer_.cancel(ec);
+  state_timer_.cancel(ec);
 
-  if (dropped_)
-    return;
+  message_queue_.clear();
 
   logger_->info("Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
 
@@ -95,14 +98,21 @@ void ClientConnection::abort()
 
 void ClientConnection::shutdown()
 {
+  if (dropped_)
+    return;
+
   boost::system::error_code ec;
 
   // Ignore errors
   timer_.cancel(ec);
+  state_timer_.cancel(ec);
+
+  message_queue_.clear();
 
   if (!socket_.is_open())
     return;
 
+  // Shutdown stream at SSL level
   stream_.next_layer().async_shutdown(
       asio::bind_executor(strand_, std::bind(&ClientConnection::on_shutdown, shared_from_this(),
                                              std::placeholders::_1)));
@@ -128,6 +138,23 @@ void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
   timer_.async_wait(
       asio::bind_executor(strand_, std::bind(&ClientConnection::on_timeout, shared_from_this(),
                                              std::placeholders::_1)));
+}
+
+void ClientConnection::set_state_timeout(const asio::steady_timer::duration & delay)
+{
+  boost::system::error_code ec;
+  state_timer_.cancel(ec); // Errors ignored
+
+  state_timer_.expires_from_now(delay);
+  state_timer_.async_wait(
+      asio::bind_executor(strand_, std::bind(&ClientConnection::on_timeout, shared_from_this(),
+                                             std::placeholders::_1)));
+}
+
+void ClientConnection::cancel_state_timeout()
+{
+  boost::system::error_code ec;
+  state_timer_.cancel(ec); // Errors ignored
 }
 
 void ClientConnection::on_timeout(boost::system::error_code ec)

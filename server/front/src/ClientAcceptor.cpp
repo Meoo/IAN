@@ -36,17 +36,56 @@ ClientAcceptor::ClientAcceptor(const std::shared_ptr<spdlog::logger> & logger,
                                boost::asio::io_context & asio)
     : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
 {
+}
+
+void ClientAcceptor::run()
+{
+  init_ssl();
+
   // Config
   std::string listenAddr = config::get_string("front.listen_ip", ::default_listen_ip);
   int listenPort         = config::get_int("front.listen_port", ::default_listen_port);
 
+  ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
+
+  boost::system::error_code ec;
+
+  acceptor_.open(endpoint.protocol(), ec);
+  if (ec)
+  {
+    // TODO
+    logger_->error("Failed to open acceptor: {}", ec.message());
+  }
+
+  acceptor_.bind(endpoint, ec);
+  if (ec)
+  {
+    // TODO
+    logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
+  }
+
+  logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
+
+  acceptor_.listen(boost::asio::socket_base::max_connections, ec);
+  if (ec)
+  {
+    // TODO
+    logger_->error("Acceptor failed to listen for clients: {}", ec.message());
+  }
+
+  logger_->info("Acceptor listening for clients");
+
+  do_accept();
+}
+
+void ClientAcceptor::init_ssl()
+{
+  // Config
   std::string certChain  = config::get_string("front.certificate_chain", ::default_cert);
   std::string privKey    = config::get_string("front.private_key", ::default_cert);
   std::string dh         = config::get_string("front.dh");
   std::string password   = config::get_string("front.private_key_password");
   std::string cipherList = config::get_string("front.cipher_list", ::default_cipher_list);
-
-  ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
 
   // SSL setup
   try
@@ -83,41 +122,6 @@ ClientAcceptor::ClientAcceptor(const std::shared_ptr<spdlog::logger> & logger,
     // TODO
     logger_->error("Failed to initialize SSL context: {}", ex.what());
   }
-
-  // Init acceptor
-  boost::system::error_code ec;
-
-  acceptor_.open(endpoint.protocol(), ec);
-  if (ec)
-  {
-    // TODO
-    logger_->error("Failed to open acceptor: {}", ec.message());
-  }
-
-  acceptor_.bind(endpoint, ec);
-  if (ec)
-  {
-    // TODO
-    logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
-  }
-
-  logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
-}
-
-void ClientAcceptor::run()
-{
-  boost::system::error_code ec;
-
-  acceptor_.listen(boost::asio::socket_base::max_connections, ec);
-  if (ec)
-  {
-    // TODO
-    logger_->error("Acceptor failed to listen for clients: {}", ec.message());
-  }
-
-  logger_->info("Acceptor listening for clients");
-
-  do_accept();
 }
 
 void ClientAcceptor::do_accept()

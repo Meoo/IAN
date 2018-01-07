@@ -25,6 +25,8 @@ class MessageQueue
   void push(Message && message);
   bool try_pop(Message & message);
 
+  void clear() { queue_.clear(); total_size_ = 0; }
+
   size_t get_message_count() const { return queue_.size(); }
   size_t get_total_size() const { return total_size_; }
 

@@ -17,5 +17,6 @@ class ClientState : public std::enable_shared_from_this<ClientState>
 {
  public:
  private:
+  int state_timeout_ = 0;
   Dispatcher<256, bool, const void *, size_t> message_dispatcher_;
 };

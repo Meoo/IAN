@@ -58,6 +58,7 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
+  boost::asio::steady_timer state_timer_;
 
   // Outbound
   MessageQueue message_queue_;
@@ -76,6 +77,8 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 
 
   void set_timeout(const boost::asio::steady_timer::duration & delay);
+  void set_state_timeout(const boost::asio::steady_timer::duration & delay);
+  void cancel_state_timeout();
 
 
   void on_timeout(boost::system::error_code ec);
