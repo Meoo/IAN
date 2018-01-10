@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.7)
 
 include(cmake/HunterGate.cmake)
 HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.19.216.tar.gz"
-  SHA1 "247d3ca881e9c83e6ac419d55cd08d1775ea077a"
+  URL "https://github.com/ruslo/hunter/archive/v0.19.224.tar.gz"
+  SHA1 "ac20d7c592855e38bdc901b1d0e43e7cd01f5470"
   LOCAL
 )
 
@@ -59,7 +59,7 @@ endif()
 
 # Global dependencies
 hunter_add_package(flatbuffers)
-find_package(flatbuffers CONFIG REQUIRED)
+find_package(Flatbuffers CONFIG REQUIRED)
 
 if(WIN32)
   set(FLATBUFFERS_FLATC_EXECUTABLE "${FLATBUFFERS_ROOT}/bin/flatc.exe")
