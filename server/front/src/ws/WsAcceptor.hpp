@@ -17,7 +17,7 @@
 #include <memory>
 
 
-class ClientAcceptor : public std::enable_shared_from_this<ClientAcceptor>
+class WsAcceptor : public std::enable_shared_from_this<WsAcceptor>
 {
  public:
   using SslContext  = boost::asio::ssl::context;
@@ -25,10 +25,10 @@ class ClientAcceptor : public std::enable_shared_from_this<ClientAcceptor>
   using TcpSocket   = boost::asio::ip::tcp::socket;
 
 
-  ClientAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio);
+  WsAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio);
 
-  ClientAcceptor(const ClientAcceptor &) = delete;
-  ClientAcceptor & operator=(const ClientAcceptor &) = delete;
+  WsAcceptor(const WsAcceptor &) = delete;
+  WsAcceptor & operator=(const WsAcceptor &) = delete;
 
 
   void run();

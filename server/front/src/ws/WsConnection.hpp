@@ -25,7 +25,7 @@
 #include <memory>
 
 
-class ClientConnection : public std::enable_shared_from_this<ClientConnection>
+class WsConnection : public std::enable_shared_from_this<WsConnection>
 {
  public:
   using SslContext = boost::asio::ssl::context;
@@ -34,12 +34,12 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   using WsStream   = boost::beast::websocket::stream<SslStream>;
 
 
-  ClientConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
+  WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
                    SslContext & ssl_ctx);
-  ~ClientConnection();
+  ~WsConnection();
 
-  ClientConnection(const ClientConnection &) = delete;
-  ClientConnection & operator=(const ClientConnection &) = delete;
+  WsConnection(const WsConnection &) = delete;
+  WsConnection & operator=(const WsConnection &) = delete;
 
 
   void run();

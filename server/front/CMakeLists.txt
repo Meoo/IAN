@@ -4,12 +4,17 @@ project(server-front)
 hunter_add_package(OpenSSL)
 find_package(OpenSSL REQUIRED)
 
+set(SOURCE_WS
+  src/ws/WsAcceptor.hpp
+  src/ws/WsAcceptor.cpp
+  src/ws/WsConnection.hpp
+  src/ws/WsConnection.cpp)
+
+source_group(ws FILES ${SOURCE_WS})
+
 add_executable(${PROJECT_NAME}
+  ${SOURCE_WS}
   src/Main.cpp
-  src/ClientAcceptor.hpp
-  src/ClientAcceptor.cpp
-  src/ClientConnection.hpp
-  src/ClientConnection.cpp
   src/ClientState.hpp
   src/ClientState.cpp
   src/FrontGlobals.hpp
@@ -18,6 +23,8 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-bin-common
   OpenSSL::SSL OpenSSL::Crypto)
+
+target_include_directories(${PROJECT_NAME} PRIVATE src)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "front")
 

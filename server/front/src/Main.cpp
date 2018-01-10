@@ -6,11 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClientAcceptor.hpp"
+#include "ws/WsAcceptor.hpp"
 
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
 #include <common/EasyProfiler.hpp>
+
+#include <boost/asio/io_context.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -88,8 +90,9 @@ int main(int argc, char ** argv)
   ConfigIntValue threads("front.threads", 2);
   boost::asio::io_context asio(threads);
 
+  // Websocket
   {
-    auto acceptor = std::make_shared<ClientAcceptor>(logger, asio);
+    auto acceptor = std::make_shared<WsAcceptor>(logger, asio);
     acceptor->run();
   }
 

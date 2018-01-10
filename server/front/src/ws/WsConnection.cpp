@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClientConnection.hpp"
+#include "WsConnection.hpp"
 
 #include <common/EasyProfiler.hpp>
 
@@ -15,7 +15,7 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
-#include "FrontGlobals.hpp"
+#include <FrontGlobals.hpp>
 
 
 namespace asio = boost::asio;
@@ -27,7 +27,7 @@ namespace ws   = boost::beast::websocket;
   socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
 
 
-ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logger,
+WsConnection::WsConnection(const std::shared_ptr<spdlog::logger> & logger,
                                    TcpSocket && socket, SslContext & ssl_ctx)
     : logger_(logger), stream_(std::move(socket), ssl_ctx),
       socket_(stream_.next_layer().next_layer()), strand_(socket_.get_io_context()),
@@ -35,14 +35,14 @@ ClientConnection::ClientConnection(const std::shared_ptr<spdlog::logger> & logge
 {
 }
 
-ClientConnection::~ClientConnection()
+WsConnection::~WsConnection()
 {
   // Close must be called last or using LOG_SOCKET_TUPLE will throw
   boost::system::error_code ec;
   socket_.close(ec);
 }
 
-void ClientConnection::run()
+void WsConnection::run()
 {
   // 3s timeout for connection setup
   set_timeout(std::chrono::seconds(front::ws_setup_timeout));
@@ -50,11 +50,11 @@ void ClientConnection::run()
   // SSL handshake
   stream_.next_layer().async_handshake(
       asio::ssl::stream_base::server,
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_ssl_handshake,
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_ssl_handshake,
                                              shared_from_this(), std::placeholders::_1)));
 }
 
-void ClientConnection::send_message(const Message & message)
+void WsConnection::send_message(const Message & message)
 {
   if (message.is_null())
   {
@@ -76,7 +76,7 @@ void ClientConnection::send_message(const Message & message)
   });
 }
 
-void ClientConnection::abort()
+void WsConnection::abort()
 {
   if (dropped_)
     return;
@@ -96,7 +96,7 @@ void ClientConnection::abort()
   dropped_ = true;
 }
 
-void ClientConnection::shutdown()
+void WsConnection::shutdown()
 {
   if (dropped_)
     return;
@@ -114,50 +114,50 @@ void ClientConnection::shutdown()
 
   // Shutdown stream at SSL level
   stream_.next_layer().async_shutdown(
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_shutdown, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_shutdown, shared_from_this(),
                                              std::placeholders::_1)));
 }
 
-void ClientConnection::do_write_message(Message && message)
+void WsConnection::do_write_message(Message && message)
 {
   message_outbound_ = std::move(message);
 
   stream_.async_write(
       asio::buffer(message_outbound_.get_message(), message_outbound_.get_message_size()),
       asio::bind_executor(strand_,
-                          std::bind(&ClientConnection::on_write_message, shared_from_this(),
+                          std::bind(&WsConnection::on_write_message, shared_from_this(),
                                     std::placeholders::_1, std::placeholders::_2)));
 }
 
-void ClientConnection::set_timeout(const asio::steady_timer::duration & delay)
+void WsConnection::set_timeout(const asio::steady_timer::duration & delay)
 {
   boost::system::error_code ec;
   timer_.cancel(ec); // Errors ignored
 
   timer_.expires_from_now(delay);
   timer_.async_wait(
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_timeout, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_timeout, shared_from_this(),
                                              std::placeholders::_1)));
 }
 
-void ClientConnection::set_state_timeout(const asio::steady_timer::duration & delay)
+void WsConnection::set_state_timeout(const asio::steady_timer::duration & delay)
 {
   boost::system::error_code ec;
   state_timer_.cancel(ec); // Errors ignored
 
   state_timer_.expires_from_now(delay);
   state_timer_.async_wait(
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_timeout, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_timeout, shared_from_this(),
                                              std::placeholders::_1)));
 }
 
-void ClientConnection::cancel_state_timeout()
+void WsConnection::cancel_state_timeout()
 {
   boost::system::error_code ec;
   state_timer_.cancel(ec); // Errors ignored
 }
 
-void ClientConnection::on_timeout(boost::system::error_code ec)
+void WsConnection::on_timeout(boost::system::error_code ec)
 {
   if (dropped_ || ec == boost::asio::error::operation_aborted)
     return;
@@ -166,7 +166,7 @@ void ClientConnection::on_timeout(boost::system::error_code ec)
   abort();
 }
 
-void ClientConnection::on_shutdown(boost::system::error_code ec)
+void WsConnection::on_shutdown(boost::system::error_code ec)
 {
   if (dropped_)
     return;
@@ -184,7 +184,7 @@ void ClientConnection::on_shutdown(boost::system::error_code ec)
   socket_.shutdown(socket_.shutdown_both, ec);
 }
 
-void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
+void WsConnection::on_ssl_handshake(boost::system::error_code ec)
 {
   if (dropped_)
     return;
@@ -202,11 +202,11 @@ void ClientConnection::on_ssl_handshake(boost::system::error_code ec)
   // Read HTTP header
   http::async_read(
       stream_.next_layer(), read_buffer_, request_,
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read_request, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read_request, shared_from_this(),
                                              std::placeholders::_1)));
 }
 
-void ClientConnection::on_read_request(boost::system::error_code ec)
+void WsConnection::on_read_request(boost::system::error_code ec)
 {
   if (ec)
   {
@@ -228,7 +228,7 @@ void ClientConnection::on_read_request(boost::system::error_code ec)
     // Accept the websocket handshake
     stream_.async_accept(
         request_,
-        asio::bind_executor(strand_, std::bind(&ClientConnection::on_ws_handshake,
+        asio::bind_executor(strand_, std::bind(&WsConnection::on_ws_handshake,
                                                shared_from_this(), std::placeholders::_1)));
   }
   else
@@ -244,7 +244,7 @@ void ClientConnection::on_read_request(boost::system::error_code ec)
   }
 }
 
-void ClientConnection::on_ws_handshake(boost::system::error_code ec)
+void WsConnection::on_ws_handshake(boost::system::error_code ec)
 {
   if (dropped_)
     return;
@@ -272,11 +272,11 @@ void ClientConnection::on_ws_handshake(boost::system::error_code ec)
   // Start reading packets
   stream_.async_read(
       read_buffer_,
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, shared_from_this(),
                                              std::placeholders::_1, std::placeholders::_2)));
 }
 
-void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen)
+void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 {
   if (ec)
   {
@@ -293,7 +293,7 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
   // Start reading next
   stream_.async_read(
       read_buffer_,
-      asio::bind_executor(strand_, std::bind(&ClientConnection::on_read, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, shared_from_this(),
                                              std::placeholders::_1, std::placeholders::_2)));
 
   // Reset timeout if required
@@ -305,7 +305,7 @@ void ClientConnection::on_read(boost::system::error_code ec, std::size_t readlen
 }
 
 
-void ClientConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
+void WsConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
 {
   // Clear data that was begin sent
   message_outbound_ = Message();
@@ -333,7 +333,7 @@ void ClientConnection::on_write_message(boost::system::error_code ec, std::size_
   }
 }
 
-void ClientConnection::handle_read_error(boost::system::error_code ec)
+void WsConnection::handle_read_error(boost::system::error_code ec)
 {
   if (dropped_)
     return;

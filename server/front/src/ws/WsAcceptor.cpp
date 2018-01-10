@@ -6,9 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClientAcceptor.hpp"
+#include "WsAcceptor.hpp"
 
-#include "ClientConnection.hpp"
+#include "WsConnection.hpp"
 
 #include <bin-common/config/Config.hpp>
 #include <common/EasyProfiler.hpp>
@@ -32,13 +32,13 @@ const char default_cipher_list[] =
 } // namespace
 
 
-ClientAcceptor::ClientAcceptor(const std::shared_ptr<spdlog::logger> & logger,
+WsAcceptor::WsAcceptor(const std::shared_ptr<spdlog::logger> & logger,
                                boost::asio::io_context & asio)
     : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
 {
 }
 
-void ClientAcceptor::run()
+void WsAcceptor::run()
 {
   init_ssl();
 
@@ -78,7 +78,7 @@ void ClientAcceptor::run()
   do_accept();
 }
 
-void ClientAcceptor::init_ssl()
+void WsAcceptor::init_ssl()
 {
   // Config
   std::string certChain  = config::get_string("front.certificate_chain", ::default_cert);
@@ -124,13 +124,13 @@ void ClientAcceptor::init_ssl()
   }
 }
 
-void ClientAcceptor::do_accept()
+void WsAcceptor::do_accept()
 {
   acceptor_.async_accept(
-      socket_, std::bind(&ClientAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
+      socket_, std::bind(&WsAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
 }
 
-void ClientAcceptor::on_accept(boost::system::error_code ec)
+void WsAcceptor::on_accept(boost::system::error_code ec)
 {
   EASY_FUNCTION();
 
@@ -148,7 +148,7 @@ void ClientAcceptor::on_accept(boost::system::error_code ec)
     boost::asio::ip::tcp::no_delay no_delay(true);
     socket_.set_option(no_delay);
 
-    auto client = std::make_shared<ClientConnection>(logger_, std::move(socket_), ssl_context_);
+    auto client = std::make_shared<WsConnection>(logger_, std::move(socket_), ssl_context_);
     client->run();
   }
 
