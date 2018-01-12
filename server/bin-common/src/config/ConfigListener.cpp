@@ -13,12 +13,14 @@
 
 ConfigListener::ConfigListener()
 {
-  std::unique_lock<std::mutex> guard(config::impl::get_mutex());
-  config::impl::get_listeners().insert(this);
+  auto & data = config::impl::get_listeners_data();
+  std::unique_lock<std::mutex> guard(data.mutex);
+  data.listeners.insert(this);
 }
 
 ConfigListener::~ConfigListener()
 {
-  std::unique_lock<std::mutex> guard(config::impl::get_mutex());
-  config::impl::get_listeners().erase(this);
+  auto & data = config::impl::get_listeners_data();
+  std::unique_lock<std::mutex> guard(data.mutex);
+  data.listeners.erase(this);
 }

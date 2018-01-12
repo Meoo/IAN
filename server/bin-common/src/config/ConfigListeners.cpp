@@ -14,22 +14,19 @@ namespace config
 namespace impl
 {
 
-std::mutex & get_mutex()
+ListenersData & get_listeners_data()
 {
-  static std::mutex mutex;
-  return mutex;
-}
-std::set<ConfigListener *> & get_listeners()
-{
-  static std::set<ConfigListener *> listeners;
-  return listeners;
+  static ListenersData data;
+  return data;
 }
 
 void invoke_config_listeners()
 {
-  std::unique_lock<std::mutex> guard(get_mutex());
+  auto & data = get_listeners_data();
 
-  for (auto listener : get_listeners())
+  std::unique_lock<std::mutex> guard(data.mutex);
+
+  for (auto listener : data.listeners)
     listener->on_update();
 }
 

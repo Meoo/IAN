@@ -19,8 +19,13 @@ namespace config
 namespace impl
 {
 
-std::mutex & get_mutex();
-std::set<ConfigListener *> & get_listeners();
+struct ListenersData
+{
+  std::mutex mutex;
+  std::set<ConfigListener *> listeners;
+};
+
+ListenersData & get_listeners_data();
 
 void invoke_config_listeners();
 
