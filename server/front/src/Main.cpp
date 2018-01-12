@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ws/WsAcceptor.hpp"
+#include <ws/WsAcceptor.hpp>
 
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>

@@ -18,7 +18,9 @@ add_executable(${PROJECT_NAME}
   src/ClientState.hpp
   src/ClientState.cpp
   src/FrontGlobals.hpp
-  src/FrontGlobals.cpp)
+  src/FrontGlobals.cpp
+  src/Ssl.hpp
+  src/Ssl.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-bin-common

@@ -42,8 +42,6 @@ class WsAcceptor : public std::enable_shared_from_this<WsAcceptor>
   TcpSocket socket_;
 
 
-  void init_ssl();
-
   void do_accept();
   void on_accept(boost::system::error_code ec);
 };

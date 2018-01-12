@@ -1,11 +1,17 @@
 front
 {
   ;threads 2
-  listen_ip 0.0.0.0
-  listen_port 7011
-  certificate_chain cert.pem
-  private_key cert.pem
-  private_key_password IANkey
-  ;dh dh.pem
-  ;cipher_list "ECDHE-ECDSA-AES256-GCM-SHA384:..."
+  ssl
+  {
+    certificate_chain cert.pem
+    private_key cert.pem
+    private_key_password IANkey
+    ;dh dh.pem
+    ;cipher_list "ECDHE-ECDSA-AES256-GCM-SHA384:..."
+  }
+  ws
+  {
+    listen_ip 0.0.0.0
+    listen_port 7011
+  }
 }
