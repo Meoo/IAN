@@ -42,7 +42,7 @@ void WsAcceptor::run()
   std::string listenAddr = config::get_string("front.ws.listen_ip", ::default_listen_ip);
   int listenPort         = config::get_int("front.ws.listen_port", ::default_listen_port);
 
-  ip::tcp::endpoint endpoint(ip::address::from_string(listenAddr), listenPort);
+  ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
 
   boost::system::error_code ec;
 
