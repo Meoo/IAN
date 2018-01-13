@@ -27,11 +27,46 @@ namespace ws   = boost::beast::websocket;
   socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
 
 
-WsConnection::WsConnection(const std::shared_ptr<spdlog::logger> & logger,
-                                   TcpSocket && socket, SslContext & ssl_ctx)
+namespace
+{
+
+bool is_connection_reset_error(boost::system::error_code ec)
+{
+  if (ec.category() == asio::error::get_system_category() &&
+      (ec == asio::error::connection_aborted || ec == asio::error::connection_reset))
+  {
+    return true;
+  }
+
+  if (ec.category() == asio::ssl::error::get_stream_category() &&
+      ec == asio::ssl::error::stream_truncated)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+bool is_connection_canceled_error(boost::system::error_code ec)
+{
+  if (ec.category() == asio::error::get_ssl_category() &&
+      ERR_GET_REASON(ec.value()) == SSL_R_PROTOCOL_IS_SHUTDOWN)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+} // namespace
+
+
+WsConnection::WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
+                           SslContext & ssl_ctx)
     : logger_(logger), stream_(std::move(socket), ssl_ctx),
       socket_(stream_.next_layer().next_layer()), strand_(socket_.get_io_context()),
-      timer_(socket_.get_io_context()), state_timer_(socket_.get_io_context())
+      timer_(socket_.get_io_context()), state_timer_(socket_.get_io_context()),
+      rate_limit_start_(std::chrono::steady_clock::now())
 {
 }
 
@@ -50,8 +85,8 @@ void WsConnection::run()
   // SSL handshake
   stream_.next_layer().async_handshake(
       asio::ssl::stream_base::server,
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_ssl_handshake,
-                                             shared_from_this(), std::placeholders::_1)));
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_ssl_handshake, shared_from_this(),
+                                             std::placeholders::_1)));
 }
 
 void WsConnection::send_message(const Message & message)
@@ -113,9 +148,8 @@ void WsConnection::shutdown()
     return;
 
   // Shutdown stream at SSL level
-  stream_.next_layer().async_shutdown(
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_shutdown, shared_from_this(),
-                                             std::placeholders::_1)));
+  stream_.next_layer().async_shutdown(asio::bind_executor(
+      strand_, std::bind(&WsConnection::on_shutdown, shared_from_this(), std::placeholders::_1)));
 }
 
 void WsConnection::do_write_message(Message && message)
@@ -124,9 +158,8 @@ void WsConnection::do_write_message(Message && message)
 
   stream_.async_write(
       asio::buffer(message_outbound_.get_message(), message_outbound_.get_message_size()),
-      asio::bind_executor(strand_,
-                          std::bind(&WsConnection::on_write_message, shared_from_this(),
-                                    std::placeholders::_1, std::placeholders::_2)));
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_write_message, shared_from_this(),
+                                             std::placeholders::_1, std::placeholders::_2)));
 }
 
 void WsConnection::set_timeout(const asio::steady_timer::duration & delay)
@@ -135,9 +168,8 @@ void WsConnection::set_timeout(const asio::steady_timer::duration & delay)
   timer_.cancel(ec); // Errors ignored
 
   timer_.expires_from_now(delay);
-  timer_.async_wait(
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_timeout, shared_from_this(),
-                                             std::placeholders::_1)));
+  timer_.async_wait(asio::bind_executor(
+      strand_, std::bind(&WsConnection::on_timeout, shared_from_this(), std::placeholders::_1)));
 }
 
 void WsConnection::set_state_timeout(const asio::steady_timer::duration & delay)
@@ -146,15 +178,40 @@ void WsConnection::set_state_timeout(const asio::steady_timer::duration & delay)
   state_timer_.cancel(ec); // Errors ignored
 
   state_timer_.expires_from_now(delay);
-  state_timer_.async_wait(
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_timeout, shared_from_this(),
-                                             std::placeholders::_1)));
+  state_timer_.async_wait(asio::bind_executor(
+      strand_, std::bind(&WsConnection::on_timeout, shared_from_this(), std::placeholders::_1)));
 }
 
 void WsConnection::cancel_state_timeout()
 {
   boost::system::error_code ec;
   state_timer_.cancel(ec); // Errors ignored
+}
+
+bool WsConnection::check_rate_limit()
+{
+  if (rate_limit_messages_ > front::rate_limit_messages ||
+      rate_limit_bytes_ > front::rate_limit_bytes)
+  {
+    auto now = std::chrono::steady_clock::now();
+
+    if (now - rate_limit_start_ > std::chrono::seconds(1))
+    {
+      logger_->trace("Reset rate limiter counters: {}:{}", LOG_SOCKET_TUPLE);
+
+      rate_limit_start_    = now;
+      rate_limit_messages_ = 0;
+      rate_limit_bytes_    = 0;
+    }
+    else
+    {
+      logger_->warn("Rate limiter kill: {}:{}", LOG_SOCKET_TUPLE);
+      abort();
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void WsConnection::on_timeout(boost::system::error_code ec)
@@ -173,7 +230,7 @@ void WsConnection::on_shutdown(boost::system::error_code ec)
 
   if (ec)
   {
-    if (ec != asio::error::connection_aborted && ec != asio::error::connection_reset)
+    if (!is_connection_reset_error(ec) && !is_connection_canceled_error(ec))
       logger_->warn("Shutdown error for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                     ec.value());
   }
@@ -182,6 +239,7 @@ void WsConnection::on_shutdown(boost::system::error_code ec)
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
+  dropped_ = true;
 }
 
 void WsConnection::on_ssl_handshake(boost::system::error_code ec)
@@ -228,8 +286,8 @@ void WsConnection::on_read_request(boost::system::error_code ec)
     // Accept the websocket handshake
     stream_.async_accept(
         request_,
-        asio::bind_executor(strand_, std::bind(&WsConnection::on_ws_handshake,
-                                               shared_from_this(), std::placeholders::_1)));
+        asio::bind_executor(strand_, std::bind(&WsConnection::on_ws_handshake, shared_from_this(),
+                                               std::placeholders::_1)));
   }
   else
   {
@@ -266,6 +324,15 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
   stream_.auto_fragment(front::ws_message_auto_fragment);
   stream_.read_message_max(front::message_max_size);
 
+  // Set control handler
+  // No need to get a shared_ptr instance because a read must be active for the callback to be
+  // called
+  // We need to put it in a variable before calling control_callback (must be a reference)
+  auto control_cb =
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_control_frame, this,
+                                             std::placeholders::_1, std::placeholders::_2));
+  stream_.control_callback(control_cb);
+
   // Refresh timeout
   set_timeout(std::chrono::seconds(front::ws_timeout + 5));
 
@@ -276,8 +343,36 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
                                              std::placeholders::_1, std::placeholders::_2)));
 }
 
+void WsConnection::on_control_frame(ws::frame_type type, boost::string_view data)
+{
+  // Rate limit
+  rate_limit_messages_++;
+  rate_limit_bytes_ += data.length();
+
+  if (check_rate_limit())
+    return;
+
+  // Reset timeout if required
+  if (timer_.expires_from_now() <= std::chrono::seconds(front::ws_timeout))
+    set_timeout(std::chrono::seconds(front::ws_timeout + 5));
+
+  switch (type)
+  {
+  case ws::frame_type::ping: logger_->trace("Ping received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::pong: logger_->trace("Pong received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::close:
+    logger_->trace("Close received: code {} reason '{}' {}:{}", stream_.reason().code,
+                   stream_.reason().reason.c_str(), LOG_SOCKET_TUPLE);
+    shutdown();
+    break;
+  }
+}
+
 void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 {
+  if (dropped_)
+    return;
+
   if (ec)
   {
     handle_read_error(ec);
@@ -285,6 +380,13 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
   }
 
   logger_->trace("Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
+
+  // Rate limit
+  rate_limit_messages_++;
+  rate_limit_bytes_ += readlen;
+
+  if (check_rate_limit())
+    return;
 
   // Get data
   boost::beast::flat_buffer read_buffer;
@@ -310,6 +412,9 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
   // Clear data that was begin sent
   message_outbound_ = Message();
 
+  if (dropped_)
+    return;
+
   if (ec)
   {
     // TODO
@@ -317,9 +422,6 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
   }
 
   logger_->trace("Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
-
-  if (dropped_)
-    return;
 
   // Write next message
   Message message;
@@ -338,11 +440,14 @@ void WsConnection::handle_read_error(boost::system::error_code ec)
   if (dropped_)
     return;
 
-  if (ec == asio::error::connection_aborted || ec == asio::error::connection_reset)
+  if (is_connection_reset_error(ec))
   {
     abort();
     return;
   }
+
+  if (is_connection_canceled_error(ec))
+    return;
 
   logger_->warn("Read failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                 ec.value());

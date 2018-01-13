@@ -14,6 +14,8 @@ namespace front
 
 // Global
 ConfigIntValue message_max_size("front.message_max_size", 0x4000);
+ConfigIntValue rate_limit_messages("front.rate_limit_messages", 100);
+ConfigIntValue rate_limit_bytes("front.rate_limit_bytes", 0x8000);
 
 // Websockets
 ConfigBoolValue ws_message_auto_fragment("front.ws.message_auto_fragment", true);

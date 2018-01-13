@@ -16,6 +16,8 @@ namespace front
 
 // Global
 extern ConfigIntValue message_max_size;
+extern ConfigIntValue rate_limit_messages;
+extern ConfigIntValue rate_limit_bytes;
 
 // Websockets
 extern ConfigBoolValue ws_message_auto_fragment;

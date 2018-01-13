@@ -22,6 +22,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <memory>
 
 
@@ -35,7 +36,7 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
 
 
   WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
-                   SslContext & ssl_ctx);
+               SslContext & ssl_ctx);
   ~WsConnection();
 
   WsConnection(const WsConnection &) = delete;
@@ -50,7 +51,7 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
  private:
   std::shared_ptr<spdlog::logger> logger_;
 
-  bool dropped_ = false;
+  bool dropped_    = false;
   bool is_writing_ = false;
 
   WsStream stream_;
@@ -68,6 +69,11 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
   boost::beast::http::request<boost::beast::http::string_body> request_;
   boost::beast::flat_buffer read_buffer_;
 
+  // Inbound rate limiter
+  std::chrono::steady_clock::time_point rate_limit_start_;
+  int rate_limit_messages_ = 0;
+  size_t rate_limit_bytes_ = 0;
+
 
   void abort();
   void shutdown();
@@ -80,6 +86,8 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
   void set_state_timeout(const boost::asio::steady_timer::duration & delay);
   void cancel_state_timeout();
 
+  bool check_rate_limit(); // Return true on abort
+
 
   void on_timeout(boost::system::error_code ec);
   void on_shutdown(boost::system::error_code ec);
@@ -87,6 +95,8 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
   void on_ssl_handshake(boost::system::error_code ec);
   void on_read_request(boost::system::error_code ec);
   void on_ws_handshake(boost::system::error_code ec);
+
+  void on_control_frame(boost::beast::websocket::frame_type type, boost::string_view data);
 
   void on_read(boost::system::error_code ec, std::size_t readlen);
   void on_write_message(boost::system::error_code ec, std::size_t writelen);
