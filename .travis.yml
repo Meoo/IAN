@@ -60,13 +60,25 @@ matrix:
 
     # OSX {
     - os: osx
-      env: CONFIG=Release TOOLCHAIN=default
+      env: CONFIG=Release TOOLCHAIN=libcxx
       addons:
         apt:
           packages:
             - python3-pip
     - os: osx
-      env: CONFIG=Debug TOOLCHAIN=default
+      env: CONFIG=Debug TOOLCHAIN=libcxx
+      addons:
+        apt:
+          packages:
+            - python3-pip
+    - os: osx
+      env: CONFIG=Release TOOLCHAIN=osx-10-12
+      addons:
+        apt:
+          packages:
+            - python3-pip
+    - os: osx
+      env: CONFIG=Debug TOOLCHAIN=osx-10-12
       addons:
         apt:
           packages:
