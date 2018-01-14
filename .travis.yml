@@ -71,18 +71,6 @@ matrix:
         apt:
           packages:
             - python3-pip
-    - os: osx
-      env: CONFIG=Release TOOLCHAIN=osx-10-12
-      addons:
-        apt:
-          packages:
-            - python3-pip
-    - os: osx
-      env: CONFIG=Debug TOOLCHAIN=osx-10-12
-      addons:
-        apt:
-          packages:
-            - python3-pip
     # }
 
 install:
