@@ -51,8 +51,9 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
  private:
   std::shared_ptr<spdlog::logger> logger_;
 
-  bool dropped_    = false;
-  bool is_writing_ = false;
+  bool dropped_       = false;
+  bool shutting_down_ = false;
+  bool is_writing_    = false;
 
   WsStream stream_;
   TcpSocket & socket_;
@@ -103,4 +104,5 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
 
 
   void handle_read_error(boost::system::error_code ec);
+  void handle_write_error(boost::system::error_code ec);
 };

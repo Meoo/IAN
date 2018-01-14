@@ -99,6 +99,9 @@ void WsConnection::send_message(const Message & message)
 
   // Execute in strand
   asio::dispatch(strand_, [this, self{shared_from_this()}, message{message}]() mutable {
+    if (dropped_ || shutting_down_)
+      return;
+
     if (!is_writing_)
     {
       is_writing_ = true;
@@ -150,6 +153,7 @@ void WsConnection::shutdown()
   // Shutdown stream at SSL level
   stream_.next_layer().async_shutdown(asio::bind_executor(
       strand_, std::bind(&WsConnection::on_shutdown, shared_from_this(), std::placeholders::_1)));
+  shutting_down_ = true;
 }
 
 void WsConnection::do_write_message(Message && message)
@@ -197,7 +201,7 @@ bool WsConnection::check_rate_limit()
 
     if (now - rate_limit_start_ > std::chrono::seconds(1))
     {
-      logger_->trace("Reset rate limiter counters: {}:{}", LOG_SOCKET_TUPLE);
+      SPDLOG_TRACE(logger_, "Reset rate limiter counters: {}:{}", LOG_SOCKET_TUPLE);
 
       rate_limit_start_    = now;
       rate_limit_messages_ = 0;
@@ -255,7 +259,7 @@ void WsConnection::on_ssl_handshake(boost::system::error_code ec)
     return;
   }
 
-  logger_->trace("SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
+  SPDLOG_TRACE(logger_, "SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   // Read HTTP header
   http::async_read(
@@ -281,7 +285,7 @@ void WsConnection::on_read_request(boost::system::error_code ec)
 
   if (ws::is_upgrade(request_))
   {
-    logger_->trace("Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
+    SPDLOG_TRACE(logger_, "Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // Accept the websocket handshake
     stream_.async_accept(
@@ -291,7 +295,7 @@ void WsConnection::on_read_request(boost::system::error_code ec)
   }
   else
   {
-    logger_->trace("Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
+    SPDLOG_TRACE(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // TODO http
     http::response<http::string_body> response;
@@ -318,7 +322,7 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
     return;
   }
 
-  logger_->trace("Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
+  SPDLOG_TRACE(logger_, "Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   stream_.binary(true);
   stream_.auto_fragment(front::ws_message_auto_fragment);
@@ -358,11 +362,11 @@ void WsConnection::on_control_frame(ws::frame_type type, boost::string_view data
 
   switch (type)
   {
-  case ws::frame_type::ping: logger_->trace("Ping received: {}:{}", LOG_SOCKET_TUPLE); break;
-  case ws::frame_type::pong: logger_->trace("Pong received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::ping: SPDLOG_TRACE(logger_, "Ping received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::pong: SPDLOG_TRACE(logger_, "Pong received: {}:{}", LOG_SOCKET_TUPLE); break;
   case ws::frame_type::close:
-    logger_->trace("Close received: code {} reason '{}' {}:{}", stream_.reason().code,
-                   stream_.reason().reason.c_str(), LOG_SOCKET_TUPLE);
+    SPDLOG_TRACE(logger_, "Close received: code {} reason '{}' {}:{}", stream_.reason().code,
+                 stream_.reason().reason.c_str(), LOG_SOCKET_TUPLE);
     shutdown();
     break;
   }
@@ -379,7 +383,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
     return;
   }
 
-  logger_->trace("Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
+  SPDLOG_TRACE(logger_, "Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
 
   // Rate limit
   rate_limit_messages_++;
@@ -417,11 +421,11 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
 
   if (ec)
   {
-    // TODO
+    handle_write_error(ec);
     return;
   }
 
-  logger_->trace("Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
+  SPDLOG_TRACE(logger_, "Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
 
   // Write next message
   Message message;
@@ -450,6 +454,26 @@ void WsConnection::handle_read_error(boost::system::error_code ec)
     return;
 
   logger_->warn("Read failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+                ec.value());
+
+  shutdown();
+}
+
+void WsConnection::handle_write_error(boost::system::error_code ec)
+{
+  if (dropped_)
+    return;
+
+  if (is_connection_reset_error(ec))
+  {
+    abort();
+    return;
+  }
+
+  if (is_connection_canceled_error(ec))
+    return;
+
+  logger_->warn("Write failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                 ec.value());
 
   shutdown();
