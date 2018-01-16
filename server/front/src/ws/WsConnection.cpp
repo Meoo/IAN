@@ -25,7 +25,7 @@ namespace ws   = boost::beast::websocket;
 
 #define LOG_SOCKET_TUPLE                                                                           \
   socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
-
+#define SHARED_FROM_THIS std::static_pointer_cast<WsConnection>(shared_from_this())
 
 namespace
 {
@@ -85,7 +85,7 @@ void WsConnection::run()
   // SSL handshake
   stream_.next_layer().async_handshake(
       asio::ssl::stream_base::server,
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_ssl_handshake, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_ssl_handshake, SHARED_FROM_THIS,
                                              std::placeholders::_1)));
 }
 
@@ -98,7 +98,7 @@ void WsConnection::send_message(const Message & message)
   }
 
   // Execute in strand
-  asio::dispatch(strand_, [this, self{shared_from_this()}, message{message}]() mutable {
+  asio::dispatch(strand_, [this, self{SHARED_FROM_THIS}, message{message}]() mutable {
     if (dropped_ || shutting_down_)
       return;
 
@@ -152,7 +152,7 @@ void WsConnection::shutdown()
 
   // Shutdown stream at SSL level
   stream_.next_layer().async_shutdown(asio::bind_executor(
-      strand_, std::bind(&WsConnection::on_shutdown, shared_from_this(), std::placeholders::_1)));
+      strand_, std::bind(&WsConnection::on_shutdown, SHARED_FROM_THIS, std::placeholders::_1)));
   shutting_down_ = true;
 }
 
@@ -162,7 +162,7 @@ void WsConnection::do_write_message(Message && message)
 
   stream_.async_write(
       asio::buffer(message_outbound_.get_message(), message_outbound_.get_message_size()),
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_write_message, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_write_message, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2)));
 }
 
@@ -173,7 +173,7 @@ void WsConnection::set_timeout(const asio::steady_timer::duration & delay)
 
   timer_.expires_from_now(delay);
   timer_.async_wait(asio::bind_executor(
-      strand_, std::bind(&WsConnection::on_timeout, shared_from_this(), std::placeholders::_1)));
+      strand_, std::bind(&WsConnection::on_timeout, SHARED_FROM_THIS, std::placeholders::_1)));
 }
 
 void WsConnection::set_state_timeout(const asio::steady_timer::duration & delay)
@@ -183,7 +183,7 @@ void WsConnection::set_state_timeout(const asio::steady_timer::duration & delay)
 
   state_timer_.expires_from_now(delay);
   state_timer_.async_wait(asio::bind_executor(
-      strand_, std::bind(&WsConnection::on_timeout, shared_from_this(), std::placeholders::_1)));
+      strand_, std::bind(&WsConnection::on_timeout, SHARED_FROM_THIS, std::placeholders::_1)));
 }
 
 void WsConnection::cancel_state_timeout()
@@ -264,7 +264,7 @@ void WsConnection::on_ssl_handshake(boost::system::error_code ec)
   // Read HTTP header
   http::async_read(
       stream_.next_layer(), read_buffer_, request_,
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_read_request, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read_request, SHARED_FROM_THIS,
                                              std::placeholders::_1)));
 }
 
@@ -289,9 +289,8 @@ void WsConnection::on_read_request(boost::system::error_code ec)
 
     // Accept the websocket handshake
     stream_.async_accept(
-        request_,
-        asio::bind_executor(strand_, std::bind(&WsConnection::on_ws_handshake, shared_from_this(),
-                                               std::placeholders::_1)));
+        request_, asio::bind_executor(strand_, std::bind(&WsConnection::on_ws_handshake,
+                                                         SHARED_FROM_THIS, std::placeholders::_1)));
   }
   else
   {
@@ -343,7 +342,7 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
   // Start reading packets
   stream_.async_read(
       read_buffer_,
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2)));
 }
 
@@ -392,22 +391,31 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
   if (check_rate_limit())
     return;
 
+  if (!stream_.got_binary())
+  {
+    logger_->error("Only binary data is supported: {}:{}", LOG_SOCKET_TUPLE);
+    shutdown();
+    return;
+  }
+
   // Get data
   boost::beast::flat_buffer read_buffer;
   std::swap(read_buffer_, read_buffer);
 
+  // TODO Check readlen == read_buffer.size() ? Guaranteed?
+
   // Start reading next
   stream_.async_read(
       read_buffer_,
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, shared_from_this(),
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_read, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2)));
 
   // Reset timeout if required
   if (timer_.expires_from_now() <= std::chrono::seconds(front::ws_timeout))
     set_timeout(std::chrono::seconds(front::ws_timeout + 5));
 
-  // TODO Process data
-  // if(stream_.got_binary())
+  // Process data
+  process_message(read_buffer.data().data(), readlen);
 }
 
 

@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <client/Client.hpp>
+#include <client/ClientConnection.hpp>
+
 #include <bin-common/Message.hpp>
 #include <bin-common/MessageQueue.hpp>
 
@@ -26,7 +29,7 @@
 #include <memory>
 
 
-class WsConnection : public std::enable_shared_from_this<WsConnection>
+class WsConnection : public ClientConnection
 {
  public:
   using SslContext = boost::asio::ssl::context;
@@ -45,7 +48,9 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
 
   void run();
 
-  void send_message(const Message & message);
+
+ protected:
+  void send_message(const Message & message) override;
 
 
  private:
