@@ -8,14 +8,14 @@
 
 #include "WsConnection.hpp"
 
+#include <FrontGlobals.hpp>
+
 #include <common/EasyProfiler.hpp>
 
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-
-#include <FrontGlobals.hpp>
 
 
 namespace asio = boost::asio;
@@ -68,6 +68,7 @@ WsConnection::WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSo
       timer_(socket_.get_io_context()), state_timer_(socket_.get_io_context()),
       rate_limit_start_(std::chrono::steady_clock::now())
 {
+  ++front::active_connection_count;
 }
 
 WsConnection::~WsConnection()
@@ -75,6 +76,8 @@ WsConnection::~WsConnection()
   // Close must be called last or using LOG_SOCKET_TUPLE will throw
   boost::system::error_code ec;
   socket_.close(ec);
+
+  --front::active_connection_count;
 }
 
 void WsConnection::run()
@@ -283,9 +286,20 @@ void WsConnection::on_read_request(boost::system::error_code ec)
     read_buffer_ = boost::beast::flat_buffer();
   }
 
-  if (ws::is_upgrade(request_))
+  if (front::active_connection_count > front::connection_limit_soft)
   {
-    SPDLOG_TRACE(logger_, "Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
+    SPDLOG_DEBUG(logger_, "Client denied (Overloaded): {}:{}", LOG_SOCKET_TUPLE);
+
+    // TODO http
+    http::response<http::string_body> response;
+    response.result(http::status::service_unavailable);
+    response.body() = "Overloaded";
+    http::write(stream_.next_layer(), response, ec);
+    shutdown();
+  }
+  else if (ws::is_upgrade(request_))
+  {
+    SPDLOG_DEBUG(logger_, "Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // Accept the websocket handshake
     stream_.async_accept(
@@ -294,7 +308,7 @@ void WsConnection::on_read_request(boost::system::error_code ec)
   }
   else
   {
-    SPDLOG_TRACE(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
+    SPDLOG_DEBUG(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // TODO http
     http::response<http::string_body> response;
@@ -332,7 +346,7 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
   // called
   // We need to put it in a variable before calling control_callback (must be a reference)
   auto control_cb =
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_control_frame, this,
+      asio::bind_executor(strand_, std::bind(&WsConnection::on_control_frame, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2));
   stream_.control_callback(control_cb);
 

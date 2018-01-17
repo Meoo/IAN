@@ -10,11 +10,18 @@
 
 #include <bin-common/config/ConfigValue.hpp>
 
+#include <atomic>
+
 
 namespace front
 {
 
+// Config
+
 // Global
+extern ConfigIntValue connection_limit_soft;
+extern ConfigIntValue connection_limit_hard;
+
 extern ConfigIntValue message_max_size;
 extern ConfigIntValue rate_limit_messages;
 extern ConfigIntValue rate_limit_bytes;
@@ -23,5 +30,10 @@ extern ConfigIntValue rate_limit_bytes;
 extern ConfigBoolValue ws_message_auto_fragment;
 extern ConfigIntValue ws_setup_timeout;
 extern ConfigIntValue ws_timeout;
+
+
+// Variables
+
+extern std::atomic<std::size_t> active_connection_count;
 
 } // namespace front

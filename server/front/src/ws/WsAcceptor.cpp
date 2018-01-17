@@ -10,6 +10,7 @@
 
 #include "WsConnection.hpp"
 
+#include <FrontGlobals.hpp>
 #include <Ssl.hpp>
 
 #include <bin-common/config/Config.hpp>
@@ -29,8 +30,9 @@ const int default_listen_port  = 7011;
 
 
 WsAcceptor::WsAcceptor(const std::shared_ptr<spdlog::logger> & logger,
-                               boost::asio::io_context & asio)
-    : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio)
+                       boost::asio::io_context & asio)
+    : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio),
+      timer_(asio)
 {
 }
 
@@ -38,6 +40,11 @@ void WsAcceptor::run()
 {
   init_ssl_context(ssl_context_);
 
+  open();
+}
+
+void WsAcceptor::open()
+{
   // Config
   std::string listenAddr = config::get_string("front.ws.listen_ip", ::default_listen_ip);
   int listenPort         = config::get_int("front.ws.listen_port", ::default_listen_port);
@@ -46,38 +53,65 @@ void WsAcceptor::run()
 
   boost::system::error_code ec;
 
-  acceptor_.open(endpoint.protocol(), ec);
+  do
+  {
+    acceptor_.open(endpoint.protocol(), ec);
+    if (ec)
+    {
+      logger_->error("Failed to open acceptor: {}", ec.message());
+      break;
+    }
+
+    acceptor_.bind(endpoint, ec);
+    if (ec)
+    {
+      logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
+      break;
+    }
+
+    logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
+
+    acceptor_.listen(boost::asio::socket_base::max_connections, ec);
+    if (ec)
+    {
+      logger_->error("Acceptor failed to listen for clients: {}", ec.message());
+      break;
+    }
+
+  } while (false);
+
   if (ec)
   {
-    // TODO
-    logger_->error("Failed to open acceptor: {}", ec.message());
-  }
+    SPDLOG_DEBUG("Acceptor open will retry in 10s");
 
-  acceptor_.bind(endpoint, ec);
-  if (ec)
+    // Delay before retry
+    timer_.expires_from_now(std::chrono::seconds(10));
+    timer_.async_wait(std::bind(&WsAcceptor::open, shared_from_this()));
+  }
+  else
   {
-    // TODO
-    logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
+    // All green
+    logger_->info("Acceptor listening for clients");
+    accept_next();
   }
-
-  logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
-
-  acceptor_.listen(boost::asio::socket_base::max_connections, ec);
-  if (ec)
-  {
-    // TODO
-    logger_->error("Acceptor failed to listen for clients: {}", ec.message());
-  }
-
-  logger_->info("Acceptor listening for clients");
-
-  do_accept();
 }
 
-void WsAcceptor::do_accept()
+void WsAcceptor::accept_next()
 {
-  acceptor_.async_accept(
-      socket_, std::bind(&WsAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
+  if (front::active_connection_count >= front::connection_limit_hard)
+  {
+    logger_->warn("Hard limit reached, closing acceptor for 5s");
+
+    acceptor_.close();
+
+    // Delay before reopen
+    timer_.expires_from_now(std::chrono::seconds(5));
+    timer_.async_wait(std::bind(&WsAcceptor::on_timer_reopen, shared_from_this()));
+  }
+  else
+  {
+    acceptor_.async_accept(socket_, std::bind(&WsAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
+  }
 }
 
 void WsAcceptor::on_accept(boost::system::error_code ec)
@@ -102,5 +136,33 @@ void WsAcceptor::on_accept(boost::system::error_code ec)
     client->run();
   }
 
-  do_accept();
+  if (front::active_connection_count > front::connection_limit_hard / 2)
+  {
+    // Delay before next accept (20ms = 50 accept/s)
+    timer_.expires_from_now(std::chrono::milliseconds(20));
+    timer_.async_wait(std::bind(&WsAcceptor::accept_next, shared_from_this()));
+  }
+  else
+  {
+    accept_next();
+  }
+}
+
+void WsAcceptor::on_timer_accept() { accept_next(); }
+
+void WsAcceptor::on_timer_reopen()
+{
+  if (front::active_connection_count >= front::connection_limit_hard)
+  {
+    SPDLOG_DEBUG("Not yet under hard limit, will retry in 5s");
+
+    // Delay again
+    timer_.expires_from_now(std::chrono::seconds(5));
+    timer_.async_wait(std::bind(&WsAcceptor::on_timer_reopen, shared_from_this()));
+  }
+  else
+  {
+    // Reopen
+    open();
+  }
 }

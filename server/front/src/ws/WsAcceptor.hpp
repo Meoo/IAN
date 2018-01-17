@@ -11,6 +11,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -41,7 +42,14 @@ class WsAcceptor : public std::enable_shared_from_this<WsAcceptor>
   TcpAcceptor acceptor_;
   TcpSocket socket_;
 
+  boost::asio::steady_timer timer_;
 
-  void do_accept();
+
+  void open();
+
+  void accept_next();
   void on_accept(boost::system::error_code ec);
+
+  void on_timer_accept();
+  void on_timer_reopen();
 };
