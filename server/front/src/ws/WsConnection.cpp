@@ -342,13 +342,12 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
   stream_.read_message_max(front::message_max_size);
 
   // Set control handler
-  // No need to get a shared_ptr instance because a read must be active for the callback to be
-  // called
+  // No need to get a shared_ptr instance (callback is called within the strand)
   // We need to put it in a variable before calling control_callback (must be a reference)
-  auto control_cb =
-      asio::bind_executor(strand_, std::bind(&WsConnection::on_control_frame, SHARED_FROM_THIS,
-                                             std::placeholders::_1, std::placeholders::_2));
-  stream_.control_callback(control_cb);
+  // FIXME Disabled: fixed in https://github.com/boostorg/beast/pull/957 (not released in boost)
+  /*auto control_cb = std::bind(&WsConnection::on_control_frame, this, std::placeholders::_1,
+                              std::placeholders::_2);
+  stream_.control_callback(control_cb);*/
 
   // Refresh timeout
   set_timeout(std::chrono::seconds(front::ws_timeout + 5));
