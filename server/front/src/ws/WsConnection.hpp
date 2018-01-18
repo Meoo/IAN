@@ -42,9 +42,6 @@ class WsConnection : public ClientConnection
                SslContext & ssl_ctx);
   ~WsConnection();
 
-  WsConnection(const WsConnection &) = delete;
-  WsConnection & operator=(const WsConnection &) = delete;
-
 
   void run();
 

@@ -17,12 +17,21 @@ class Client;
 
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
+ public:
+  ClientConnection() = default;
+  virtual ~ClientConnection() = default;
+
+  ClientConnection(const ClientConnection &) = delete;
+  ClientConnection & operator=(const ClientConnection &) = delete;
+
+
  protected:
   // An outbound message should be sent to the peer (implemented by connection)
   virtual void send_message(const Message & message) = 0;
 
   // An inbound message was received from the peer, forward it to the Client instance
   void process_message(const void * data, std::size_t length) {}
+
 
  private:
   std::shared_ptr<Client> client_;
