@@ -56,6 +56,23 @@ if(IAN_ENABLE_EASY_PROFILER AND IAN_EASY_PROFILER_INSTALL_PATH)
   set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${IAN_EASY_PROFILER_INSTALL_PATH}/lib/cmake/easy_profiler)
 endif()
 
+set(IAN_IPO OFF CACHE BOOL "Use interprocedural optimization")
+
+if(IAN_IPO)
+  if(${CMAKE_VERSION} VERSION_LESS 3.9)
+    message(WARNING "IPO is not supported: CMake version < 3.9")
+  else()
+    cmake_policy(SET CMP0069 NEW)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT IPO_SUP OUTPUT IPO_ERR)
+    if(IPO_SUP)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+    else()
+      message(WARNING "IPO is not supported: ${IPO_ERR}")
+    endif()
+  endif()
+endif()
+
 
 # Global dependencies
 hunter_add_package(flatbuffers)
