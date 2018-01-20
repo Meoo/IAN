@@ -48,6 +48,7 @@ void WsAcceptor::open()
   // Config
   std::string listenAddr = config::get_string("front.ws.listen_ip", ::default_listen_ip);
   int listenPort         = config::get_int("front.ws.listen_port", ::default_listen_port);
+  bool reuseAddr         = config::get_bool("front.ws.listen_reuse_addr", false);
 
   ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
 
@@ -55,6 +56,16 @@ void WsAcceptor::open()
 
   do
   {
+    if (reuseAddr)
+    {
+      acceptor_.set_option(boost::asio::ip::tcp::socket::reuse_address(true), ec);
+      if (ec)
+      {
+        logger_->error("Failed to set reuse address option on acceptor: {}", ec.message());
+        break;
+      }
+    }
+
     acceptor_.open(endpoint.protocol(), ec);
     if (ec)
     {
@@ -110,7 +121,8 @@ void WsAcceptor::accept_next()
   }
   else
   {
-    acceptor_.async_accept(socket_, std::bind(&WsAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
+    acceptor_.async_accept(
+        socket_, std::bind(&WsAcceptor::on_accept, shared_from_this(), std::placeholders::_1));
   }
 }
 
