@@ -1,11 +1,22 @@
+cluster
+{
+  safe true
+  ssl
+  {
+    certificate_authority_file dev-ca.crt
+    certificate_chain internal.full.pem
+    private_key internal.full.pem
+    private_key_password IAN-internal
+  }
+}
 front
 {
   ;threads 2
   ssl
   {
-    certificate_chain cert.pem
-    private_key cert.pem
-    private_key_password IANkey
+    certificate_chain localhost.full.pem
+    private_key localhost.full.pem
+    private_key_password IAN-localhost
     ;dh dh.pem
     ;cipher_list "ECDHE-ECDSA-AES256-GCM-SHA384:..."
   }
