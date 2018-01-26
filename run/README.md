@@ -45,7 +45,7 @@ Generation commands used for this file:
 # Private key
 openssl genrsa -passout pass:IAN-ca -out dev-ca.key 2048
 # Self signed CA
-openssl req -new -x509 -key dev-ca.key -out dev-ca.crt
+openssl req -new -x509 -days 3650 -key dev-ca.key -out dev-ca.crt
 ```
 
 The private key `dev-ca.key` will only be used for certificate generation, and should not be deployed to your servers.
@@ -63,9 +63,9 @@ Generation commands used for this file:
 # Private key
 openssl genrsa -passout pass:IAN-internal -out internal.key 2048
 # Sign request
-openssl req -new -key internal.key -out internal.csr
+openssl req -new -days 3650 -key internal.key -out internal.csr
 # Sign with CA
-openssl x509 -req -in internal.csr -CA dev-ca.crt -CAkey dev-ca.key -CAcreateserial -out internal.crt
+openssl x509 -req -days 3650 -in internal.csr -CA dev-ca.crt -CAkey dev-ca.key -CAcreateserial -out internal.crt
 # Create bundle
 cat internal.key internal.crt dev-ca.crt > internal.full.pem
 ```
