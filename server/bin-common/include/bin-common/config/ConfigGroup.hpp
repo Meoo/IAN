@@ -14,14 +14,14 @@
 class ConfigGroup
 {
  public:
-  ConfigGroup(const std::string & group);
+  explicit ConfigGroup(const std::string & group);
 
 
-  bool get_bool(const std::string & key, bool default_val);
-  std::string get_string(const std::string & key, const std::string & default_val = std::string());
-  int get_int(const std::string & key, int default_val = 0);
+  bool get_bool(const std::string & key, bool default_val) const;
+  std::string get_string(const std::string & key, const std::string & default_val = std::string()) const;
+  int get_int(const std::string & key, int default_val = 0) const;
 
-  ConfigGroup get_subgroup(const std::string & group);
+  ConfigGroup get_subgroup(const std::string & group) const;
 
 
  private:

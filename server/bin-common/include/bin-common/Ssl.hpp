@@ -8,7 +8,12 @@
 
 #pragma once
 
+#include <bin-common/config/ConfigGroup.hpp>
+
 #include <boost/asio/ssl/context.hpp>
 
+#include <spdlog/spdlog.h>
 
-void init_ssl_context(boost::asio::ssl::context & ssl_context);
+
+void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
+                      boost::asio::ssl::context & ssl_context);

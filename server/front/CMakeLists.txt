@@ -1,9 +1,6 @@
 
 project(server-front)
 
-hunter_add_package(OpenSSL)
-find_package(OpenSSL REQUIRED)
-
 set(SOURCE_CL
   src/client/Client.hpp
   src/client/Client.cpp
@@ -26,21 +23,13 @@ add_executable(${PROJECT_NAME}
   ${SOURCE_WS}
   src/Main.cpp
   src/FrontGlobals.hpp
-  src/FrontGlobals.cpp
-  src/Ssl.hpp
-  src/Ssl.cpp)
+  src/FrontGlobals.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  server-bin-common
-  OpenSSL::SSL OpenSSL::Crypto)
+  server-bin-common)
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "front")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/run")
-
-if(WIN32)
-  target_link_libraries(${PROJECT_NAME} PUBLIC
-    crypt32.lib)
-endif()

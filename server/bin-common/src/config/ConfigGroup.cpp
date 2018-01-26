@@ -15,22 +15,22 @@ ConfigGroup::ConfigGroup(const std::string& group)
 {
 }
 
-bool ConfigGroup::get_bool(const std::string& key, bool default_val)
+bool ConfigGroup::get_bool(const std::string& key, bool default_val) const
 {
   return config::get_bool(prefix_ + key, default_val);
 }
 
-std::string ConfigGroup::get_string(const std::string& key, const std::string& default_val)
+std::string ConfigGroup::get_string(const std::string& key, const std::string& default_val) const
 {
   return config::get_string(prefix_ + key, default_val);
 }
 
-int ConfigGroup::get_int(const std::string& key, int default_val)
+int ConfigGroup::get_int(const std::string& key, int default_val) const
 {
   return config::get_int(prefix_ + key, default_val);
 }
 
-ConfigGroup ConfigGroup::get_subgroup(const std::string& group)
+ConfigGroup ConfigGroup::get_subgroup(const std::string& group) const
 {
   return ConfigGroup(prefix_ + group);
 }

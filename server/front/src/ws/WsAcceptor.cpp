@@ -11,9 +11,9 @@
 #include "WsConnection.hpp"
 
 #include <FrontGlobals.hpp>
-#include <Ssl.hpp>
 
 #include <bin-common/config/Config.hpp>
+#include <bin-common/Ssl.hpp>
 #include <common/EasyProfiler.hpp>
 
 namespace ssl = boost::asio::ssl;
@@ -38,7 +38,7 @@ WsAcceptor::WsAcceptor(const std::shared_ptr<spdlog::logger> & logger,
 
 void WsAcceptor::run()
 {
-  init_ssl_context(ssl_context_);
+  init_ssl_context(logger_.get(), ConfigGroup("front.ssl"), ssl_context_);
 
   open();
 }

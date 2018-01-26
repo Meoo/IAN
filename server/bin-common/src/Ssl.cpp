@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "Ssl.hpp"
+#include <bin-common/Ssl.hpp>
 
 #include <bin-common/config/Config.hpp>
 
@@ -26,14 +26,15 @@ const char default_cipher_list[] =
 } // namespace
 
 
-void init_ssl_context(ssl::context & ssl_context)
+void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
+                      boost::asio::ssl::context & ssl_context)
 {
   // Config
-  std::string certChain  = config::get_string("front.ssl.certificate_chain", ::default_cert);
-  std::string privKey    = config::get_string("front.ssl.private_key", ::default_cert);
-  std::string dh         = config::get_string("front.ssl.dh");
-  std::string password   = config::get_string("front.ssl.private_key_password");
-  std::string cipherList = config::get_string("front.ssl.cipher_list", ::default_cipher_list);
+  std::string certChain  = config.get_string("certificate_chain", ::default_cert);
+  std::string privKey    = config.get_string("private_key", ::default_cert);
+  std::string dh         = config.get_string("ssl.dh");
+  std::string password   = config.get_string("private_key_password");
+  std::string cipherList = config.get_string("cipher_list", ::default_cipher_list);
 
   // SSL setup
   try
@@ -52,22 +53,22 @@ void init_ssl_context(ssl::context & ssl_context)
 
     if (SSL_CTX_set_dh_auto(ssl_context.native_handle(), 1) != 1)
     {
-      //TODO logger_->warn("Failed to initialize SSL dh auto");
+      logger->warn("Failed to initialize SSL dh auto");
     }
 
     if (SSL_CTX_set_ecdh_auto(ssl_context.native_handle(), 1) != 1)
     {
-      //TODO logger_->warn("Failed to initialize SSL ecdh auto");
+      logger->warn("Failed to initialize SSL ecdh auto");
     }
 
     if (SSL_CTX_set_cipher_list(ssl_context.native_handle(), cipherList.c_str()) != 1)
     {
-      //TODO logger_->warn("Failed to initialize SSL cipher list");
+      logger->warn("Failed to initialize SSL cipher list");
     }
   }
   catch (std::exception & ex)
   {
     // TODO
-    //logger_->error("Failed to initialize SSL context: {}", ex.what());
+    logger->error("Failed to initialize SSL context: {}", ex.what());
   }
 }
