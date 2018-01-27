@@ -14,7 +14,6 @@
 
 #include <bin-common/Ssl.hpp>
 #include <bin-common/config/Config.hpp>
-#include <common/EasyProfiler.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip  = boost::asio::ip;
@@ -128,8 +127,6 @@ void WsAcceptor::accept_next()
 
 void WsAcceptor::on_accept(boost::system::error_code ec)
 {
-  EASY_FUNCTION();
-
   if (ec)
   {
     // TODO
