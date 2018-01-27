@@ -17,6 +17,7 @@ class ConfigBoolValue : public ConfigListener
 {
  public:
   ConfigBoolValue(const std::string & key, bool default_val);
+  explicit ConfigBoolValue(const ConfigBoolValue & other);
 
   const std::string & get_key() const { return key_; }
   bool get_value() const { return value_; }
@@ -39,6 +40,7 @@ class ConfigStringValue : public ConfigListener
  public:
   explicit ConfigStringValue(const std::string & key,
                              const std::string & default_val = std::string());
+  explicit ConfigStringValue(const ConfigStringValue & other);
 
   const std::string & get_key() const { return key_; }
   const std::string & get_value() const { return value_; }
@@ -60,6 +62,7 @@ class ConfigIntValue : public ConfigListener
 {
  public:
   explicit ConfigIntValue(const std::string & key, int default_val = 0);
+  explicit ConfigIntValue(const ConfigIntValue & other);
 
   const std::string & get_key() const { return key_; }
   int get_value() const { return value_; }
