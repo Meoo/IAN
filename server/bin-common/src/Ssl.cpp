@@ -16,7 +16,7 @@ namespace ssl = boost::asio::ssl;
 namespace
 {
 
-const char default_cert[]      = "cert.pem";
+const char default_cert[] = "cert.pem";
 // Mozilla modern (as of 12/11/2017) https://wiki.mozilla.org/Security/Server_Side_TLS
 const char default_cipher_list[] =
     "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-"
@@ -30,9 +30,10 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
                       boost::asio::ssl::context & ssl_context)
 {
   // Config
+  std::string ca         = config.get_string("certificate_authority_file");
   std::string certChain  = config.get_string("certificate_chain", ::default_cert);
   std::string privKey    = config.get_string("private_key", ::default_cert);
-  std::string dh         = config.get_string("ssl.dh");
+  std::string dh         = config.get_string("dh");
   std::string password   = config.get_string("private_key_password");
   std::string cipherList = config.get_string("cipher_list", ::default_cipher_list);
 
@@ -48,8 +49,22 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
         std::bind([password] { return password; })); // Use bind to ignore args
     ssl_context.use_certificate_chain_file(certChain);
     ssl_context.use_private_key_file(privKey, boost::asio::ssl::context::pem);
+
+    boost::system::error_code ec;
+
     if (!dh.empty())
-      ssl_context.use_tmp_dh_file(dh);
+    {
+      ssl_context.use_tmp_dh_file(dh, ec);
+      if (ec)
+        logger->error("Failed to set DH file: {}", ec.message());
+    }
+
+    if (!ca.empty())
+    {
+      ssl_context.load_verify_file(ca, ec);
+      if (ec)
+        logger->error("Failed to set certificate authority: {}", ec.message());
+    }
 
     if (SSL_CTX_set_dh_auto(ssl_context.native_handle(), 1) != 1)
     {
