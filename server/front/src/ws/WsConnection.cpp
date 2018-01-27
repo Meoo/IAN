@@ -13,7 +13,7 @@
 #include <common/EasyProfiler.hpp>
 
 #include <boost/asio/bind_executor.hpp>
-#include <boost/asio/dispatch.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
@@ -82,7 +82,7 @@ WsConnection::~WsConnection()
 
 void WsConnection::run()
 {
-  // 3s timeout for connection setup
+  // Timeout for connection setup
   set_timeout(std::chrono::seconds(front::ws_setup_timeout));
 
   // SSL handshake
@@ -101,7 +101,7 @@ void WsConnection::send_message(const Message & message)
   }
 
   // Execute in strand
-  asio::dispatch(strand_, [this, self{SHARED_FROM_THIS}, message{message}]() mutable {
+  asio::post(strand_, [this, self{SHARED_FROM_THIS}, message{message}]() mutable {
     if (dropped_ || shutting_down_)
       return;
 

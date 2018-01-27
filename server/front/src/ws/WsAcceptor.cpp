@@ -12,8 +12,8 @@
 
 #include <FrontGlobals.hpp>
 
-#include <bin-common/config/Config.hpp>
 #include <bin-common/Ssl.hpp>
+#include <bin-common/config/Config.hpp>
 #include <common/EasyProfiler.hpp>
 
 namespace ssl = boost::asio::ssl;

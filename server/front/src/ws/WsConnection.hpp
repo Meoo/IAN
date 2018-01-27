@@ -29,7 +29,7 @@
 #include <memory>
 
 
-class WsConnection : public ClientConnection
+class WsConnection final : public ClientConnection
 {
  public:
   using SslContext = boost::asio::ssl::context;
