@@ -23,10 +23,12 @@ source_group(config FILES ${SOURCE_CONFIG})
 
 add_library(${PROJECT_NAME} STATIC
   ${SOURCE_CONFIG}
+  include/bin-common/AsioPool.hpp
   include/bin-common/Dispatcher.hpp
   include/bin-common/Message.hpp
   include/bin-common/MessageQueue.hpp
   include/bin-common/Ssl.hpp
+  src/AsioPool.cpp
   src/Message.cpp
   src/MessageQueue.cpp
   src/Ssl.cpp)
