@@ -4,21 +4,26 @@ project(server-common)
 hunter_add_package(spdlog)
 find_package(spdlog CONFIG REQUIRED)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} STATIC
+  include/common/EasyProfiler.hpp
+  include/common/IModule.hpp
+  include/common/IModuleHost.hpp
+  include/common/Platform.hpp
+  src/Platform.cpp)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE
+target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog::spdlog)
 
-target_include_directories(${PROJECT_NAME} INTERFACE include)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-#set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "iancommon")
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "iancommon")
 
 if(WIN32)
-  target_compile_definitions(${PROJECT_NAME} INTERFACE WINVER=${IAN_WINDOWS_VERSION} _WIN32_WINNT=${IAN_WINDOWS_VERSION})
+  target_compile_definitions(${PROJECT_NAME} PUBLIC WINVER=${IAN_WINDOWS_VERSION} _WIN32_WINNT=${IAN_WINDOWS_VERSION})
 endif()
 
 if(IAN_ENABLE_EASY_PROFILER)
   find_package(easy_profiler REQUIRED)
-  target_link_libraries(${PROJECT_NAME} INTERFACE easy_profiler)
-  target_compile_definitions(${PROJECT_NAME} INTERFACE IAN_ENABLE_PROFILING)
+  target_link_libraries(${PROJECT_NAME} PUBLIC easy_profiler)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC IAN_ENABLE_PROFILING)
 endif()

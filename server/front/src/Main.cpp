@@ -12,6 +12,7 @@
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
 #include <common/EasyProfiler.hpp>
+#include <common/Platform.hpp>
 
 #include <boost/asio/io_context.hpp>
 
@@ -45,7 +46,7 @@ extern "C" void sig_reload(int)
 int main(int argc, char ** argv)
 {
   EASY_MAIN_THREAD;
-
+  plat::set_thread_name("Front main");
 
   // Init logger
   // spdlog::set_async_mode(512); ?

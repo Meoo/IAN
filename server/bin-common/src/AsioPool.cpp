@@ -9,6 +9,7 @@
 #include <bin-common/AsioPool.hpp>
 
 #include <common/EasyProfiler.hpp>
+#include <common/Platform.hpp>
 
 #include <thread>
 
@@ -22,7 +23,10 @@ struct AsioPool::AsioInstance
 
   void thread_run()
   {
-    EASY_THREAD_SCOPE("Asio worker");
+    std::string thread_name("Asio: " + name);
+    EASY_THREAD_SCOPE(thread_name.c_str());
+    plat::set_thread_name(thread_name.c_str());
+
     asio.run();
   }
 
