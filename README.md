@@ -19,8 +19,7 @@ Dependencies (automated with hunter):
 
 * [spdlog](https://github.com/gabime/spdlog)
 * [flatbuffers](https://google.github.io/flatbuffers/index.html)
-* [boost](http://www.boost.org/) (asio)
-* [beast](https://github.com/boostorg/beast) (websockets)
+* [boost](http://www.boost.org/) (asio, beast)
 * [OpenSSL](https://www.openssl.org/)
 
 Optional dependencies:
