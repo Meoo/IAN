@@ -8,6 +8,7 @@
 
 #include <ws/WsAcceptor.hpp>
 
+#include <bin-common/AsioPool.hpp>
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
 #include <common/EasyProfiler.hpp>
@@ -25,46 +26,20 @@ namespace signals
 {
 bool should_stop   = false;
 bool should_reload = false;
-boost::asio::io_context * asio;
+AsioPool * asio_pool;
 
 extern "C" void sig_stop(int)
 {
   should_stop = true;
-  asio->stop();
+  asio_pool->stop();
 }
 
 extern "C" void sig_reload(int)
 {
   should_reload = true;
-  asio->stop();
+  asio_pool->stop();
 }
 } // namespace signals
-
-
-void run_asio(size_t threads, boost::asio::io_context & asio)
-{
-  // Thread pool
-  std::vector<std::thread> pool;
-
-  if (threads > 1)
-  {
-    pool.reserve(threads - 1);
-    for (auto i = threads - 1; i > 0; --i)
-    {
-      pool.emplace_back([&asio] {
-        EASY_THREAD_SCOPE("ASIO Worker");
-        asio.run();
-      });
-    }
-  }
-
-  asio.run();
-
-  for (auto & thread : pool)
-  {
-    thread.join();
-  }
-}
 
 
 int main(int argc, char ** argv)
@@ -87,8 +62,9 @@ int main(int argc, char ** argv)
 
 
   // ASIO & listener
-  ConfigIntValue threads("front.threads", 2);
-  boost::asio::io_context asio(threads);
+  AsioPool asio_pool(logger);
+  boost::asio::io_context & asio =
+      asio_pool.createAsio("front", ConfigIntValue("front.threads", 2));
 
   // Websocket
   {
@@ -99,7 +75,7 @@ int main(int argc, char ** argv)
 
 
   // Install signal handlers
-  signals::asio = &asio;
+  signals::asio_pool = &asio_pool;
 
   std::signal(SIGINT, signals::sig_stop);
   std::signal(SIGTERM, signals::sig_stop);
@@ -111,9 +87,7 @@ int main(int argc, char ** argv)
   // Loop when reloading configuration
   for (;;)
   {
-    logger->info("Ready with {} thread(s)", threads);
-
-    run_asio(threads, asio);
+    asio_pool.run();
 
     if (signals::should_stop)
     {
@@ -130,12 +104,11 @@ int main(int argc, char ** argv)
       }
 
       logger->info("Config reloaded");
-      asio.reset();
       signals::should_reload = false;
       continue;
     }
 
-    logger->error("ASIO stopped without signal");
+    logger->error("Asio stopped without signal");
     return 1;
   }
 
