@@ -32,7 +32,7 @@ class ConfigGroup
   ConfigIntValue get_int(const std::string & key, int default_val = 0) const;
   int get_int_value(const std::string & key, int default_val = 0) const;
 
-  ConfigGroup get_subgroup(const std::string & group) const;
+  ConfigGroup get_group(const std::string & group) const;
 
 
  private:

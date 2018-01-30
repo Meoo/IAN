@@ -44,7 +44,7 @@ int ConfigGroup::get_int_value(const std::string & key, int default_val) const
   return config::get_int(key_ + "." + key, default_val);
 }
 
-ConfigGroup ConfigGroup::get_subgroup(const std::string & group) const
+ConfigGroup ConfigGroup::get_group(const std::string & group) const
 {
   return ConfigGroup(key_ + "." + group);
 }
