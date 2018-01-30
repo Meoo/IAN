@@ -9,6 +9,7 @@
 #include <ws/WsAcceptor.hpp>
 
 #include <bin-common/AsioPool.hpp>
+#include <bin-common/Cluster.hpp>
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
 #include <common/EasyProfiler.hpp>
@@ -66,6 +67,12 @@ int main(int argc, char ** argv)
   AsioPool asio_pool(logger);
   boost::asio::io_context & asio =
       asio_pool.createAsio("front", ConfigIntValue("front.threads", 2));
+
+  // Cluster
+  {
+    auto clusterlogger = spdlog::create("front.cluster", logger->sinks().begin(), logger->sinks().end());
+    cluster::init(clusterlogger, asio_pool, ConfigGroup("cluster"));
+  }
 
   // Websocket
   {

@@ -21,8 +21,22 @@ set(SOURCE_CONFIG
 
 source_group(config FILES ${SOURCE_CONFIG})
 
+set(SOURCE_CLUSTER
+  include/bin-common/Cluster.hpp
+  src/cluster/Cluster.cpp
+  src/cluster/ClusterAcceptor.cpp
+  src/cluster/ClusterAcceptor.hpp
+  src/cluster/ClusterConnection.cpp
+  src/cluster/ClusterConnection.hpp
+  src/cluster/ClusterInternal.hpp
+  src/cluster/ClusterWatcher.cpp
+  src/cluster/ClusterWatcher.hpp)
+
+source_group(cluster FILES ${SOURCE_CLUSTER})
+
 add_library(${PROJECT_NAME} STATIC
   ${SOURCE_CONFIG}
+  ${SOURCE_CLUSTER}
   include/bin-common/AsioPool.hpp
   include/bin-common/Dispatcher.hpp
   include/bin-common/Message.hpp
