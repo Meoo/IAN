@@ -17,7 +17,7 @@
 struct AsioPool::AsioInstance
 {
   AsioInstance(const std::string & name, const ConfigIntValue & threads)
-      : name(name), asio(threads), threads(threads)
+      : name(name), asio(threads), work(asio), threads(threads)
   {
   }
 
@@ -32,6 +32,7 @@ struct AsioPool::AsioInstance
 
   std::string name;
   AsioCtx asio;
+  AsioCtx::work work;
 
   ConfigIntValue threads;
   std::vector<std::thread> workers;
