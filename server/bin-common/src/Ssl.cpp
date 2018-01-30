@@ -30,12 +30,12 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
                       boost::asio::ssl::context & ssl_context)
 {
   // Config
-  std::string ca         = config.get_string("certificate_authority_file");
-  std::string certChain  = config.get_string("certificate_chain", ::default_cert);
-  std::string privKey    = config.get_string("private_key", ::default_cert);
-  std::string dh         = config.get_string("dh");
-  std::string password   = config.get_string("private_key_password");
-  std::string cipherList = config.get_string("cipher_list", ::default_cipher_list);
+  std::string ca         = config.get_string_value("certificate_authority_file");
+  std::string certChain  = config.get_string_value("certificate_chain", ::default_cert);
+  std::string privKey    = config.get_string_value("private_key", ::default_cert);
+  std::string dh         = config.get_string_value("dh");
+  std::string password   = config.get_string_value("private_key_password");
+  std::string cipherList = config.get_string_value("cipher_list", ::default_cipher_list);
 
   // SSL setup
   try

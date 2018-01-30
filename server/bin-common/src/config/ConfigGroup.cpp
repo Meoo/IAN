@@ -10,27 +10,41 @@
 #include <bin-common/config/ConfigGroup.hpp>
 
 
-ConfigGroup::ConfigGroup(const std::string& group)
-  : prefix_(group + ".")
+ConfigGroup::ConfigGroup(const std::string & key) : key_(key) {}
+
+ConfigBoolValue ConfigGroup::get_bool(const std::string & key, bool default_val) const
 {
+  return ConfigBoolValue(key_ + "." + key, default_val);
 }
 
-bool ConfigGroup::get_bool(const std::string& key, bool default_val) const
+bool ConfigGroup::get_bool_value(const std::string & key, bool default_val) const
 {
-  return config::get_bool(prefix_ + key, default_val);
+  return config::get_bool(key_ + "." + key, default_val);
 }
 
-std::string ConfigGroup::get_string(const std::string& key, const std::string& default_val) const
+ConfigStringValue ConfigGroup::get_string(const std::string & key,
+                                          const std::string & default_val) const
 {
-  return config::get_string(prefix_ + key, default_val);
+  return ConfigStringValue(key_ + "." + key, default_val);
 }
 
-int ConfigGroup::get_int(const std::string& key, int default_val) const
+std::string ConfigGroup::get_string_value(const std::string & key,
+                                          const std::string & default_val) const
 {
-  return config::get_int(prefix_ + key, default_val);
+  return config::get_string(key_ + "." + key, default_val);
 }
 
-ConfigGroup ConfigGroup::get_subgroup(const std::string& group) const
+ConfigIntValue ConfigGroup::get_int(const std::string & key, int default_val) const
 {
-  return ConfigGroup(prefix_ + group);
+  return ConfigIntValue(key_ + "." + key, default_val);
+}
+
+int ConfigGroup::get_int_value(const std::string & key, int default_val) const
+{
+  return config::get_int(key_ + "." + key, default_val);
+}
+
+ConfigGroup ConfigGroup::get_subgroup(const std::string & group) const
+{
+  return ConfigGroup(key_ + "." + group);
 }
