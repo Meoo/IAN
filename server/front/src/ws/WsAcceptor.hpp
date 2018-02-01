@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <bin-common/config/ConfigGroup.hpp>
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -26,7 +28,8 @@ class WsAcceptor : public std::enable_shared_from_this<WsAcceptor>
   using TcpSocket   = boost::asio::ip::tcp::socket;
 
 
-  WsAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio);
+  WsAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio,
+             const ConfigGroup & config);
 
   WsAcceptor(const WsAcceptor &) = delete;
   WsAcceptor & operator=(const WsAcceptor &) = delete;
@@ -37,6 +40,7 @@ class WsAcceptor : public std::enable_shared_from_this<WsAcceptor>
 
  private:
   std::shared_ptr<spdlog::logger> logger_;
+  ConfigGroup config_;
 
   SslContext ssl_context_;
   TcpAcceptor acceptor_;

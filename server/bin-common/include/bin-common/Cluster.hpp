@@ -17,6 +17,8 @@
 namespace cluster
 {
 
+// Not thread safe, call only for initialization
 void init(const std::shared_ptr<spdlog::logger> & logger, AsioPool & pool,
           const ConfigGroup & config);
-}
+
+} // namespace cluster

@@ -19,7 +19,7 @@ class ConfigBoolValue : public ConfigListener
   ConfigBoolValue(const std::string & key, bool default_val);
   ConfigBoolValue(const ConfigBoolValue & other);
 
-  const std::string & get_key() const { return key_; }
+  const std::string & get_path() const { return path_; }
   bool get_value() const { return value_; }
   operator bool() const { return value_; }
 
@@ -29,7 +29,7 @@ class ConfigBoolValue : public ConfigListener
 
 
  private:
-  std::string key_;
+  std::string path_;
   bool default_val_;
   bool value_;
 };
@@ -42,7 +42,7 @@ class ConfigStringValue : public ConfigListener
                              const std::string & default_val = std::string());
   ConfigStringValue(const ConfigStringValue & other);
 
-  const std::string & get_key() const { return key_; }
+  const std::string & get_path() const { return path_; }
   const std::string & get_value() const { return value_; }
   operator const std::string &() const { return value_; }
 
@@ -52,7 +52,7 @@ class ConfigStringValue : public ConfigListener
 
 
  private:
-  std::string key_;
+  std::string path_;
   std::string default_val_;
   std::string value_;
 };
@@ -64,7 +64,7 @@ class ConfigIntValue : public ConfigListener
   explicit ConfigIntValue(const std::string & key, int default_val = 0);
   ConfigIntValue(const ConfigIntValue & other);
 
-  const std::string & get_key() const { return key_; }
+  const std::string & get_path() const { return path_; }
   int get_value() const { return value_; }
   operator int() const { return value_; }
 
@@ -74,7 +74,7 @@ class ConfigIntValue : public ConfigListener
 
 
  private:
-  std::string key_;
+  std::string path_;
   int default_val_;
   int value_;
 };

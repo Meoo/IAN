@@ -13,7 +13,6 @@
 #include <FrontGlobals.hpp>
 
 #include <bin-common/Ssl.hpp>
-#include <bin-common/config/Config.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip  = boost::asio::ip;
@@ -29,9 +28,9 @@ const int default_listen_port  = 7011;
 
 
 WsAcceptor::WsAcceptor(const std::shared_ptr<spdlog::logger> & logger,
-                       boost::asio::io_context & asio)
-    : logger_(logger), ssl_context_(ssl::context::sslv23), acceptor_(asio), socket_(asio),
-      timer_(asio)
+                       boost::asio::io_context & asio, const ConfigGroup & config)
+    : logger_(logger), config_(config), ssl_context_(ssl::context::sslv23), acceptor_(asio),
+      socket_(asio), timer_(asio)
 {
 }
 
@@ -45,9 +44,9 @@ void WsAcceptor::run()
 void WsAcceptor::open()
 {
   // Config
-  std::string listenAddr = config::get_string("front.ws.listen_ip", ::default_listen_ip);
-  int listenPort         = config::get_int("front.ws.listen_port", ::default_listen_port);
-  bool reuseAddr         = config::get_bool("front.ws.listen_reuse_addr", false);
+  std::string listenAddr = config_.get_string("ip", ::default_listen_ip);
+  int listenPort         = config_.get_int("port", ::default_listen_port);
+  bool reuseAddr         = config_.get_bool("reuse_addr", false);
 
   ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
 
@@ -79,8 +78,6 @@ void WsAcceptor::open()
       break;
     }
 
-    logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
-
     acceptor_.listen(boost::asio::socket_base::max_connections, ec);
     if (ec)
     {
@@ -101,7 +98,7 @@ void WsAcceptor::open()
   else
   {
     // All green
-    logger_->info("Acceptor listening for clients");
+    logger_->info("Acceptor listening for clients: {}:{}", listenAddr, listenPort);
     accept_next();
   }
 }

@@ -8,6 +8,8 @@
 
 #include <bin-common/config/Config.hpp>
 
+#include <bin-common/config/ConfigGroup.hpp>
+
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -42,19 +44,32 @@ bool load(const std::string & file)
   return true;
 }
 
-bool get_bool(const std::string & key, bool default_val)
+bool get_bool(const std::string & path, bool default_val)
 {
-  return ::get_config_tree().get(key, default_val);
+  return ::get_config_tree().get(path, default_val);
 }
 
-std::string get_string(const std::string & key, const std::string & default_val)
+std::string get_string(const std::string & path, const std::string & default_val)
 {
-  return ::get_config_tree().get(key, default_val);
+  return ::get_config_tree().get(path, default_val);
 }
 
-int get_int(const std::string & key, int default_val)
+int get_int(const std::string & path, int default_val)
 {
-  return ::get_config_tree().get(key, default_val);
+  return ::get_config_tree().get(path, default_val);
+}
+
+std::vector<ConfigGroup> get_childs(const std::string & path)
+{
+  std::vector<ConfigGroup> ret;
+  boost::property_tree::ptree def;
+
+  const auto & tree = ::get_config_tree().get_child(path, def);
+
+  for (const auto & it : tree)
+    ret.push_back(ConfigGroup(path + "." + it.first));
+
+  return ret;
 }
 
 } // namespace config

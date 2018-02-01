@@ -77,8 +77,12 @@ int main(int argc, char ** argv)
   // Websocket
   {
     auto wslogger = spdlog::create("front.ws", logger->sinks().begin(), logger->sinks().end());
-    auto acceptor = std::make_shared<WsAcceptor>(wslogger, asio);
-    acceptor->run();
+
+    for (auto & group : config::get_childs("front.ws.listen"))
+    {
+      auto acceptor = std::make_shared<WsAcceptor>(wslogger, asio, group);
+      acceptor->run();
+    }
   }
 
 

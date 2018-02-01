@@ -10,41 +10,48 @@
 #include <bin-common/config/ConfigGroup.hpp>
 
 
-ConfigGroup::ConfigGroup(const std::string & key) : key_(key) {}
+ConfigGroup::ConfigGroup(const std::string & path) : path_(path) {}
 
-ConfigBoolValue ConfigGroup::get_bool(const std::string & key, bool default_val) const
+ConfigBoolValue ConfigGroup::get_bool(const std::string & path, bool default_val) const
 {
-  return ConfigBoolValue(key_ + "." + key, default_val);
+  return ConfigBoolValue(path_ + "." + path, default_val);
 }
 
-bool ConfigGroup::get_bool_value(const std::string & key, bool default_val) const
+bool ConfigGroup::get_bool_value(const std::string & path, bool default_val) const
 {
-  return config::get_bool(key_ + "." + key, default_val);
+  return config::get_bool(path_ + "." + path, default_val);
 }
 
-ConfigStringValue ConfigGroup::get_string(const std::string & key,
+ConfigStringValue ConfigGroup::get_string(const std::string & path,
                                           const std::string & default_val) const
 {
-  return ConfigStringValue(key_ + "." + key, default_val);
+  return ConfigStringValue(path_ + "." + path, default_val);
 }
 
-std::string ConfigGroup::get_string_value(const std::string & key,
+std::string ConfigGroup::get_string_value(const std::string & path,
                                           const std::string & default_val) const
 {
-  return config::get_string(key_ + "." + key, default_val);
+  return config::get_string(path_ + "." + path, default_val);
 }
 
-ConfigIntValue ConfigGroup::get_int(const std::string & key, int default_val) const
+ConfigIntValue ConfigGroup::get_int(const std::string & path, int default_val) const
 {
-  return ConfigIntValue(key_ + "." + key, default_val);
+  return ConfigIntValue(path_ + "." + path, default_val);
 }
 
-int ConfigGroup::get_int_value(const std::string & key, int default_val) const
+int ConfigGroup::get_int_value(const std::string & path, int default_val) const
 {
-  return config::get_int(key_ + "." + key, default_val);
+  return config::get_int(path_ + "." + path, default_val);
 }
 
-ConfigGroup ConfigGroup::get_group(const std::string & group) const
+ConfigGroup ConfigGroup::get_group(const std::string & path) const
 {
-  return ConfigGroup(key_ + "." + group);
+  return ConfigGroup(path_ + "." + path);
+}
+
+std::vector<ConfigGroup> ConfigGroup::get_childs() const { return config::get_childs(path_); }
+
+std::vector<ConfigGroup> ConfigGroup::get_childs(const std::string & path) const
+{
+  return config::get_childs(path_ + "." + path);
 }

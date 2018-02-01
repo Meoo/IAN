@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <bin-common/config/ConfigGroup.hpp>
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -24,7 +26,8 @@ class ClusterAcceptor : public std::enable_shared_from_this<ClusterAcceptor>
   using TcpSocket   = boost::asio::ip::tcp::socket;
 
 
-  ClusterAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio);
+  ClusterAcceptor(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio,
+                  const ConfigGroup & config);
 
   ClusterAcceptor(const ClusterAcceptor &) = delete;
   ClusterAcceptor & operator=(const ClusterAcceptor &) = delete;
@@ -35,6 +38,7 @@ class ClusterAcceptor : public std::enable_shared_from_this<ClusterAcceptor>
 
  private:
   std::shared_ptr<spdlog::logger> logger_;
+  ConfigGroup config_;
 
   TcpAcceptor acceptor_;
   TcpSocket socket_;

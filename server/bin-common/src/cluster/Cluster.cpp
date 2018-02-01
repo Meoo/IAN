@@ -6,9 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "ClusterInternal.hpp"
 #include <bin-common/Cluster.hpp>
 
+#include "ClusterAcceptor.hpp"
+#include "ClusterInternal.hpp"
+#include "ClusterWatcher.hpp"
 #include <bin-common/Ssl.hpp>
 
 
@@ -34,7 +36,13 @@ void init(const std::shared_ptr<spdlog::logger> & logger, AsioPool & pool,
   ::cluster_config = config;
   ::cluster_asio   = &pool.createAsio("cluster", config.get_int("threads", 2));
 
-  init_ssl_context(logger.get(), config.get_group("ssl"), cluster_ssl);
+  init_ssl_context(logger.get(), config.get_group("ssl"), ::cluster_ssl);
+
+  for (auto & group : config.get_childs("listen"))
+  {
+    auto acceptor = std::make_shared<ClusterAcceptor>(logger, *::cluster_asio, group);
+    acceptor->run();
+  }
 }
 
 

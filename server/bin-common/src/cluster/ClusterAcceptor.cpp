@@ -12,7 +12,6 @@
 #include "ClusterInternal.hpp"
 
 #include <bin-common/Ssl.hpp>
-#include <bin-common/config/Config.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip  = boost::asio::ip;
@@ -28,8 +27,8 @@ const int default_listen_port  = 17001;
 
 
 ClusterAcceptor::ClusterAcceptor(const std::shared_ptr<spdlog::logger> & logger,
-                                 boost::asio::io_context & asio)
-    : logger_(logger), acceptor_(asio), socket_(asio), timer_(asio)
+                                 boost::asio::io_context & asio, const ConfigGroup & config)
+    : logger_(logger), config_(config), acceptor_(asio), socket_(asio), timer_(asio)
 {
 }
 
@@ -38,9 +37,9 @@ void ClusterAcceptor::run() { open(); }
 void ClusterAcceptor::open()
 {
   // Config
-  std::string listenAddr = config::get_string("cluster.in.listen_ip", ::default_listen_ip);
-  int listenPort         = config::get_int("cluster.in.listen_port", ::default_listen_port);
-  bool reuseAddr         = config::get_bool("cluster.in.listen_reuse_addr", false);
+  std::string listenAddr = config_.get_string("ip", ::default_listen_ip);
+  int listenPort         = config_.get_int("port", ::default_listen_port);
+  bool reuseAddr         = config_.get_bool("reuse_addr", false);
 
   ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
 
@@ -72,12 +71,10 @@ void ClusterAcceptor::open()
       break;
     }
 
-    logger_->info("Acceptor bound to {}:{}", listenAddr, listenPort);
-
     acceptor_.listen(boost::asio::socket_base::max_connections, ec);
     if (ec)
     {
-      logger_->error("Acceptor failed to listen for clients: {}", ec.message());
+      logger_->error("Acceptor failed to listen for peers: {}", ec.message());
       break;
     }
 
@@ -94,7 +91,7 @@ void ClusterAcceptor::open()
   else
   {
     // All green
-    logger_->info("Acceptor listening for clients");
+    logger_->info("Acceptor listening for peers: {}:{}", listenAddr, listenPort);
     accept_next();
   }
 }

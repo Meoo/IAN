@@ -13,44 +13,44 @@
 // ConfigBoolValue
 
 ConfigBoolValue::ConfigBoolValue(const std::string & key, bool default_val)
-    : key_(key), default_val_(default_val), value_(config::get_bool(key_, default_val_))
+    : path_(key), default_val_(default_val), value_(config::get_bool(path_, default_val_))
 {
 }
 
 ConfigBoolValue::ConfigBoolValue(const ConfigBoolValue & other)
-    : key_(other.key_), default_val_(other.default_val_), value_(other.value_)
+    : path_(other.path_), default_val_(other.default_val_), value_(other.value_)
 {
 }
 
-void ConfigBoolValue::on_update() { value_ = config::get_bool(key_, default_val_); }
+void ConfigBoolValue::on_update() { value_ = config::get_bool(path_, default_val_); }
 
 
 // ConfigStringValue
 
 ConfigStringValue::ConfigStringValue(const std::string & key,
                                      const std::string & default_val /*= std::string()*/)
-    : key_(key), default_val_(default_val), value_(config::get_string(key_, default_val_))
+    : path_(key), default_val_(default_val), value_(config::get_string(path_, default_val_))
 {
 }
 
 ConfigStringValue::ConfigStringValue(const ConfigStringValue & other)
-    : key_(other.key_), default_val_(other.default_val_), value_(other.value_)
+    : path_(other.path_), default_val_(other.default_val_), value_(other.value_)
 {
 }
 
-void ConfigStringValue::on_update() { value_ = config::get_string(key_, default_val_); }
+void ConfigStringValue::on_update() { value_ = config::get_string(path_, default_val_); }
 
 
 // ConfigIntValue
 
 ConfigIntValue::ConfigIntValue(const std::string & key, int default_val /*= 0*/)
-    : key_(key), default_val_(default_val), value_(config::get_int(key_, default_val_))
+    : path_(key), default_val_(default_val), value_(config::get_int(path_, default_val_))
 {
 }
 
 ConfigIntValue::ConfigIntValue(const ConfigIntValue & other)
-    : key_(other.key_), default_val_(other.default_val_), value_(other.value_)
+    : path_(other.path_), default_val_(other.default_val_), value_(other.value_)
 {
 }
 
-void ConfigIntValue::on_update() { value_ = config::get_int(key_, default_val_); }
+void ConfigIntValue::on_update() { value_ = config::get_int(path_, default_val_); }

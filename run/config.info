@@ -8,6 +8,14 @@ cluster
     private_key internal.full.pem
     private_key_password IAN-internal
   }
+  listen
+  {
+    default
+    {
+      ip 127.0.0.1
+      port 17001
+    }
+  }
 }
 front
 {
@@ -22,7 +30,18 @@ front
   }
   ws
   {
-    listen_ip 0.0.0.0
-    listen_port 7011
+    listen
+    {
+      default
+      {
+        ip 0.0.0.0
+        port 7011
+      }
+      test_ipv6
+      {
+        ip ::0
+        port 7011
+      }
+    }
   }
 }
