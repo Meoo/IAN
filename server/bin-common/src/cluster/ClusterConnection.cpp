@@ -61,7 +61,7 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
   {
     logger_->warn("SSL handshake failed for peer: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                   ec.value());
-    abort();
+    // TODO this->abort();
     return;
   }
 

@@ -213,7 +213,7 @@ bool WsConnection::check_rate_limit()
     else
     {
       logger_->warn("Rate limiter kill: {}:{}", LOG_SOCKET_TUPLE);
-      abort();
+      this->abort();
       return true;
     }
   }
@@ -227,7 +227,7 @@ void WsConnection::on_timeout(boost::system::error_code ec)
     return;
 
   logger_->info("Client timed out: {}:{}", LOG_SOCKET_TUPLE);
-  abort();
+  this->abort();
 }
 
 void WsConnection::on_shutdown(boost::system::error_code ec)
@@ -258,7 +258,7 @@ void WsConnection::on_ssl_handshake(boost::system::error_code ec)
   {
     logger_->warn("SSL handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                   ec.value());
-    abort();
+    this->abort();
     return;
   }
 
@@ -467,7 +467,7 @@ void WsConnection::handle_read_error(boost::system::error_code ec)
 
   if (is_connection_reset_error(ec))
   {
-    abort();
+    this->abort();
     return;
   }
 
@@ -487,7 +487,7 @@ void WsConnection::handle_write_error(boost::system::error_code ec)
 
   if (is_connection_reset_error(ec))
   {
-    abort();
+    this->abort();
     return;
   }
 
