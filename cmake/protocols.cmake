@@ -24,7 +24,8 @@ macro(ian_add_protocol)
       add_custom_command(
         OUTPUT ${GEN_HEADER}
         COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c
-          -o "${GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
+          -o "${GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+        MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
       list(APPEND GENERATED_FILES ${GEN_HEADER})
     endforeach()
 
@@ -58,7 +59,8 @@ macro(ian_add_protocol)
       add_custom_command(
         OUTPUT ${GEN_JS}
         COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" ${FB_FLAG}
-          -o "${JS_GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
+          -o "${JS_GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
+        MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
       list(APPEND GENERATED_FILES_JS ${GEN_JS})
     endforeach()
 
