@@ -8,13 +8,13 @@
 
 #pragma once
 
+#include <common/Log.hpp>
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <memory>
 

@@ -11,7 +11,7 @@
 #include "AsioPool.hpp"
 #include "config/ConfigGroup.hpp"
 
-#include <spdlog/spdlog.h>
+#include <common/Log.hpp>
 
 
 namespace cluster

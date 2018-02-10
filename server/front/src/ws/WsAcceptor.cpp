@@ -59,7 +59,7 @@ void WsAcceptor::open()
       acceptor_.set_option(boost::asio::ip::tcp::socket::reuse_address(true), ec);
       if (ec)
       {
-        logger_->error("Failed to set reuse address option on acceptor: {}", ec.message());
+        IAN_ERROR(logger_, "Failed to set reuse address option on acceptor: {}", ec.message());
         break;
       }
     }
@@ -67,21 +67,22 @@ void WsAcceptor::open()
     acceptor_.open(endpoint.protocol(), ec);
     if (ec)
     {
-      logger_->error("Failed to open acceptor: {}", ec.message());
+      IAN_ERROR(logger_, "Failed to open acceptor: {}", ec.message());
       break;
     }
 
     acceptor_.bind(endpoint, ec);
     if (ec)
     {
-      logger_->error("Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort, ec.message());
+      IAN_ERROR(logger_, "Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort,
+                ec.message());
       break;
     }
 
     acceptor_.listen(boost::asio::socket_base::max_connections, ec);
     if (ec)
     {
-      logger_->error("Acceptor failed to listen for clients: {}", ec.message());
+      IAN_ERROR(logger_, "Acceptor failed to listen for clients: {}", ec.message());
       break;
     }
 
@@ -89,7 +90,7 @@ void WsAcceptor::open()
 
   if (ec)
   {
-    SPDLOG_DEBUG("Acceptor open will retry in 10s");
+    IAN_DEBUG(logger_, "Acceptor open will retry in 10s");
 
     // Delay before retry
     timer_.expires_from_now(std::chrono::seconds(10));
@@ -98,7 +99,7 @@ void WsAcceptor::open()
   else
   {
     // All green
-    logger_->info("Acceptor listening for clients: {}:{}", listenAddr, listenPort);
+    IAN_INFO(logger_, "Acceptor listening for clients: {}:{}", listenAddr, listenPort);
     accept_next();
   }
 }
@@ -107,7 +108,7 @@ void WsAcceptor::accept_next()
 {
   if (front::active_connection_count >= front::connection_limit_hard)
   {
-    logger_->warn("Hard limit reached, closing acceptor for 5s");
+    IAN_WARN(logger_, "Hard limit reached, closing acceptor for 5s");
 
     acceptor_.close();
 
@@ -127,12 +128,12 @@ void WsAcceptor::on_accept(boost::system::error_code ec)
   if (ec)
   {
     // TODO
-    logger_->error("Accept failed: {}", ec.message());
+    IAN_ERROR(logger_, "Accept failed: {}", ec.message());
   }
   else
   {
-    logger_->info("Accepting client {}:{}", socket_.remote_endpoint().address().to_string(),
-                  socket_.remote_endpoint().port());
+    IAN_INFO(logger_, "Accepting client {}:{}", socket_.remote_endpoint().address().to_string(),
+             socket_.remote_endpoint().port());
 
     // Disable Nagle
     boost::asio::ip::tcp::no_delay no_delay(true);
@@ -160,7 +161,7 @@ void WsAcceptor::on_timer_reopen()
 {
   if (front::active_connection_count >= front::connection_limit_hard)
   {
-    SPDLOG_DEBUG("Not yet under hard limit, will retry in 5s");
+    IAN_DEBUG(logger_, "Not yet under hard limit, will retry in 5s");
 
     // Delay again
     timer_.expires_from_now(std::chrono::seconds(5));

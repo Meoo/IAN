@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <spdlog/logger.h>
+#include <common/Log.hpp>
 
 
 class IModuleHost

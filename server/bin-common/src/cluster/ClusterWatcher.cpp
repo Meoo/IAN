@@ -41,10 +41,11 @@ void ClusterWatcher::on_connect(boost::system::error_code ec)
   if (ec)
   {
     if (ec == boost::asio::error::timed_out)
-      logger_->warn("Timed out: {}:{}", LOG_SOCKET_TUPLE); // TODO Debug ?
+      IAN_WARN(logger_, "Timed out: {}:{}", LOG_SOCKET_TUPLE); // TODO Debug ?
 
     else
-      logger_->warn("Connect failed: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(), ec.value());
+      IAN_WARN(logger_, "Connect failed: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+               ec.value());
   }
   else
   {

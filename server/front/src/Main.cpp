@@ -13,11 +13,10 @@
 #include <bin-common/config/Config.hpp>
 #include <bin-common/config/ConfigValue.hpp>
 #include <common/EasyProfiler.hpp>
+#include <common/Log.hpp>
 #include <common/Platform.hpp>
 
 #include <boost/asio/io_context.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <csignal>
 #include <cstdlib>
@@ -54,10 +53,14 @@ int main(int argc, char ** argv)
   auto logger = spdlog::stdout_color_mt("front");
   std::atexit(spdlog::drop_all);
 
+#ifndef NDEBUG
+  spdlog::set_level(spdlog::level::debug);
+#endif
+
   // Load config file
   if (!config::load())
   {
-    logger->critical("Failed to read config file");
+    IAN_CRITICAL(logger, "Failed to read config file");
     spdlog::drop_all();
     return 1;
   }
@@ -70,7 +73,8 @@ int main(int argc, char ** argv)
 
   // Cluster
   {
-    auto clusterlogger = spdlog::create("front.cluster", logger->sinks().begin(), logger->sinks().end());
+    auto clusterlogger =
+        spdlog::create("front.cluster", logger->sinks().begin(), logger->sinks().end());
     cluster::init(clusterlogger, asio_pool, ConfigGroup("cluster"));
   }
 
@@ -103,7 +107,7 @@ int main(int argc, char ** argv)
 
     if (signals::should_stop)
     {
-      logger->info("Received stop signal");
+      IAN_INFO(logger, "Received stop signal");
       break;
     }
 
@@ -111,19 +115,19 @@ int main(int argc, char ** argv)
     {
       if (!config::load())
       {
-        logger->critical("Failed to reload config file");
+        IAN_CRITICAL(logger, "Failed to reload config file");
         return 1;
       }
 
-      logger->info("Config reloaded");
+      IAN_INFO(logger, "Config reloaded");
       signals::should_reload = false;
       continue;
     }
 
-    logger->error("Asio stopped without signal");
+    IAN_CRITICAL(logger, "Asio stopped without signal");
     return 1;
   }
 
-  logger->info("Shutting down");
+  IAN_INFO(logger, "Shutting down");
   return 0;
 }

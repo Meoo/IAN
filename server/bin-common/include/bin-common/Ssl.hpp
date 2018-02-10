@@ -9,10 +9,9 @@
 #pragma once
 
 #include <bin-common/config/ConfigGroup.hpp>
+#include <common/Log.hpp>
 
 #include <boost/asio/ssl/context.hpp>
-
-#include <spdlog/spdlog.h>
 
 
 void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,

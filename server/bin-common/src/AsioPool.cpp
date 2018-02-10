@@ -51,7 +51,7 @@ void AsioPool::run()
   // Start all threads
   for (auto & instance : asios_)
   {
-    logger_->info("Starting asio '{}' ({} threads)", instance->name, instance->threads);
+    IAN_INFO(logger_, "Starting asio '{}' ({} threads)", instance->name, instance->threads);
 
     instance->asio.restart();
     while (instance->workers.size() < instance->threads)
@@ -70,7 +70,7 @@ void AsioPool::run()
 
 void AsioPool::stop()
 {
-  logger_->info("Asio threads will stop");
+  IAN_INFO(logger_, "Asio threads will stop");
 
   for (auto & instance : asios_)
     instance->asio.stop();

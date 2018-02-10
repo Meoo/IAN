@@ -13,6 +13,7 @@
 
 #include <bin-common/Message.hpp>
 #include <bin-common/MessageQueue.hpp>
+#include <common/Log.hpp>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -22,8 +23,6 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/websocket.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <memory>

@@ -42,8 +42,8 @@ void ClusterConnection::run(SslRole role)
   boost::system::error_code ec;
   stream_.set_verify_mode(asio::ssl::verify_peer | asio::ssl::verify_fail_if_no_peer_cert, ec);
   if (ec)
-    logger_->error("Failed to force peer verification for cluster connection: : {}:{} : {}",
-                   LOG_SOCKET_TUPLE, ec.message());
+    IAN_ERROR(logger_, "Failed to force peer verification for cluster connection: : {}:{} : {}",
+              LOG_SOCKET_TUPLE, ec.message());
 
   // SSL handshake
   stream_.async_handshake(
@@ -59,13 +59,13 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
 
   if (ec)
   {
-    logger_->warn("SSL handshake failed for peer: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
-                  ec.value());
+    IAN_WARN(logger_, "SSL handshake failed for peer: {}:{} : {} {}", LOG_SOCKET_TUPLE,
+             ec.message(), ec.value());
     // TODO this->abort();
     return;
   }
 
-  SPDLOG_TRACE(logger_, "SSL handshake complete for peer: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "SSL handshake complete for peer: {}:{}", LOG_SOCKET_TUPLE);
 
   // TODO
 }

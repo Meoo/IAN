@@ -10,10 +10,10 @@
 
 #include "ClusterConnection.hpp"
 
+#include <common/Log.hpp>
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <memory>
 

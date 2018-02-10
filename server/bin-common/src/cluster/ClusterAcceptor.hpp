@@ -9,12 +9,11 @@
 #pragma once
 
 #include <bin-common/config/ConfigGroup.hpp>
+#include <common/Log.hpp>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <memory>
 

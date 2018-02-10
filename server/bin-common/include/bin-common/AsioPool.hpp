@@ -9,10 +9,9 @@
 #pragma once
 
 #include <bin-common/config/ConfigValue.hpp>
+#include <common/Log.hpp>
 
 #include <boost/asio/io_context.hpp>
-
-#include <spdlog/spdlog.h>
 
 #include <memory>
 #include <string>

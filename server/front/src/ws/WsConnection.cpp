@@ -96,7 +96,7 @@ void WsConnection::send_message(const Message & message)
 {
   if (message.is_null())
   {
-    logger_->error("send_message: message is null");
+    IAN_ERROR(logger_, "send_message: message is null");
     return;
   }
 
@@ -130,7 +130,7 @@ void WsConnection::abort()
 
   message_queue_.clear();
 
-  logger_->info("Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_INFO(logger_, "Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
@@ -204,7 +204,7 @@ bool WsConnection::check_rate_limit()
 
     if (now - rate_limit_start_ > std::chrono::seconds(1))
     {
-      SPDLOG_TRACE(logger_, "Reset rate limiter counters: {}:{}", LOG_SOCKET_TUPLE);
+      IAN_TRACE(logger_, "Reset rate limiter counters: {}:{}", LOG_SOCKET_TUPLE);
 
       rate_limit_start_    = now;
       rate_limit_messages_ = 0;
@@ -212,7 +212,7 @@ bool WsConnection::check_rate_limit()
     }
     else
     {
-      logger_->warn("Rate limiter kill: {}:{}", LOG_SOCKET_TUPLE);
+      IAN_WARN(logger_, "Rate limiter kill: {}:{}", LOG_SOCKET_TUPLE);
       this->abort();
       return true;
     }
@@ -226,7 +226,7 @@ void WsConnection::on_timeout(boost::system::error_code ec)
   if (dropped_ || ec == boost::asio::error::operation_aborted)
     return;
 
-  logger_->info("Client timed out: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_INFO(logger_, "Client timed out: {}:{}", LOG_SOCKET_TUPLE);
   this->abort();
 }
 
@@ -238,11 +238,11 @@ void WsConnection::on_shutdown(boost::system::error_code ec)
   if (ec)
   {
     if (!is_connection_reset_error(ec) && !is_connection_canceled_error(ec))
-      logger_->warn("Shutdown error for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
-                    ec.value());
+      IAN_WARN(logger_, "Shutdown error for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+               ec.value());
   }
 
-  logger_->info("Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_INFO(logger_, "Client disconnected: {}:{}", LOG_SOCKET_TUPLE);
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
@@ -256,13 +256,13 @@ void WsConnection::on_ssl_handshake(boost::system::error_code ec)
 
   if (ec)
   {
-    logger_->warn("SSL handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
-                  ec.value());
+    IAN_WARN(logger_, "SSL handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
+             ec.message(), ec.value());
     this->abort();
     return;
   }
 
-  SPDLOG_TRACE(logger_, "SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "SSL handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   // Read HTTP header
   http::async_read(
@@ -281,14 +281,14 @@ void WsConnection::on_read_request(boost::system::error_code ec)
 
   if (read_buffer_.size() > 0)
   {
-    logger_->warn("Data left in buffer after request read (size {}) for client: {}:{}",
-                  read_buffer_.size(), LOG_SOCKET_TUPLE);
+    IAN_WARN(logger_, "Data left in buffer after request read (size {}) for client: {}:{}",
+             read_buffer_.size(), LOG_SOCKET_TUPLE);
     read_buffer_ = boost::beast::flat_buffer();
   }
 
   if (front::active_connection_count > front::connection_limit_soft)
   {
-    SPDLOG_DEBUG(logger_, "Client denied (Overloaded): {}:{}", LOG_SOCKET_TUPLE);
+    IAN_DEBUG(logger_, "Client denied (Overloaded): {}:{}", LOG_SOCKET_TUPLE);
 
     // TODO http
     http::response<http::string_body> response;
@@ -299,7 +299,7 @@ void WsConnection::on_read_request(boost::system::error_code ec)
   }
   else if (ws::is_upgrade(request_))
   {
-    SPDLOG_DEBUG(logger_, "Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
+    IAN_DEBUG(logger_, "Upgrading to websocket for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // Accept the websocket handshake
     stream_.async_accept(
@@ -308,7 +308,7 @@ void WsConnection::on_read_request(boost::system::error_code ec)
   }
   else
   {
-    SPDLOG_DEBUG(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
+    IAN_DEBUG(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
 
     // TODO http
     http::response<http::string_body> response;
@@ -329,13 +329,13 @@ void WsConnection::on_ws_handshake(boost::system::error_code ec)
 
   if (ec)
   {
-    logger_->warn("Websocket handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
-                  ec.message(), ec.value());
+    IAN_WARN(logger_, "Websocket handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
+             ec.message(), ec.value());
     shutdown();
     return;
   }
 
-  SPDLOG_TRACE(logger_, "Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Websocket handshake complete for client: {}:{}", LOG_SOCKET_TUPLE);
 
   stream_.binary(true);
   stream_.auto_fragment(front::ws_message_auto_fragment);
@@ -374,11 +374,11 @@ void WsConnection::on_control_frame(ws::frame_type type, boost::string_view data
 
   switch (type)
   {
-  case ws::frame_type::ping: SPDLOG_TRACE(logger_, "Ping received: {}:{}", LOG_SOCKET_TUPLE); break;
-  case ws::frame_type::pong: SPDLOG_TRACE(logger_, "Pong received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::ping: IAN_TRACE(logger_, "Ping received: {}:{}", LOG_SOCKET_TUPLE); break;
+  case ws::frame_type::pong: IAN_TRACE(logger_, "Pong received: {}:{}", LOG_SOCKET_TUPLE); break;
   case ws::frame_type::close:
-    SPDLOG_TRACE(logger_, "Close received: code {} reason '{}' {}:{}", stream_.reason().code,
-                 stream_.reason().reason.c_str(), LOG_SOCKET_TUPLE);
+    IAN_TRACE(logger_, "Close received: code {} reason '{}' {}:{}", stream_.reason().code,
+              stream_.reason().reason.c_str(), LOG_SOCKET_TUPLE);
     shutdown();
     break;
   }
@@ -395,7 +395,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
     return;
   }
 
-  SPDLOG_TRACE(logger_, "Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
 
   // Rate limit
   rate_limit_messages_++;
@@ -406,7 +406,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 
   if (!stream_.got_binary())
   {
-    logger_->error("Only binary data is supported: {}:{}", LOG_SOCKET_TUPLE);
+    IAN_ERROR(logger_, "Only binary data is supported: {}:{}", LOG_SOCKET_TUPLE);
     shutdown();
     return;
   }
@@ -446,7 +446,7 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
     return;
   }
 
-  SPDLOG_TRACE(logger_, "Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
 
   // Write next message
   Message message;
@@ -474,8 +474,8 @@ void WsConnection::handle_read_error(boost::system::error_code ec)
   if (is_connection_canceled_error(ec))
     return;
 
-  logger_->warn("Read failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
-                ec.value());
+  IAN_WARN(logger_, "Read failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+           ec.value());
 
   shutdown();
 }
@@ -494,8 +494,8 @@ void WsConnection::handle_write_error(boost::system::error_code ec)
   if (is_connection_canceled_error(ec))
     return;
 
-  logger_->warn("Write failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
-                ec.value());
+  IAN_WARN(logger_, "Write failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+           ec.value());
 
   shutdown();
 }

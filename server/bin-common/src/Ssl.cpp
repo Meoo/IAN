@@ -56,34 +56,34 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
     {
       ssl_context.use_tmp_dh_file(dh, ec);
       if (ec)
-        logger->error("Failed to set DH file: {}", ec.message());
+        IAN_ERROR(logger, "Failed to set DH file: {}", ec.message());
     }
 
     if (!ca.empty())
     {
       ssl_context.load_verify_file(ca, ec);
       if (ec)
-        logger->error("Failed to set certificate authority: {}", ec.message());
+        IAN_ERROR(logger, "Failed to set certificate authority: {}", ec.message());
     }
 
     if (SSL_CTX_set_dh_auto(ssl_context.native_handle(), 1) != 1)
     {
-      logger->warn("Failed to initialize SSL dh auto");
+      IAN_WARN(logger, "Failed to initialize SSL dh auto");
     }
 
     if (SSL_CTX_set_ecdh_auto(ssl_context.native_handle(), 1) != 1)
     {
-      logger->warn("Failed to initialize SSL ecdh auto");
+      IAN_WARN(logger, "Failed to initialize SSL ecdh auto");
     }
 
     if (SSL_CTX_set_cipher_list(ssl_context.native_handle(), cipherList.c_str()) != 1)
     {
-      logger->warn("Failed to initialize SSL cipher list");
+      IAN_WARN(logger, "Failed to initialize SSL cipher list");
     }
   }
   catch (std::exception & ex)
   {
     // TODO
-    logger->error("Failed to initialize SSL context: {}", ex.what());
+    IAN_ERROR(logger, "Failed to initialize SSL context: {}", ex.what());
   }
 }
