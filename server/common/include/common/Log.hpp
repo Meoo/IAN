@@ -15,11 +15,11 @@
 #define IAN_TRACE(logger, ...) IAN__LOG_WRAP()
 #define IAN_DEBUG(logger, ...) IAN__LOG_WRAP()
 #else
-#define IAN_TRACE(logger, ...) IAN__LOG_WRAP(logger->trace(__VA_ARGS__))
-#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP(logger->debug(__VA_ARGS__))
+#define IAN_TRACE(logger, ...) IAN__LOG_WRAP((logger)->trace(__VA_ARGS__))
+#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP((logger)->debug(__VA_ARGS__))
 #endif
 
-#define IAN_INFO(logger, ...) IAN__LOG_WRAP(logger->info(__VA_ARGS__))
-#define IAN_WARN(logger, ...) IAN__LOG_WRAP(logger->warn(__VA_ARGS__))
-#define IAN_ERROR(logger, ...) IAN__LOG_WRAP(logger->error(__VA_ARGS__))
-#define IAN_CRITICAL(logger, ...) IAN__LOG_WRAP(logger->critical(__VA_ARGS__))
+#define IAN_INFO(logger, ...) IAN__LOG_WRAP((logger)->info(__VA_ARGS__))
+#define IAN_WARN(logger, ...) IAN__LOG_WRAP((logger)->warn(__VA_ARGS__))
+#define IAN_ERROR(logger, ...) IAN__LOG_WRAP((logger)->error(__VA_ARGS__))
+#define IAN_CRITICAL(logger, ...) IAN__LOG_WRAP((logger)->critical(__VA_ARGS__))
