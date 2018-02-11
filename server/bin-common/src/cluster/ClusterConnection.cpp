@@ -225,12 +225,14 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
   buf.commit(asio::buffer_copy(buf.prepare(read_buffer_.size()), read_buffer_.data()));
 
   // Verify handshake
-  if (!proto::VerifyClusterHandshakeBuffer(
-          flatbuffers::Verifier((const uint8_t *)buf.data().data(), buf.size())))
   {
-    IAN_ERROR(logger_, "Cluster handshake verification failed : {}:{}", LOG_SOCKET_TUPLE);
-    shutdown();
-    return;
+    flatbuffers::Verifier verifier((const uint8_t *)buf.data().data(), buf.size());
+    if (!proto::VerifyClusterHandshakeBuffer(verifier))
+    {
+      IAN_ERROR(logger_, "Cluster handshake verification failed : {}:{}", LOG_SOCKET_TUPLE);
+      shutdown();
+      return;
+    }
   }
 
   const proto::ClusterHandshake * handshake = proto::GetClusterHandshake(buf.data().data());
