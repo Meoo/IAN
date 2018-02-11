@@ -26,7 +26,7 @@ class ClusterWatcher : public std::enable_shared_from_this<ClusterWatcher>
 
 
   ClusterWatcher(const std::shared_ptr<spdlog::logger> & logger, boost::asio::io_context & asio,
-                 const TcpEndpoint & endpoint);
+                 const TcpEndpoint & endpoint, bool safe_link);
 
   ClusterWatcher(const ClusterWatcher &) = delete;
   ClusterWatcher & operator=(const ClusterWatcher &) = delete;
@@ -37,6 +37,8 @@ class ClusterWatcher : public std::enable_shared_from_this<ClusterWatcher>
 
  private:
   std::shared_ptr<spdlog::logger> logger_;
+
+  bool safe_link_;
 
   boost::asio::steady_timer timer_;
 

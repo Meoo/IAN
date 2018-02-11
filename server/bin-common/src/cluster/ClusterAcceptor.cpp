@@ -40,6 +40,7 @@ void ClusterAcceptor::open()
   std::string listenAddr = config_.get_string("ip", ::default_listen_ip);
   int listenPort         = config_.get_int("port", ::default_listen_port);
   bool reuseAddr         = config_.get_bool("reuse_addr", false);
+  safe_link_             = config_.get_bool("safe_link", false);
 
   ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
 
@@ -120,7 +121,7 @@ void ClusterAcceptor::on_accept(boost::system::error_code ec)
     socket_.set_option(no_delay);
 
     auto client = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
-    client->run(ClusterConnection::Server);
+    client->run(ClusterConnection::Server, safe_link_);
   }
 
   accept_next();

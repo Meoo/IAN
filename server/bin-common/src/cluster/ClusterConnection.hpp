@@ -15,6 +15,7 @@
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
 
 #include <memory>
 
@@ -37,7 +38,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   ~ClusterConnection();
 
 
-  void run(SslRole role);
+  void run(SslRole role, bool safe_link);
 
 
  private:
@@ -46,6 +47,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   bool dropped_       = false;
   bool shutting_down_ = false;
   bool is_writing_    = false;
+  bool safe_link_;
 
   SslStream stream_;
   TcpSocket & socket_;
@@ -53,6 +55,21 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
 
+  // Inbound
+  uint32_t message_len_ = -1u;
+  boost::beast::multi_buffer read_buffer_;
+
+
+  void abort();
+  void shutdown();
+
+
+  void on_shutdown(boost::system::error_code ec);
 
   void on_ssl_handshake(boost::system::error_code ec);
+  void on_ian_handshake(boost::system::error_code ec, std::size_t readlen);
+
+
+  void handle_read_error(boost::system::error_code ec);
+  void handle_write_error(boost::system::error_code ec);
 };

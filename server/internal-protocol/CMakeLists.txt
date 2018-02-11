@@ -7,5 +7,6 @@ ian_add_protocol(
   INCLUDE "proto-in"
   FILES
     CoreMessage.fbs
+    ClusterHandshake.fbs
     Status.fbs
   )

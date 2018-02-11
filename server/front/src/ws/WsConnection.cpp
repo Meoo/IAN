@@ -17,6 +17,8 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
+#include <spdlog/fmt/ostr.h> // To display string_view
+
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
@@ -30,7 +32,7 @@ namespace ws   = boost::beast::websocket;
 namespace
 {
 
-bool is_connection_reset_error(boost::system::error_code ec)
+bool is_connection_reset_error(const boost::system::error_code & ec)
 {
   if (ec.category() == asio::error::get_system_category() &&
       (ec == asio::error::connection_aborted || ec == asio::error::connection_reset))
@@ -47,7 +49,7 @@ bool is_connection_reset_error(boost::system::error_code ec)
   return false;
 }
 
-bool is_connection_canceled_error(boost::system::error_code ec)
+bool is_connection_canceled_error(const boost::system::error_code & ec)
 {
   if (ec.category() == asio::error::get_ssl_category() &&
       ERR_GET_REASON(ec.value()) == SSL_R_PROTOCOL_IS_SHUTDOWN)
@@ -139,7 +141,7 @@ void WsConnection::abort()
 
 void WsConnection::shutdown()
 {
-  if (dropped_)
+  if (dropped_ || shutting_down_)
     return;
 
   boost::system::error_code ec;
@@ -308,7 +310,8 @@ void WsConnection::on_read_request(boost::system::error_code ec)
   }
   else
   {
-    IAN_DEBUG(logger_, "Processing http request for client: {}:{}", LOG_SOCKET_TUPLE);
+    IAN_INFO(logger_, "Processing http request for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
+             request_.method_string(), request_.target());
 
     // TODO http
     http::response<http::string_body> response;
@@ -386,9 +389,6 @@ void WsConnection::on_control_frame(ws::frame_type type, boost::string_view data
 
 void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 {
-  if (dropped_)
-    return;
-
   if (ec)
   {
     handle_read_error(ec);
@@ -436,9 +436,6 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
 {
   // Clear data that was begin sent
   message_outbound_ = Message();
-
-  if (dropped_)
-    return;
 
   if (ec)
   {

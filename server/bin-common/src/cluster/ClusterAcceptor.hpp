@@ -39,6 +39,8 @@ class ClusterAcceptor : public std::enable_shared_from_this<ClusterAcceptor>
   std::shared_ptr<spdlog::logger> logger_;
   ConfigGroup config_;
 
+  bool safe_link_;
+
   TcpAcceptor acceptor_;
   TcpSocket socket_;
 

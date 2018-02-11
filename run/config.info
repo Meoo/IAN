@@ -1,6 +1,5 @@
 cluster
 {
-  safe true
   ssl
   {
     certificate_authority_file dev-ca.crt
@@ -14,6 +13,7 @@ cluster
     {
       ip 127.0.0.1
       port 17001
+      safe_link true
     }
   }
 }

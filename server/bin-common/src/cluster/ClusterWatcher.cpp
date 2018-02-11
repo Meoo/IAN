@@ -16,8 +16,9 @@ namespace ssl = boost::asio::ssl;
 
 
 ClusterWatcher::ClusterWatcher(const std::shared_ptr<spdlog::logger> & logger,
-                               boost::asio::io_context & asio, const TcpEndpoint & endpoint)
-    : logger_(logger), endpoint_(endpoint), socket_(asio), timer_(asio)
+                               boost::asio::io_context & asio, const TcpEndpoint & endpoint,
+                               bool safe_link)
+    : logger_(logger), safe_link_(safe_link), endpoint_(endpoint), socket_(asio), timer_(asio)
 {
 }
 
@@ -50,7 +51,7 @@ void ClusterWatcher::on_connect(boost::system::error_code ec)
   else
   {
     auto client = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
-    client->run(ClusterConnection::Client);
+    client->run(ClusterConnection::Client, safe_link_);
     connection_ = client;
   }
 
