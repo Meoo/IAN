@@ -189,7 +189,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   read_buffer_.commit(readlen);
 
-  if (message_len_ == -1U)
+  if (message_len_ == 0)
   {
     // Read handshake length
     if (read_buffer_.size() < sizeof(message_len_))
@@ -205,6 +205,14 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     read_buffer_.consume(asio::buffer_copy(
         asio::buffer((void *)&message_len_, sizeof(message_len_)), read_buffer_.data()));
     boost::endian::little_to_native_inplace(message_len_);
+
+    if (message_len_ == 0) // TODO Max message length
+    {
+      IAN_ERROR(logger_, "Invalid incoming message length : {}:{} : {}", LOG_SOCKET_TUPLE,
+                message_len_);
+      shutdown();
+      return;
+    }
   }
 
   if (read_buffer_.size() < message_len_)
@@ -220,13 +228,21 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     return;
   }
 
+  if (read_buffer_.size() > 0)
+  {
+    IAN_WARN(logger_, "Received more data than expected for handshake : {}:{} : {}",
+             LOG_SOCKET_TUPLE, read_buffer_.size());
+    shutdown();
+    return;
+  }
+
   // Flatten
-  boost::beast::flat_buffer buf;
-  buf.commit(asio::buffer_copy(buf.prepare(read_buffer_.size()), read_buffer_.data()));
+  std::vector<uint8_t> buf(message_len_);
+  asio::buffer_copy(asio::buffer(buf.data(), buf.size()), read_buffer_.data());
 
   // Verify handshake
   {
-    flatbuffers::Verifier verifier((const uint8_t *)buf.data().data(), buf.size());
+    flatbuffers::Verifier verifier((const uint8_t *)buf.data(), buf.size());
     if (!proto::VerifyClusterHandshakeBuffer(verifier))
     {
       IAN_ERROR(logger_, "Cluster handshake verification failed : {}:{}", LOG_SOCKET_TUPLE);
@@ -235,7 +251,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     }
   }
 
-  const proto::ClusterHandshake * handshake = proto::GetClusterHandshake(buf.data().data());
+  const proto::ClusterHandshake * handshake = proto::GetClusterHandshake(buf.data());
 
   auto major = handshake->version_major();
   auto minor = handshake->version_minor();

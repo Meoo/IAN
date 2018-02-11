@@ -56,7 +56,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   boost::asio::steady_timer timer_;
 
   // Inbound
-  uint32_t message_len_ = -1u;
+  uint32_t message_len_ = 0;
   boost::beast::multi_buffer read_buffer_;
 
 
