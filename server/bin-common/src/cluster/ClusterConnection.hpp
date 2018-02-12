@@ -48,6 +48,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   bool shutting_down_ = false;
   bool is_writing_    = false;
   bool safe_link_;
+  bool downgraded_ = false;
 
   SslStream stream_;
   TcpSocket & socket_;
@@ -63,11 +64,17 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   void abort();
   void shutdown();
 
+  void read_next();
+
 
   void on_shutdown(boost::system::error_code ec);
 
   void on_ssl_handshake(boost::system::error_code ec);
   void on_ian_handshake(boost::system::error_code ec, std::size_t readlen);
+  void on_downgrade(boost::system::error_code ec);
+
+  void on_read(boost::system::error_code ec, std::size_t readlen);
+  void on_write(boost::system::error_code ec, std::size_t writelen);
 
 
   void handle_read_error(boost::system::error_code ec);

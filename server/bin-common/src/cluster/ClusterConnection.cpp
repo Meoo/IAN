@@ -119,6 +119,12 @@ void ClusterConnection::shutdown()
   if (dropped_ || shutting_down_)
     return;
 
+  if (downgraded_)
+  {
+    this->abort();
+    return;
+  }
+
   boost::system::error_code ec;
 
   // Ignore errors
@@ -135,6 +141,26 @@ void ClusterConnection::shutdown()
       asio::bind_executor(strand_, std::bind(&ClusterConnection::on_shutdown, shared_from_this(),
                                              std::placeholders::_1)));
   shutting_down_ = true;
+}
+
+void ClusterConnection::read_next()
+{
+  if (safe_link_)
+  {
+    // SSL
+    stream_.async_read_some(
+        read_buffer_.prepare(read_chunk_size),
+        asio::bind_executor(strand_, std::bind(&ClusterConnection::on_read, shared_from_this(),
+                                               std::placeholders::_1, std::placeholders::_2)));
+  }
+  else
+  {
+    // Clear
+    socket_.async_read_some(
+        read_buffer_.prepare(read_chunk_size),
+        asio::bind_executor(strand_, std::bind(&ClusterConnection::on_read, shared_from_this(),
+                                               std::placeholders::_1, std::placeholders::_2)));
+  }
 }
 
 void ClusterConnection::on_shutdown(boost::system::error_code ec)
@@ -262,12 +288,60 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   if (safe_link_)
   {
-    // TODO Downgrade to clear messages
+    // Downgrade to clear messages
+    stream_.async_shutdown(
+        asio::bind_executor(strand_, std::bind(&ClusterConnection::on_downgrade, shared_from_this(),
+                                               std::placeholders::_1)));
   }
   else
   {
-    // TODO Start reading messages over SSL
+    // Start reading messages over SSL
+    // TODO some kind of ready() instead
+    read_next();
   }
+}
+
+void ClusterConnection::on_downgrade(boost::system::error_code ec)
+{
+  if (dropped_)
+    return;
+
+  if (ec)
+  {
+    IAN_WARN(logger_, "Downgrade error for peer: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
+             ec.value());
+    this->abort();
+    return;
+  }
+
+  downgraded_ = true;
+
+  // TODO some kind of ready() instead
+  read_next();
+}
+
+void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readlen)
+{
+  if (ec)
+  {
+    handle_read_error(ec);
+    return;
+  }
+
+  // TODO
+
+  read_next();
+}
+
+void ClusterConnection::on_write(boost::system::error_code ec, std::size_t writelen)
+{
+  if (ec)
+  {
+    handle_write_error(ec);
+    return;
+  }
+
+  // TODO
 }
 
 void ClusterConnection::handle_read_error(boost::system::error_code ec)
