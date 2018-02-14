@@ -6,14 +6,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#pragma once
+
 #include <spdlog/spdlog.h>
 
 
 #define IAN__LOG_WRAP(x) do{ x ;}while((void)0,0)
 
 #ifdef NDEBUG
-#define IAN_TRACE(logger, ...) IAN__LOG_WRAP()
-#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP()
+#define IAN_TRACE(logger, ...) IAN__LOG_WRAP(;)
+#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP(;)
 #else
 #define IAN_TRACE(logger, ...) IAN__LOG_WRAP((logger)->trace(__VA_ARGS__))
 #define IAN_DEBUG(logger, ...) IAN__LOG_WRAP((logger)->debug(__VA_ARGS__))
