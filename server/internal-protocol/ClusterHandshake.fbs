@@ -7,4 +7,5 @@ table ClusterHandshake {
   safe_link:bool;
 }
 
+file_identifier "IANc";
 root_type ClusterHandshake;

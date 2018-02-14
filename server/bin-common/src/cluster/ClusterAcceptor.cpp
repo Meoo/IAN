@@ -113,15 +113,15 @@ void ClusterAcceptor::on_accept(boost::system::error_code ec)
   }
   else
   {
-    IAN_INFO(logger_, "Accepting client {}:{}", socket_.remote_endpoint().address().to_string(),
+    IAN_INFO(logger_, "Accepting peer {}:{}", socket_.remote_endpoint().address().to_string(),
              socket_.remote_endpoint().port());
 
     // Disable Nagle
     boost::asio::ip::tcp::no_delay no_delay(true);
     socket_.set_option(no_delay);
 
-    auto client = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
-    client->run(ClusterConnection::Server, safe_link_);
+    auto peer = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
+    peer->run(ClusterConnection::Server, safe_link_);
   }
 
   accept_next();

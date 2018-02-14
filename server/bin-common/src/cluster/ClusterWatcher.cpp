@@ -50,6 +50,13 @@ void ClusterWatcher::on_connect(boost::system::error_code ec)
   }
   else
   {
+    IAN_INFO(logger_, "Connecting to peer {}:{}", socket_.remote_endpoint().address().to_string(),
+             socket_.remote_endpoint().port());
+
+    // Disable Nagle
+    boost::asio::ip::tcp::no_delay no_delay(true);
+    socket_.set_option(no_delay);
+
     auto client = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
     client->run(ClusterConnection::Client, safe_link_);
     connection_ = client;

@@ -33,22 +33,41 @@ struct Message::MessageData
 };
 
 
-const void * Message::get_message() const { return (const void *)&data_->message_ptr; }
-
-size_t Message::get_message_size() const { return data_->payload_size + PAYLOAD_OFFSET; }
-
-void * Message::get_payload() { return (void *)&data_->message.payload_ptr; }
-
-const void * Message::get_payload() const { return (const void *)&data_->message.payload_ptr; }
-
-size_t Message::get_payload_size() const { return data_->payload_size; }
-
-
-Message Message::create_empty(size_t payload_size)
+const void * Message::get_payload() const
 {
-  const size_t total_size = payload_size + PAYLOAD_OFFSET;
-  Message ret;
-  ret.data_ = std::shared_ptr<MessageData>((MessageData *)std::calloc(1, total_size), std::free);
-  ret.data_->payload_size = payload_size;
+  switch (buffer_type_)
+  {
+  case BufferType::Allocated:
+    return (const void *)&data_->message.payload_ptr;
+
+  case BufferType::Flatbuffer:
+    return (const void *)data_fb_->data();
+
+  default:
+    return nullptr;
+  }
+}
+
+size_t Message::get_payload_size() const
+{
+  switch (buffer_type_)
+  {
+  case BufferType::Allocated:
+    return data_->payload_size;
+
+  case BufferType::Flatbuffer:
+    return data_fb_->size();
+
+  default:
+    return 0;
+  }
+}
+
+
+Message Message::from_flatbuffer(Message::Type type, flatbuffers::FlatBufferBuilder & builder)
+{
+  Message ret(type);
+  ret.buffer_type_ = BufferType::Flatbuffer;
+  ret.data_fb_ = std::make_shared<flatbuffers::DetachedBuffer>(builder.Release());
   return ret;
 }

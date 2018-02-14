@@ -10,6 +10,9 @@
 
 #include <common/Log.hpp>
 
+#include <bin-common/Message.hpp>
+#include <bin-common/MessageQueue.hpp>
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -41,6 +44,10 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   void run(SslRole role, bool safe_link);
 
 
+protected:
+  void send_message(const Message & message);
+
+
  private:
   std::shared_ptr<spdlog::logger> logger_;
 
@@ -56,8 +63,13 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
 
+  // Outbound
+  MessageQueue message_queue_;
+  Message message_outbound_;
+  uint32_t out_message_len_le_; // Little-endian
+
   // Inbound
-  uint32_t message_len_ = 0;
+  uint32_t in_message_len_ = 0;
   boost::beast::multi_buffer read_buffer_;
 
 
@@ -67,14 +79,17 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   void read_next();
 
 
+  void do_write_message(Message && message);
+
+
   void on_shutdown(boost::system::error_code ec);
 
   void on_ssl_handshake(boost::system::error_code ec);
+  void on_ian_handshake_sent(boost::system::error_code ec, std::size_t writelen);
   void on_ian_handshake(boost::system::error_code ec, std::size_t readlen);
-  void on_downgrade(boost::system::error_code ec);
 
   void on_read(boost::system::error_code ec, std::size_t readlen);
-  void on_write(boost::system::error_code ec, std::size_t writelen);
+  void on_write_message(boost::system::error_code ec, std::size_t writelen);
 
 
   void handle_read_error(boost::system::error_code ec);

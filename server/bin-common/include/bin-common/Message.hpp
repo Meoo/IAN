@@ -8,39 +8,51 @@
 
 #pragma once
 
+#include <flatbuffers/flatbuffers.h>
+
 #include <memory>
 
 
 class Message
 {
  public:
-  // Construct a null message
-  Message() = default;
+  using Type = uint8_t;
+
+  enum class BufferType
+  {
+    Empty,
+    Allocated,
+    Flatbuffer,
+  };
+
+  // Construct an empty message
+  explicit Message(Type type = 0) : message_type_(type) {}
 
   Message(const Message &) = default;
   Message(Message &&)      = default;
   Message & operator=(const Message &) = default;
 
 
-  // If is_null returns true, calling a get_ function is undefined behavior
-  bool is_null() const { return !data_; }
+  bool is_empty() const { return buffer_type_ == BufferType::Empty; }
 
-  // Message, including header
-  const void * get_message() const;
-  size_t get_message_size() const;
+  // Message type
+  // Returned as a reference so it can be used in scatter IO
+  const Type & get_type() const { return message_type_; }
 
-  // Actual message payload
-  void * get_payload();
+  // Message payload
   const void * get_payload() const;
   size_t get_payload_size() const;
 
 
   // Static methods to construct messages
-  static Message create_empty(size_t payload_size);
+  static Message from_flatbuffer(Type type, flatbuffers::FlatBufferBuilder & builder);
 
 
  private:
   struct MessageData;
 
+  BufferType buffer_type_ = BufferType::Empty;
+  Type message_type_;
   std::shared_ptr<MessageData> data_;
+  std::shared_ptr<flatbuffers::DetachedBuffer> data_fb_;
 };

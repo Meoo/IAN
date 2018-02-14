@@ -96,9 +96,9 @@ void WsConnection::run()
 
 void WsConnection::send_message(const Message & message)
 {
-  if (message.is_null())
+  if (message.is_empty())
   {
-    IAN_ERROR(logger_, "send_message: message is null");
+    IAN_ERROR(logger_, "send_message: message is empty");
     return;
   }
 
@@ -165,8 +165,13 @@ void WsConnection::do_write_message(Message && message)
 {
   message_outbound_ = std::move(message);
 
+  // Send type + payload
+  auto data = boost::beast::buffers_cat(
+      asio::buffer(&message_outbound_.get_type(), sizeof(Message::Type)),
+      asio::buffer(message_outbound_.get_payload(), message_outbound_.get_payload_size()));
+
   stream_.async_write(
-      asio::buffer(message_outbound_.get_message(), message_outbound_.get_message_size()),
+      data,
       asio::bind_executor(strand_, std::bind(&WsConnection::on_write_message, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2)));
 }
@@ -253,9 +258,6 @@ void WsConnection::on_shutdown(boost::system::error_code ec)
 
 void WsConnection::on_ssl_handshake(boost::system::error_code ec)
 {
-  if (dropped_)
-    return;
-
   if (ec)
   {
     IAN_WARN(logger_, "SSL handshake failed for client: {}:{} : {} {}", LOG_SOCKET_TUPLE,
