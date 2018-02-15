@@ -44,7 +44,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
   void run(SslRole role, bool safe_link);
 
 
-protected:
+ protected:
   void send_message(const Message & message);
 
 

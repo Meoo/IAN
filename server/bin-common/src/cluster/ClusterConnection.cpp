@@ -132,9 +132,7 @@ void ClusterConnection::abort()
 
   // Ignore errors
   timer_.cancel(ec);
-  // TODO state_timer_.cancel(ec);
-
-  // TODO message_queue_.clear();
+  message_queue_.clear();
 
   IAN_INFO(logger_, "Peer disconnected: {}:{}", LOG_SOCKET_TUPLE);
 
@@ -158,9 +156,7 @@ void ClusterConnection::shutdown()
 
   // Ignore errors
   timer_.cancel(ec);
-  // TODO state_timer_.cancel(ec);
-
-  // TODO message_queue_.clear();
+  message_queue_.clear();
 
   if (!socket_.is_open())
     return;
