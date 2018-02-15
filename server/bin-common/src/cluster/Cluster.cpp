@@ -43,6 +43,16 @@ void init(const std::shared_ptr<spdlog::logger> & logger, AsioPool & pool,
     auto acceptor = std::make_shared<ClusterAcceptor>(logger, *::cluster_asio, group);
     acceptor->run();
   }
+
+  for (auto & group : config.get_childs("connect"))
+  {
+    auto watcher = std::make_shared<ClusterWatcher>(
+        logger, *::cluster_asio,
+        boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(group.get_string("ip")),
+                                       group.get_int("port", 17001)),
+        group.get_bool("safe_link", false));
+    watcher->run();
+  }
 }
 
 
