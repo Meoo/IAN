@@ -31,10 +31,11 @@
 class WsConnection final : public ClientConnection
 {
  public:
-  using SslContext = boost::asio::ssl::context;
-  using TcpSocket  = boost::asio::ip::tcp::socket;
-  using SslStream  = boost::asio::ssl::stream<TcpSocket>;
-  using WsStream   = boost::beast::websocket::stream<SslStream>;
+  using SslContext  = boost::asio::ssl::context;
+  using TcpEndpoint = boost::asio::ip::tcp::endpoint;
+  using TcpSocket   = boost::asio::ip::tcp::socket;
+  using SslStream   = boost::asio::ssl::stream<TcpSocket>;
+  using WsStream    = boost::beast::websocket::stream<SslStream>;
 
 
   WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
@@ -58,6 +59,7 @@ class WsConnection final : public ClientConnection
 
   WsStream stream_;
   TcpSocket & socket_;
+  TcpEndpoint remote_;
 
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;

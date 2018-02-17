@@ -23,8 +23,7 @@
 namespace asio = boost::asio;
 
 
-#define LOG_SOCKET_TUPLE                                                                           \
-  socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
+#define LOG_SOCKET_TUPLE remote_.address().to_string(), remote_.port()
 
 namespace
 {
@@ -70,19 +69,22 @@ ClusterConnection::ClusterConnection(const std::shared_ptr<spdlog::logger> & log
 {
 }
 
-ClusterConnection::~ClusterConnection()
-{
-  // Close must be called last or using LOG_SOCKET_TUPLE will throw
-  boost::system::error_code ec;
-  socket_.close(ec);
-}
-
 void ClusterConnection::run(SslRole role, bool safe_link)
 {
+  // Should never happen, just check to be safe
+  if (!socket_.is_open())
+  {
+    IAN_ERROR(logger_, "Trying to run ClusterConnection with closed socket");
+    return;
+  }
+
   safe_link_ = safe_link;
 
-  // Force peer verification
+  // Cache remote endpoint
   boost::system::error_code ec;
+  remote_ = socket_.remote_endpoint(ec);
+
+  // Force peer verification
   stream_.set_verify_mode(asio::ssl::verify_peer | asio::ssl::verify_fail_if_no_peer_cert, ec);
   if (ec)
     IAN_ERROR(logger_, "Failed to force peer verification for cluster connection: : {}:{} : {}",
@@ -138,6 +140,7 @@ void ClusterConnection::abort()
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
+  socket_.close(ec);
   dropped_ = true;
 }
 
@@ -236,6 +239,7 @@ void ClusterConnection::on_shutdown(boost::system::error_code ec)
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
+  socket_.close(ec);
   dropped_ = true;
 }
 

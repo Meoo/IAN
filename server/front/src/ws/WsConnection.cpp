@@ -25,8 +25,7 @@ namespace http = boost::beast::http;
 namespace ws   = boost::beast::websocket;
 
 
-#define LOG_SOCKET_TUPLE                                                                           \
-  socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port()
+#define LOG_SOCKET_TUPLE remote_.address().to_string(), remote_.port()
 #define SHARED_FROM_THIS std::static_pointer_cast<WsConnection>(shared_from_this())
 
 namespace
@@ -73,17 +72,21 @@ WsConnection::WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSo
   ++front::active_connection_count;
 }
 
-WsConnection::~WsConnection()
-{
-  // Close must be called last or using LOG_SOCKET_TUPLE will throw
-  boost::system::error_code ec;
-  socket_.close(ec);
-
-  --front::active_connection_count;
-}
+WsConnection::~WsConnection() { --front::active_connection_count; }
 
 void WsConnection::run()
 {
+  // Should never happen, just check to be safe
+  if (!socket_.is_open())
+  {
+    IAN_ERROR(logger_, "Trying to run ClusterConnection with closed socket");
+    return;
+  }
+
+  // Cache remote endpoint
+  boost::system::error_code ec;
+  remote_ = socket_.remote_endpoint(ec);
+
   // Timeout for connection setup
   set_timeout(std::chrono::seconds(front::ws_setup_timeout));
 
@@ -136,6 +139,7 @@ void WsConnection::abort()
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
+  socket_.close(ec);
   dropped_ = true;
 }
 
@@ -253,6 +257,7 @@ void WsConnection::on_shutdown(boost::system::error_code ec)
 
   // Abort stream at socket level
   socket_.shutdown(socket_.shutdown_both, ec);
+  socket_.close(ec);
   dropped_ = true;
 }
 

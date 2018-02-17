@@ -32,13 +32,13 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
     Server
   };
 
-  using SslContext = boost::asio::ssl::context;
-  using TcpSocket  = boost::asio::ip::tcp::socket;
-  using SslStream  = boost::asio::ssl::stream<TcpSocket>;
+  using SslContext  = boost::asio::ssl::context;
+  using TcpEndpoint = boost::asio::ip::tcp::endpoint;
+  using TcpSocket   = boost::asio::ip::tcp::socket;
+  using SslStream   = boost::asio::ssl::stream<TcpSocket>;
 
 
   ClusterConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket);
-  ~ClusterConnection();
 
 
   void run(SslRole role, bool safe_link);
@@ -59,6 +59,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
 
   SslStream stream_;
   TcpSocket & socket_;
+  TcpEndpoint remote_;
 
   boost::asio::io_context::strand strand_;
   boost::asio::steady_timer timer_;
