@@ -39,6 +39,11 @@ bool is_connection_reset_error(const boost::system::error_code & ec)
     return true;
   }
 
+  if (ec.category() == asio::error::get_misc_category() && ec == asio::error::eof)
+  {
+    return true;
+  }
+
   if (ec.category() == asio::ssl::error::get_stream_category() &&
       ec == asio::ssl::error::stream_truncated)
   {
