@@ -16,8 +16,6 @@
 class Message
 {
  public:
-  using Type = uint8_t;
-
   enum class BufferType
   {
     Empty,
@@ -26,7 +24,7 @@ class Message
   };
 
   // Construct an empty message
-  explicit Message(Type type = 0) : message_type_(type) {}
+  Message() = default;
 
   Message(const Message &) = default;
   Message(Message &&)      = default;
@@ -35,24 +33,19 @@ class Message
 
   bool is_empty() const { return buffer_type_ == BufferType::Empty; }
 
-  // Message type
-  // Returned as a reference so it can be used in scatter IO
-  const Type & get_type() const { return message_type_; }
-
   // Message payload
   const void * get_payload() const;
   size_t get_payload_size() const;
 
 
   // Static methods to construct messages
-  static Message from_flatbuffer(Type type, flatbuffers::FlatBufferBuilder & builder);
+  static Message from_flatbuffer(flatbuffers::FlatBufferBuilder & builder);
 
 
  private:
   struct MessageData;
 
   BufferType buffer_type_ = BufferType::Empty;
-  Type message_type_;
   std::shared_ptr<MessageData> data_;
   std::shared_ptr<flatbuffers::DetachedBuffer> data_fb_;
 };

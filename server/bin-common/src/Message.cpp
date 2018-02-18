@@ -64,9 +64,9 @@ size_t Message::get_payload_size() const
 }
 
 
-Message Message::from_flatbuffer(Message::Type type, flatbuffers::FlatBufferBuilder & builder)
+Message Message::from_flatbuffer(flatbuffers::FlatBufferBuilder & builder)
 {
-  Message ret(type);
+  Message ret;
   ret.buffer_type_ = BufferType::Flatbuffer;
   ret.data_fb_ = std::make_shared<flatbuffers::DetachedBuffer>(builder.Release());
   return ret;
