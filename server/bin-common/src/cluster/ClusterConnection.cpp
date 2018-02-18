@@ -198,9 +198,9 @@ void ClusterConnection::read_next()
 
 void ClusterConnection::do_write_message(Message && message)
 {
-  message_outbound_   = std::move(message);
-  out_message_len_le_ = boost::endian::native_to_little(
-      (uint32_t)(message_outbound_.get_payload_size()));
+  message_outbound_ = std::move(message);
+  out_message_len_le_ =
+      boost::endian::native_to_little((uint32_t)(message_outbound_.get_payload_size()));
 
   // Send size + type + payload
   auto data = boost::beast::buffers_cat(
@@ -450,8 +450,7 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
     read_buffer_.consume(
         asio::buffer_copy(asio::buffer(buf.data(), buf.size()), read_buffer_.data()));
 
-    IAN_TRACE(logger_, "Message received from peer : {}:{} : type {} len {}", LOG_SOCKET_TUPLE,
-              type, buf.size());
+    IAN_TRACE(logger_, "Message received from peer : {}:{} : len {}", LOG_SOCKET_TUPLE, buf.size());
     // TODO
 
     // Reset for next message
