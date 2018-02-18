@@ -198,14 +198,13 @@ void ClusterConnection::read_next()
 
 void ClusterConnection::do_write_message(Message && message)
 {
-  message_outbound_ = std::move(message);
-  out_message_len_le_ =
-      boost::endian::native_to_little((uint32_t)(message_outbound_.get_payload_size()));
+  message_outbound_   = std::move(message);
+  out_message_len_le_ = boost::endian::native_to_little((uint32_t)(message_outbound_.size()));
 
   // Send size + type + payload
-  auto data = boost::beast::buffers_cat(
-      asio::buffer(&out_message_len_le_, sizeof(out_message_len_le_)),
-      asio::buffer(message_outbound_.get_payload(), message_outbound_.get_payload_size()));
+  auto data =
+      boost::beast::buffers_cat(asio::buffer(&out_message_len_le_, sizeof(out_message_len_le_)),
+                                asio::buffer(message_outbound_.data(), message_outbound_.size()));
 
   if (safe_link_)
   {
@@ -264,13 +263,12 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
   auto offset = proto::CreateClusterHandshake(builder, 1, 2, safe_link_);
   proto::FinishClusterHandshakeBuffer(builder, offset);
 
-  message_outbound_ = Message::from_flatbuffer(builder);
-  out_message_len_le_ =
-      boost::endian::native_to_little((uint32_t)message_outbound_.get_payload_size());
+  message_outbound_   = Message::from_flatbuffer(builder);
+  out_message_len_le_ = boost::endian::native_to_little((uint32_t)message_outbound_.size());
 
-  auto data = boost::beast::buffers_cat(
-      asio::buffer(&out_message_len_le_, sizeof(out_message_len_le_)),
-      asio::buffer(message_outbound_.get_payload(), message_outbound_.get_payload_size()));
+  auto data =
+      boost::beast::buffers_cat(asio::buffer(&out_message_len_le_, sizeof(out_message_len_le_)),
+                                asio::buffer(message_outbound_.data(), message_outbound_.size()));
 
   asio::async_write(
       stream_, data,

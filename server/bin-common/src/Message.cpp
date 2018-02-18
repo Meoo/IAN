@@ -8,66 +8,26 @@
 
 #include <bin-common/Message.hpp>
 
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-#include <cstdlib>
 
-
-#define PAYLOAD_OFFSET offsetof(Message::MessageData, message.payload_ptr)
-
-
-struct Message::MessageData
+namespace
 {
-  size_t payload_size;
 
-  union
-  {
-    char message_ptr;
-    struct
-    {
-      int message_type;
-      char payload_ptr;
-    } message;
-  };
+class MessageImplFlatbuffer final : public internal::MessageImpl
+{
+ public:
+  MessageImplFlatbuffer(flatbuffers::DetachedBuffer && buffer) : buffer_(std::move(buffer)) {}
+
+  const void * data() const override { return buffer_.data(); }
+  size_t size() const override { return buffer_.size(); }
+
+ private:
+  flatbuffers::DetachedBuffer buffer_;
 };
 
-
-const void * Message::get_payload() const
-{
-  switch (buffer_type_)
-  {
-  case BufferType::Allocated:
-    return (const void *)&data_->message.payload_ptr;
-
-  case BufferType::Flatbuffer:
-    return (const void *)data_fb_->data();
-
-  default:
-    return nullptr;
-  }
-}
-
-size_t Message::get_payload_size() const
-{
-  switch (buffer_type_)
-  {
-  case BufferType::Allocated:
-    return data_->payload_size;
-
-  case BufferType::Flatbuffer:
-    return data_fb_->size();
-
-  default:
-    return 0;
-  }
-}
+} // namespace
 
 
 Message Message::from_flatbuffer(flatbuffers::FlatBufferBuilder & builder)
 {
-  Message ret;
-  ret.buffer_type_ = BufferType::Flatbuffer;
-  ret.data_fb_ = std::make_shared<flatbuffers::DetachedBuffer>(builder.Release());
-  return ret;
+  return Message(std::make_shared<::MessageImplFlatbuffer>(builder.Release()));
 }

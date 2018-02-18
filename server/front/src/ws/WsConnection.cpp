@@ -175,7 +175,7 @@ void WsConnection::do_write_message(Message && message)
   message_outbound_ = std::move(message);
 
   stream_.async_write(
-      asio::buffer(message_outbound_.get_payload(), message_outbound_.get_payload_size()),
+      asio::buffer(message_outbound_.data(), message_outbound_.size()),
       asio::bind_executor(strand_, std::bind(&WsConnection::on_write_message, SHARED_FROM_THIS,
                                              std::placeholders::_1, std::placeholders::_2)));
 }

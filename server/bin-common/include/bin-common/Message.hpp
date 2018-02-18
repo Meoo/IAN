@@ -13,16 +13,28 @@
 #include <memory>
 
 
+namespace internal
+{
+
+class MessageImpl
+{
+ public:
+  MessageImpl()          = default;
+  virtual ~MessageImpl() = default;
+
+  MessageImpl(const MessageImpl &) = default;
+  MessageImpl & operator=(const MessageImpl &) = default;
+
+  virtual const void * data() const = 0;
+  virtual size_t size() const       = 0;
+};
+
+} // namespace internal
+
+
 class Message
 {
  public:
-  enum class BufferType
-  {
-    Empty,
-    Allocated,
-    Flatbuffer,
-  };
-
   // Construct an empty message
   Message() = default;
 
@@ -31,21 +43,20 @@ class Message
   Message & operator=(const Message &) = default;
 
 
-  bool is_empty() const { return buffer_type_ == BufferType::Empty; }
+  bool is_empty() const { return !impl_; }
 
   // Message payload
-  const void * get_payload() const;
-  size_t get_payload_size() const;
+  const void * data() const { return impl_->data(); }
+  size_t size() const { return impl_->size(); }
 
 
   // Static methods to construct messages
   static Message from_flatbuffer(flatbuffers::FlatBufferBuilder & builder);
 
 
- private:
-  struct MessageData;
+  // Internal constructor
+  explicit Message(std::shared_ptr<internal::MessageImpl> && impl) : impl_(std::move(impl)) {}
 
-  BufferType buffer_type_ = BufferType::Empty;
-  std::shared_ptr<MessageData> data_;
-  std::shared_ptr<flatbuffers::DetachedBuffer> data_fb_;
+ private:
+  std::shared_ptr<internal::MessageImpl> impl_;
 };
