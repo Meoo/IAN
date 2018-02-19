@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
   plat::set_thread_name("Front main");
 
   // Init logger
-  // spdlog::set_async_mode(512); ?
+  spdlog::set_async_mode(256);
   auto logger = spdlog::stdout_color_mt("front");
   std::atexit(spdlog::drop_all);
 
