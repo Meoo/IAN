@@ -24,10 +24,27 @@ class MessageImplFlatbuffer final : public internal::MessageImpl
   flatbuffers::DetachedBuffer buffer_;
 };
 
+class MessageImplVector final : public internal::MessageImpl
+{
+public:
+  MessageImplVector(std::vector<std::uint8_t> && buffer) : buffer_(std::move(buffer)) {}
+
+  const void * data() const override { return buffer_.data(); }
+  size_t size() const override { return buffer_.size(); }
+
+private:
+  std::vector<std::uint8_t> buffer_;
+};
+
 } // namespace
 
 
 Message Message::from_flatbuffer(flatbuffers::FlatBufferBuilder & builder)
 {
   return Message(std::make_shared<::MessageImplFlatbuffer>(builder.Release()));
+}
+
+Message Message::from_vector(std::vector<std::uint8_t> && data)
+{
+  return Message(std::make_shared<::MessageImplVector>(std::move(data)));
 }

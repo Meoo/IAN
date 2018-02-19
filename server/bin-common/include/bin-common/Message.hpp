@@ -11,6 +11,7 @@
 #include <flatbuffers/flatbuffers.h>
 
 #include <memory>
+#include <vector>
 
 
 namespace internal
@@ -52,6 +53,7 @@ class Message
 
   // Static methods to construct messages
   static Message from_flatbuffer(flatbuffers::FlatBufferBuilder & builder);
+  static Message from_vector(std::vector<std::uint8_t> && data);
 
 
   // Internal constructor
