@@ -11,8 +11,8 @@
 
 void MessageQueue::push(Message && message)
 {
-  queue_.emplace_back(std::move(message));
-  total_size_ += queue_.back().size();
+  queue_.emplace_front(std::move(message));
+  total_size_ += queue_.front().size();
 }
 
 bool MessageQueue::try_pop(Message & message)

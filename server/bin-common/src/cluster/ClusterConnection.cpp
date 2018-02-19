@@ -306,6 +306,9 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     return;
   }
 
+  IAN_TRACE(logger_, "Chunk (handshake) received from peer: {}:{} : len {}", LOG_SOCKET_TUPLE,
+            readlen);
+
   read_buffer_.commit(readlen);
 
   if (in_message_len_ == 0)
@@ -314,7 +317,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     if (read_buffer_.size() < sizeof(in_message_len_))
     {
       // If first packet contains less than 4 bytes something is really wrong
-      IAN_ERROR(logger_, "Not enough data to read handshake length : {}:{} : {}", LOG_SOCKET_TUPLE,
+      IAN_ERROR(logger_, "Not enough data to read handshake length: {}:{} : {}", LOG_SOCKET_TUPLE,
                 read_buffer_.size());
       shutdown();
       return;
@@ -327,7 +330,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
     if (in_message_len_ == 0) // TODO Max message length
     {
-      IAN_ERROR(logger_, "Invalid incoming message length : {}:{} : {}", LOG_SOCKET_TUPLE,
+      IAN_ERROR(logger_, "Invalid incoming message length: {}:{} : {}", LOG_SOCKET_TUPLE,
                 in_message_len_);
       shutdown();
       return;
@@ -336,7 +339,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   if (read_buffer_.size() < in_message_len_)
   {
-    IAN_TRACE(logger_, "Not enough data to parse handshake : {}:{} : {} < {}", LOG_SOCKET_TUPLE,
+    IAN_TRACE(logger_, "Not enough data to parse handshake: {}:{} : {} < {}", LOG_SOCKET_TUPLE,
               read_buffer_.size(), in_message_len_);
 
     // Not enough data, read again
@@ -350,7 +353,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   if (read_buffer_.size() > in_message_len_)
   {
-    IAN_WARN(logger_, "Received more data than expected for handshake : {}:{} : {} > {}",
+    IAN_WARN(logger_, "Received more data than expected for handshake: {}:{} : {} > {}",
              LOG_SOCKET_TUPLE, read_buffer_.size(), in_message_len_);
     shutdown();
     return;
@@ -367,7 +370,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     if (buf.size() < 8 || !proto::ClusterHandshakeBufferHasIdentifier(buf.data()) ||
         !proto::VerifyClusterHandshakeBuffer(verifier))
     {
-      IAN_WARN(logger_, "Cluster handshake verification failed : {}:{}", LOG_SOCKET_TUPLE);
+      IAN_WARN(logger_, "Cluster handshake verification failed: {}:{}", LOG_SOCKET_TUPLE);
       shutdown();
       return;
     }
@@ -378,7 +381,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
   auto major = handshake->version_major();
   auto minor = handshake->version_minor();
 
-  IAN_DEBUG(logger_, "Proto version for peer : {}:{} : {}.{}", LOG_SOCKET_TUPLE, major, minor);
+  IAN_DEBUG(logger_, "Proto version for peer: {}:{} : {}.{}", LOG_SOCKET_TUPLE, major, minor);
 
   safe_link_ = safe_link_ && handshake->safe_link();
 
@@ -412,6 +415,8 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
     return;
   }
 
+  IAN_TRACE(logger_, "Chunk received from peer: {}:{} : len {}", LOG_SOCKET_TUPLE, readlen);
+
   read_buffer_.commit(readlen);
 
   // Data read loop (one read might contain multiple messages)
@@ -431,7 +436,7 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
 
       if (in_message_len_ == 0) // TODO Max message length
       {
-        IAN_ERROR(logger_, "Invalid incoming message length : {}:{} : {}", LOG_SOCKET_TUPLE,
+        IAN_ERROR(logger_, "Invalid incoming message length: {}:{} : {}", LOG_SOCKET_TUPLE,
                   in_message_len_);
         shutdown();
         return;
@@ -444,12 +449,12 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
     // Enough data to read message
 
     // Flatten data
-    std::vector<uint8_t> buf(in_message_len_);
+    std::vector<std::uint8_t> buf(in_message_len_);
     read_buffer_.consume(
         asio::buffer_copy(asio::buffer(buf.data(), buf.size()), read_buffer_.data()));
 
-    IAN_TRACE(logger_, "Message received from peer : {}:{} : len {}", LOG_SOCKET_TUPLE, buf.size());
-    // TODO
+    IAN_TRACE(logger_, "Message received from peer: {}:{} : len {}", LOG_SOCKET_TUPLE, buf.size());
+    process_message(Message::from_vector(std::move(buf)));
 
     // Reset for next message
     in_message_len_ = 0;
@@ -469,7 +474,7 @@ void ClusterConnection::on_write_message(boost::system::error_code ec, std::size
     return;
   }
 
-  IAN_TRACE(logger_, "Message written (len: {}) for peer: {}:{}", writelen, LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Message sent to peer: {}:{} : len {}", LOG_SOCKET_TUPLE, writelen);
 
   // Write next message
   Message message;

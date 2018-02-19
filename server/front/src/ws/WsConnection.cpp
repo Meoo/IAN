@@ -402,7 +402,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
     return;
   }
 
-  IAN_TRACE(logger_, "Message read (len: {}) for client: {}:{}", readlen, LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Message received from client: {}:{} : len {}", LOG_SOCKET_TUPLE, readlen);
 
   // Rate limit
   rate_limit_messages_++;
@@ -419,8 +419,9 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
   }
 
   // Get data
-  boost::beast::flat_buffer read_buffer;
-  std::swap(read_buffer_, read_buffer);
+  std::vector<std::uint8_t> buf(readlen);
+  read_buffer_.consume(
+      asio::buffer_copy(asio::buffer(buf.data(), buf.size()), read_buffer_.data()));
 
   // TODO Check readlen == read_buffer.size() ? Guaranteed?
 
@@ -434,8 +435,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
   if (timer_.expires_from_now() <= std::chrono::seconds(front::ws_timeout))
     set_timeout(std::chrono::seconds(front::ws_timeout + 5));
 
-  // Process data
-  process_message(read_buffer.data().data(), readlen);
+  process_message(Message::from_vector(std::move(buf)));
 }
 
 
@@ -450,7 +450,7 @@ void WsConnection::on_write_message(boost::system::error_code ec, std::size_t wr
     return;
   }
 
-  IAN_TRACE(logger_, "Message written (len: {}) for client: {}:{}", writelen, LOG_SOCKET_TUPLE);
+  IAN_TRACE(logger_, "Message sent to client: {}:{} : len {}", LOG_SOCKET_TUPLE, writelen);
 
   // Write next message
   Message message;
