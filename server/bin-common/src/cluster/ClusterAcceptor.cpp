@@ -70,6 +70,7 @@ void ClusterAcceptor::open()
     {
       IAN_ERROR(logger_, "Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort,
                 ec.message());
+      acceptor_.close(ec);
       break;
     }
 
@@ -77,6 +78,7 @@ void ClusterAcceptor::open()
     if (ec)
     {
       IAN_ERROR(logger_, "Acceptor failed to listen for peers: {}", ec.message());
+      acceptor_.close(ec);
       break;
     }
 

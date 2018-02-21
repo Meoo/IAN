@@ -76,6 +76,7 @@ void WsAcceptor::open()
     {
       IAN_ERROR(logger_, "Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort,
                 ec.message());
+      acceptor_.close(ec);
       break;
     }
 
@@ -83,6 +84,7 @@ void WsAcceptor::open()
     if (ec)
     {
       IAN_ERROR(logger_, "Acceptor failed to listen for clients: {}", ec.message());
+      acceptor_.close(ec);
       break;
     }
 
