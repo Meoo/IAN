@@ -18,5 +18,9 @@ namespace internal
 
 boost::asio::ssl::context & get_ssl();
 
+
+extern const std::size_t proto_hash_len;
+extern const std::uint8_t proto_hash[];
+
 } // namespace internal
 } // namespace cluster

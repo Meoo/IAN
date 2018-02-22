@@ -1,7 +1,7 @@
 
 macro(ian_add_protocol)
   set(opts CLIENT)
-  set(oneArgs NAME INCLUDE)
+  set(oneArgs NAME INCLUDE HASH)
   set(multiArgs FILES)
   cmake_parse_arguments(ARG "${opts}" "${oneArgs}" "${multiArgs}" ${ARGN})
 
@@ -28,6 +28,16 @@ macro(ian_add_protocol)
         MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
       list(APPEND GENERATED_FILES ${GEN_HEADER})
     endforeach()
+
+    if(ARG_HASH)
+      set(GEN_HEADER "${GEN_PATH}/Hash.h")
+      add_custom_command(
+        OUTPUT ${GEN_HEADER}
+        COMMAND ${CMAKE_COMMAND} -DHASH_FILES="${ARG_FILES}" -DHASH_OUT="${GEN_HEADER}" -DHASH_DEF="${ARG_HASH}" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/protoHash.cmake
+        DEPENDS ${ARG_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      list(APPEND GENERATED_FILES ${GEN_HEADER})
+    endif()
 
     add_custom_target(${ARG_NAME}-gen
       DEPENDS ${GENERATED_FILES}

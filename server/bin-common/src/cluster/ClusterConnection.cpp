@@ -260,7 +260,9 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
 
   // Write IAN handshake
   flatbuffers::FlatBufferBuilder builder;
-  auto offset = proto::CreateClusterHandshake(builder, 1, 2, safe_link_);
+  auto hash   = builder.CreateVector<std::uint8_t>(cluster::internal::proto_hash,
+                                                 cluster::internal::proto_hash_len);
+  auto offset = proto::CreateClusterHandshake(builder, hash, safe_link_);
   proto::FinishClusterHandshakeBuffer(builder, offset);
 
   message_outbound_   = Message::from_flatbuffer(builder);
@@ -378,10 +380,16 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   const proto::ClusterHandshake * handshake = proto::GetClusterHandshake(buf.data());
 
-  auto major = handshake->version_major();
-  auto minor = handshake->version_minor();
+  auto proto_hash = handshake->proto_hash();
 
-  IAN_DEBUG(logger_, "Proto version for peer: {}:{} : {}.{}", LOG_SOCKET_TUPLE, major, minor);
+  if (proto_hash->Length() != cluster::internal::proto_hash_len ||
+      std::memcmp(proto_hash->Data(), cluster::internal::proto_hash,
+                  cluster::internal::proto_hash_len) != 0)
+  {
+    IAN_WARN(logger_, "Peer protocol does not match: {}:{}", LOG_SOCKET_TUPLE);
+    shutdown();
+    return;
+  }
 
   safe_link_ = safe_link_ && handshake->safe_link();
 

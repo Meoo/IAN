@@ -2,8 +2,7 @@ namespace proto;
 
 
 table ClusterHandshake {
-  version_major:uint16;
-  version_minor:uint16;
+  proto_hash:[ubyte];
   safe_link:bool;
 }
 
