@@ -1,4 +1,9 @@
 
+# Input:
+# HASH_FILES : files to hash
+# HASH_OUT : generated header
+# HASH_DEF : define name
+
 separate_arguments(HASH_FILES)
 
 string(SHA1 HASH "default")

@@ -1,7 +1,7 @@
 
 macro(ian_add_protocol)
   set(opts CLIENT)
-  set(oneArgs NAME INCLUDE HASH)
+  set(oneArgs NAME INCLUDE HASH RPC)
   set(multiArgs FILES)
   cmake_parse_arguments(ARG "${opts}" "${oneArgs}" "${multiArgs}" ${ARGN})
 
@@ -15,26 +15,50 @@ macro(ian_add_protocol)
 
   if(IAN_BUILD_SERVER)
     set(GENERATED_FILES)
+    set(FBS_GEN_PATH "${CMAKE_BINARY_DIR}/${ARG_NAME}/fbs")
     set(INCLUDE_PATH "${CMAKE_BINARY_DIR}/${ARG_NAME}/include")
     set(GEN_PATH "${INCLUDE_PATH}/${ARG_INCLUDE}")
 
+    # RPC first because we create a .fbs file
+    if(ARG_RPC)
+      set(GEN_IF "${GEN_PATH}/Rpc_interfaces.hpp")
+      set(GEN_FBS "${FBS_GEN_PATH}/Rpc.fbs")
+      set(GEN_HEADER "${GEN_PATH}/Rpc_generated.h")
+      add_custom_command(
+        OUTPUT ${GEN_IF} ${GEN_FBS}
+        COMMAND ${CMAKE_COMMAND}
+          -DRPC_DESCRIPTOR="${ARG_RPC}" -DRPC_HEADER_OUT="${GEN_IF}" -DRPC_FBS_OUT="${GEN_FBS}"
+          -P ${CMAKE_SOURCE_DIR}/cmake/scripts/protoRpc.cmake
+        MAIN_DEPENDENCY ${ARG_RPC}
+        DEPENDS ${CMAKE_SOURCE_DIR}/cmake/scripts/protoRpc.cmake
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      list(APPEND GENERATED_FILES ${GEN_IF} ${GEN_FBS})
+      file(RELATIVE_PATH GEN_FBS_REL ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_FBS})
+      list(APPEND ARG_FILES ${GEN_FBS_REL})
+    endif()
+
+    # .fbs files
     foreach(SRC_FBS ${ARG_FILES})
       string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER_NAME ${SRC_FBS})
       set(GEN_HEADER "${GEN_PATH}/${GEN_HEADER_NAME}")
       add_custom_command(
         OUTPUT ${GEN_HEADER}
         COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c
-          -o "${GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-        MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}")
+          -o "${GEN_PATH}/" -I "${CMAKE_CURRENT_SOURCE_DIR}" -I "${FBS_GEN_PATH}" "${SRC_FBS}"
+        MAIN_DEPENDENCY ${SRC_FBS}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
       list(APPEND GENERATED_FILES ${GEN_HEADER})
     endforeach()
 
+    # Hash all .fbs files together
     if(ARG_HASH)
       set(GEN_HEADER "${GEN_PATH}/Hash.h")
       add_custom_command(
         OUTPUT ${GEN_HEADER}
-        COMMAND ${CMAKE_COMMAND} -DHASH_FILES="${ARG_FILES}" -DHASH_OUT="${GEN_HEADER}" -DHASH_DEF="${ARG_HASH}" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/protoHash.cmake
-        DEPENDS ${ARG_FILES}
+        COMMAND ${CMAKE_COMMAND}
+          -DHASH_FILES="${ARG_FILES}" -DHASH_OUT="${GEN_HEADER}" -DHASH_DEF="${ARG_HASH}"
+          -P ${CMAKE_SOURCE_DIR}/cmake/scripts/protoHash.cmake
+        DEPENDS ${ARG_FILES} ${CMAKE_SOURCE_DIR}/cmake/scripts/protoHash.cmake
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
       list(APPEND GENERATED_FILES ${GEN_HEADER})
     endif()
