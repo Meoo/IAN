@@ -11,7 +11,7 @@
 
 #include <common/EasyProfiler.hpp>
 
-#include <proto-in/ClusterHandshake_generated.h>
+#include <proto-cluster/ClusterHandshake_generated.h>
 
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/read.hpp>

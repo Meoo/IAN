@@ -11,7 +11,7 @@ if(IAN_BUILD_SERVER_MODULES)
 endif()
 
 if(IAN_BUILD_SERVER)
-  add_subdirectory(internal-protocol)
+  add_subdirectory(cluster-protocol)
   add_subdirectory(bin-common)
   add_subdirectory(node)
   add_subdirectory(front)

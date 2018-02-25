@@ -13,7 +13,7 @@
 #include "ClusterWatcher.hpp"
 #include <bin-common/Ssl.hpp>
 
-#include <proto-in/Hash.h>
+#include <proto-cluster/Hash.h>
 
 
 namespace
@@ -63,8 +63,8 @@ namespace internal
 
 boost::asio::ssl::context & get_ssl() { return ::cluster_ssl; }
 
-const std::size_t proto_hash_len = IAN_PROTO_IN_HASH_LEN;
-const std::uint8_t proto_hash[IAN_PROTO_IN_HASH_LEN]{IAN_PROTO_IN_HASH_BIN};
+const std::size_t proto_hash_len = IAN_PROTO_CLUSTER_HASH_LEN;
+const std::uint8_t proto_hash[IAN_PROTO_CLUSTER_HASH_LEN]{IAN_PROTO_CLUSTER_HASH_BIN};
 
 } // namespace internal
 

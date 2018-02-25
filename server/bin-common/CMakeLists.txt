@@ -49,7 +49,7 @@ add_library(${PROJECT_NAME} STATIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-common
-  server-internal-protocol
+  server-cluster-protocol
   Boost::system
   OpenSSL::SSL OpenSSL::Crypto)
 

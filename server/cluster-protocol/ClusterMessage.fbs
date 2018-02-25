@@ -1,0 +1,14 @@
+include "Status.fbs";
+
+namespace proto;
+
+
+union ClusterMessageType {
+  Status
+}
+
+table ClusterMessage {
+  message:ClusterMessageType;
+}
+
+root_type ClusterMessage;
