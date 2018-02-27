@@ -41,10 +41,8 @@ struct AsioPool::AsioInstance
 
 AsioPool::AsioPool(const std::shared_ptr<spdlog::logger> & logger) : logger_(logger) {}
 
-AsioPool::~AsioPool()
-{
-  // Destructor can't be inlined because AsioInstance definition would not be available
-}
+// Destructor can't be inlined because AsioInstance definition would not be available
+AsioPool::~AsioPool() = default;
 
 void AsioPool::run()
 {

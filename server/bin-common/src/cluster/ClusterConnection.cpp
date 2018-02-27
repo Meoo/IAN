@@ -92,8 +92,10 @@ void ClusterConnection::run(SslRole role, bool safe_link)
   // Force peer verification
   stream_.set_verify_mode(asio::ssl::verify_peer | asio::ssl::verify_fail_if_no_peer_cert, ec);
   if (ec)
+  {
     IAN_ERROR(logger_, "Failed to force peer verification for cluster connection: : {}:{} : {}",
               LOG_SOCKET_TUPLE, ec.message());
+  }
 
   // Always queue outgoing messages until handshake is performed
   is_writing_ = true;
@@ -198,8 +200,9 @@ void ClusterConnection::read_next()
 
 void ClusterConnection::do_write_message(Message && message)
 {
-  message_outbound_   = std::move(message);
-  out_message_len_le_ = boost::endian::native_to_little((uint32_t)(message_outbound_.size()));
+  message_outbound_ = std::move(message);
+  out_message_len_le_ =
+      boost::endian::native_to_little(static_cast<uint32_t>(message_outbound_.size()));
 
   // Send size + type + payload
   auto data =
@@ -234,8 +237,10 @@ void ClusterConnection::on_shutdown(boost::system::error_code ec)
   if (ec)
   {
     if (!is_connection_reset_error(ec) && !is_connection_canceled_error(ec))
+    {
       IAN_WARN(logger_, "Shutdown error for peer: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                ec.value());
+    }
   }
 
   IAN_INFO(logger_, "Peer disconnected: {}:{}", LOG_SOCKET_TUPLE);
@@ -265,8 +270,9 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
   auto offset = proto::CreateClusterHandshake(builder, hash, safe_link_);
   proto::FinishClusterHandshakeBuffer(builder, offset);
 
-  message_outbound_   = Message::from_flatbuffer(builder);
-  out_message_len_le_ = boost::endian::native_to_little((uint32_t)message_outbound_.size());
+  message_outbound_ = Message::from_flatbuffer(builder);
+  out_message_len_le_ =
+      boost::endian::native_to_little(static_cast<uint32_t>(message_outbound_.size()));
 
   auto data =
       boost::beast::buffers_cat(asio::buffer(&out_message_len_le_, sizeof(out_message_len_le_)),
@@ -327,7 +333,8 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
     // Extract message length (little endian)
     read_buffer_.consume(asio::buffer_copy(
-        asio::buffer((void *)&in_message_len_, sizeof(in_message_len_)), read_buffer_.data()));
+        asio::buffer(static_cast<void *>(&in_message_len_), sizeof(in_message_len_)),
+        read_buffer_.data()));
     boost::endian::little_to_native_inplace(in_message_len_);
 
     if (in_message_len_ == 0) // TODO Max message length
@@ -368,7 +375,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
 
   // Verify handshake
   {
-    flatbuffers::Verifier verifier((const uint8_t *)buf.data(), buf.size());
+    flatbuffers::Verifier verifier(static_cast<const uint8_t *>(buf.data()), buf.size());
     if (buf.size() < 8 || !proto::ClusterHandshakeBufferHasIdentifier(buf.data()) ||
         !proto::VerifyClusterHandshakeBuffer(verifier))
     {
@@ -439,7 +446,8 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
 
       // Extract message length (little endian)
       read_buffer_.consume(asio::buffer_copy(
-          asio::buffer((void *)&in_message_len_, sizeof(in_message_len_)), read_buffer_.data()));
+          asio::buffer(static_cast<void *>(&in_message_len_), sizeof(in_message_len_)),
+          read_buffer_.data()));
       boost::endian::little_to_native_inplace(in_message_len_);
 
       if (in_message_len_ == 0) // TODO Max message length

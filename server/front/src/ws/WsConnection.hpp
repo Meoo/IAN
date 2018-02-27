@@ -40,7 +40,7 @@ class WsConnection final : public ClientConnection
 
   WsConnection(const std::shared_ptr<spdlog::logger> & logger, TcpSocket && socket,
                SslContext & ssl_ctx);
-  ~WsConnection();
+  ~WsConnection() override;
 
 
   void run();

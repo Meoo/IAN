@@ -11,14 +11,16 @@
 #include <spdlog/spdlog.h>
 
 
+// clang-format off
 #define IAN__LOG_WRAP(x) do{ x ;}while((void)0,0)
+// clang-format on
 
 #ifdef NDEBUG
-#define IAN_TRACE(logger, ...) IAN__LOG_WRAP(;)
-#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP(;)
+#  define IAN_TRACE(logger, ...) IAN__LOG_WRAP(;)
+#  define IAN_DEBUG(logger, ...) IAN__LOG_WRAP(;)
 #else
-#define IAN_TRACE(logger, ...) IAN__LOG_WRAP((logger)->trace(__VA_ARGS__))
-#define IAN_DEBUG(logger, ...) IAN__LOG_WRAP((logger)->debug(__VA_ARGS__))
+#  define IAN_TRACE(logger, ...) IAN__LOG_WRAP((logger)->trace(__VA_ARGS__))
+#  define IAN_DEBUG(logger, ...) IAN__LOG_WRAP((logger)->debug(__VA_ARGS__))
 #endif
 
 #define IAN_INFO(logger, ...) IAN__LOG_WRAP((logger)->info(__VA_ARGS__))

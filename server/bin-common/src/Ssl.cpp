@@ -27,7 +27,7 @@ const char default_cipher_list[] =
 
 
 void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
-                      boost::asio::ssl::context & ssl_context)
+                      ssl::context & ssl_context)
 {
   // Config
   std::string ca         = config.get_string_value("certificate_authority_file");
@@ -40,15 +40,14 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
   // SSL setup
   try
   {
-    ssl_context.set_options(
-        boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 |
-        boost::asio::ssl::context::no_sslv3 | boost::asio::ssl::context::no_tlsv1 |
-        boost::asio::ssl::context::no_tlsv1_1 | boost::asio::ssl::context::single_dh_use);
+    ssl_context.set_options(ssl::context::default_workarounds | ssl::context::no_sslv2 |
+                            ssl::context::no_sslv3 | ssl::context::no_tlsv1 |
+                            ssl::context::no_tlsv1_1 | ssl::context::single_dh_use);
 
     ssl_context.set_password_callback(
         std::bind([password] { return password; })); // Use bind to ignore args
     ssl_context.use_certificate_chain_file(certChain);
-    ssl_context.use_private_key_file(privKey, boost::asio::ssl::context::pem);
+    ssl_context.use_private_key_file(privKey, ssl::context::pem);
 
     boost::system::error_code ec;
 

@@ -13,14 +13,13 @@
 
 class IModuleHost
 {
-public:
-  IModuleHost() = default;
+ public:
+  IModuleHost()          = default;
   virtual ~IModuleHost() = default;
 
-  IModuleHost(const IModuleHost&) = delete;
-  IModuleHost& operator=(const IModuleHost&) = delete;
+  IModuleHost(const IModuleHost &) = delete;
+  IModuleHost & operator=(const IModuleHost &) = delete;
 
 
-  virtual std::shared_ptr<spdlog::logger> createLogger(const std::string& module_name);
-
+  virtual std::shared_ptr<spdlog::logger> createLogger(const std::string & module_name);
 };

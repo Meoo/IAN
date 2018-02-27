@@ -13,13 +13,12 @@
 
 class IModule
 {
-public:
-  IModule() = default;
+ public:
+  IModule()          = default;
   virtual ~IModule() = default;
 
-  IModule(const IModule&) = delete;
-  IModule& operator=(const IModule&) = delete;
+  IModule(const IModule &) = delete;
+  IModule & operator=(const IModule &) = delete;
 
   void load(IModuleHost & host);
-
 };

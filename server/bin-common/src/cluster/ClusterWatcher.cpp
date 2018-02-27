@@ -10,8 +10,6 @@
 
 #include <bin-common/Ssl.hpp>
 
-namespace ssl = boost::asio::ssl;
-
 #define LOG_SOCKET_TUPLE endpoint_.address().to_string(), endpoint_.port()
 
 
@@ -42,11 +40,14 @@ void ClusterWatcher::on_connect(boost::system::error_code ec)
   if (ec)
   {
     if (ec == boost::asio::error::timed_out)
+    {
       IAN_WARN(logger_, "Timed out: {}:{}", LOG_SOCKET_TUPLE); // TODO Debug ?
-
+    }
     else
+    {
       IAN_WARN(logger_, "Connect failed: {}:{} : {} {}", LOG_SOCKET_TUPLE, ec.message(),
                ec.value());
+    }
   }
   else
   {
@@ -68,7 +69,6 @@ void ClusterWatcher::on_timer(boost::system::error_code ec)
 
   if (connection_.expired())
     try_connect();
-
   else
     wait(std::chrono::seconds(30));
 }

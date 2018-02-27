@@ -42,6 +42,7 @@ class Message
   Message(const Message &) = default;
   Message(Message &&)      = default;
   Message & operator=(const Message &) = default;
+  Message & operator=(Message &&) = default;
 
 
   bool is_empty() const { return !impl_; }

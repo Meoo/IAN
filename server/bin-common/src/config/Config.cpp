@@ -67,7 +67,7 @@ std::vector<ConfigGroup> get_childs(const std::string & path)
   const auto & tree = ::get_config_tree().get_child(path, def);
 
   for (const auto & it : tree)
-    ret.push_back(ConfigGroup(path + "." + it.first));
+    ret.emplace_back(path + "." + it.first);
 
   return ret;
 }

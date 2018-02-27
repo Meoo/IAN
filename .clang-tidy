@@ -1,0 +1,19 @@
+---
+Checks: "-*,\
+boost-*,\
+google-build-namespaces,\
+google-build-using-namespace,\
+google-global-names-in-headers,\
+google-readability-casting,\
+misc-*,\
+modernize-*,\
+performance-*,\
+readability-*,\
+-readability-implicit-bool-cast,\
+-readability-redundant-declaration,\
+"
+HeaderFilterRegex: '.*\.(h|hpp)$'
+CheckOptions:
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: 2
+...

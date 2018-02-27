@@ -12,7 +12,7 @@
 namespace front
 {
 
-  // Config
+// Config
 
 // Global
 ConfigIntValue connection_limit_soft("front.connection_limit_soft", 1000);
