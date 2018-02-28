@@ -12,8 +12,33 @@ readability-*,\
 -readability-implicit-bool-cast,\
 -readability-redundant-declaration,\
 "
+FormatStyle: file
 HeaderFilterRegex: '.*\.(h|hpp)$'
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines
     value: 2
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key:  readability-identifier-naming.VariableCase
+    value: lower_case
+  - key:  readability-identifier-naming.ConstantCase
+    value: lower_case
+  - key:  readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key:  readability-identifier-naming.MemberCase
+    value: lower_case
+  - key:  readability-identifier-naming.MethodCase
+    value: lower_case
+  - key:  readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key:  readability-identifier-naming.PrivateMemberSuffix
+    value: _
+  - key:  readability-identifier-naming.ProtectedMemberSuffix
+    value: _
 ...
