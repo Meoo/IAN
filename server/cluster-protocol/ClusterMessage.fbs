@@ -3,12 +3,12 @@ include "Status.fbs";
 namespace proto;
 
 
-union ClusterMessageType {
+union ClusterMessageU {
   Status
 }
 
 table ClusterMessage {
-  message:ClusterMessageType;
+  message:ClusterMessageU;
 }
 
 root_type ClusterMessage;

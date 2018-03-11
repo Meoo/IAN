@@ -6,9 +6,9 @@ rpc_interface(Common)
 rpc_function(
   NAME hello_world
   IN
-    String test
+    input:string
   OUT
-    String test
+    output:string
 )
 
 rpc_function(
@@ -20,11 +20,11 @@ rpc_interface(Other)
 rpc_function(
   NAME bla
   IN
-    String test1
-    String test2
-    String test3
+    test1:string
+    test2:int32
+    test3:[ubyte]
   OUT
-    String test1
-    String test2
-    String test3
+    test1:string
+    test2:int32
+    test3:[ubyte]
 )
