@@ -28,8 +28,8 @@
 
 namespace profiler
 {
-inline void startListen(int = 0) {}
-inline void stopListen() {}
+inline void startListen(int = 0) {} // NOLINT
+inline void stopListen() {}         // NOLINT
 } // namespace profiler
 
 #endif
