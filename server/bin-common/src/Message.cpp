@@ -26,13 +26,13 @@ class MessageImplFlatbuffer final : public internal::MessageImpl
 
 class MessageImplVector final : public internal::MessageImpl
 {
-public:
+ public:
   MessageImplVector(std::vector<std::uint8_t> && buffer) : buffer_(std::move(buffer)) {}
 
   const void * data() const override { return buffer_.data(); }
   size_t size() const override { return buffer_.size(); }
 
-private:
+ private:
   std::vector<std::uint8_t> buffer_;
 };
 

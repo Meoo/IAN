@@ -18,7 +18,7 @@ class Client;
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
  public:
-  ClientConnection() = default;
+  ClientConnection()          = default;
   virtual ~ClientConnection() = default;
 
   ClientConnection(const ClientConnection &) = delete;

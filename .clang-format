@@ -6,11 +6,16 @@ UseTab: Never
 ---
 Language: Cpp
 AccessModifierOffset: -1
+AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: true
+BinPackArguments: true
+BinPackParameters: true
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterClass: true
