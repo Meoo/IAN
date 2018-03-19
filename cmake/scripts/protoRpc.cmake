@@ -1,3 +1,10 @@
+#
+# This file is part of the IAN project - https://github.com/Meoo/IAN
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
 
 # Input:
 # RPC_DESCRIPTOR : descriptor .cmake file
@@ -121,122 +128,112 @@ file(APPEND "${RPC_FBS_OUT}" "}\n\n")
 #
 
 # Generate .hpp
-macro(write_fun_receiver FILE IF FUN)
+macro(write_fun_receiver VAR IF FUN)
   set(FUN_ARGS "const ${IF}_${FUN}_Req & args")
+  set(${VAR} "${${VAR}}  using ${IF}_${FUN}_Req = ${RPC_NAMESPACE}::${IF}_${FUN}_Req;\n")
   if(RPC_D_${IF}_${FUN}_OUT_FB)
-    list(APPEND FUN_ARGS "ReturnCallback<${IF}_${FUN}_Rep> && callback")
+    set(${VAR} "${${VAR}}  using ${IF}_${FUN}_Return = ${RPC_NAMESPACE}::RpcReturn<Base, ${IF}<Base, true>, ${IF}_${FUN}_Rep>;\n")
+    set(${VAR} "${${VAR}}  friend class ${IF}_${FUN}_Return;\n")
+    list(APPEND FUN_ARGS "${IF}_${FUN}_Return ret")
   endif()
   string(REPLACE ";" ", " ARG_LIST "${FUN_ARGS}")
-  file(APPEND "${FILE}" "  virtual void ${FUN}(${ARG_LIST}) = 0;\n")
+  set(${VAR} "${${VAR}}  virtual void ${FUN}(${ARG_LIST}) = 0;\n")
 endmacro()
 
-macro(write_fun_dispatcher FILE IF FUN)
-  file(APPEND "${FILE}" "  template<typename If = ${IF}<Base, true> >\n")
-  file(APPEND "${FILE}" "  inline typename std::enable_if<!impl::ContainsIf<If, Interfaces<Base, true>...>::value, bool>::type\n")
-  file(APPEND "${FILE}" "    dispatch_${IF}_${FUN}(const RpcRequest & request) { return false; }\n")
-  file(APPEND "${FILE}" "  template<typename If = ${IF}<Base, true> >\n")
-  file(APPEND "${FILE}" "  inline typename std::enable_if<impl::ContainsIf<If, Interfaces<Base, true>...>::value, bool>::type\n")
-  file(APPEND "${FILE}" "    dispatch_${IF}_${FUN}(const RpcRequest & request)\n")
-  file(APPEND "${FILE}" "  {\n")
-  file(APPEND "${FILE}" "    static_cast<${IF}<Base, true>*>(this)->${FUN}(request.data_as_${IF}_${FUN}_Req());\n")
-  file(APPEND "${FILE}" "    return true;\n")
-  file(APPEND "${FILE}" "  }\n")
-endmacro()
-
-macro(write_fun_sender FILE IF FUN)
+macro(write_fun_dispatcher VAR IF FUN)
+  set(${VAR} "${${VAR}}  template<typename If = ${IF}<Base, true> >\n")
+  set(${VAR} "${${VAR}}  inline typename std::enable_if<!impl::ContainsIf<If, Interfaces<Base, true>...>::value, bool>::type\n")
+  set(${VAR} "${${VAR}}    dispatch_${IF}_${FUN}(const RpcRequest & request) { return false; }\n")
+  set(${VAR} "${${VAR}}  template<typename If = ${IF}<Base, true> >\n")
+  set(${VAR} "${${VAR}}  inline typename std::enable_if<impl::ContainsIf<If, Interfaces<Base, true>...>::value, bool>::type\n")
+  set(${VAR} "${${VAR}}    dispatch_${IF}_${FUN}(const RpcRequest & request)\n")
+  set(${VAR} "${${VAR}}  {\n")
   if(RPC_D_${IF}_${FUN}_OUT_FB)
-    file(APPEND "${FILE}" "  template<typename F, typename R>\n")
-    file(APPEND "${FILE}" "  inline void ${FUN}(F & args_builder, R && return_callback)\n")
+    set(${VAR} "${${VAR}}    static_cast<${IF}<Base, true>*>(this)->${FUN}(*request.data_as_${IF}_${FUN}_Req(), ${IF}_${FUN}_Return(static_cast<Base*>(this)));\n")
   else()
-    file(APPEND "${FILE}" "  template<typename F>\n")
-    file(APPEND "${FILE}" "  inline void ${FUN}(F & args_builder)\n")
+    set(${VAR} "${${VAR}}    static_cast<${IF}<Base, true>*>(this)->${FUN}(*request.data_as_${IF}_${FUN}_Req());\n")
   endif()
-  file(APPEND "${FILE}" "  {\n")
-  file(APPEND "${FILE}" "    using T = ${IF}_${FUN}_Req;\n")
-  file(APPEND "${FILE}" "    flatbuffers::FlatBufferBuilder builder;\n")
-  file(APPEND "${FILE}" "    flatbuffers::Offset<T> data = args_builder(builder);\n")
-  file(APPEND "${FILE}" "    uint32_t rpc_id = 0;\n")
-  file(APPEND "${FILE}" "    auto rpc_req = CreateRpcRequest(builder, rpc_id, RpcRequestUTraits<T>::enum_value, data.Union());\n")
-  file(APPEND "${FILE}" "    emit_rpc_request(builder, rpc_req);\n")
-  file(APPEND "${FILE}" "  }\n")
+  set(${VAR} "${${VAR}}    return true;\n")
+  set(${VAR} "${${VAR}}  }\n")
 endmacro()
 
-file(WRITE "${RPC_HEADER_OUT}" "// Generated file\n")
-file(APPEND "${RPC_HEADER_OUT}" "#pragma once\n\n")
-file(APPEND "${RPC_HEADER_OUT}" "#include <type_traits>\n\n")
-file(APPEND "${RPC_HEADER_OUT}" "namespace ${RPC_NAMESPACE}\n{\n\n")
-file(APPEND "${RPC_HEADER_OUT}" "namespace impl\n{\n")
-# http://en.cppreference.com/w/cpp/types/disjunction
-# Remove when C++17
-file(APPEND "${RPC_HEADER_OUT}" "template<class...> struct Disjunction : std::false_type {};\n")
-file(APPEND "${RPC_HEADER_OUT}" "template<class B1> struct Disjunction<B1> : B1 {};\n")
-file(APPEND "${RPC_HEADER_OUT}" "template<class B1, class... Bn>\n")
-file(APPEND "${RPC_HEADER_OUT}" "struct Disjunction<B1, Bn...> \n")
-file(APPEND "${RPC_HEADER_OUT}" "    : std::conditional_t<bool(B1::value), B1, Disjunction<Bn...>> {};\n")
-file(APPEND "${RPC_HEADER_OUT}" "template<class If, class... Interfaces>\n")
-file(APPEND "${RPC_HEADER_OUT}" "using ContainsIf = impl::Disjunction<std::is_same<If, Interfaces>...>;\n")
-file(APPEND "${RPC_HEADER_OUT}" "}\n\n")
+macro(write_fun_sender VAR IF FUN)
+  if(RPC_D_${IF}_${FUN}_OUT_FB)
+    set(${VAR} "${${VAR}}  template<typename F, typename R>\n")
+    set(${VAR} "${${VAR}}  inline void ${FUN}(F & args_builder, R && return_callback)\n")
+  else()
+    set(${VAR} "${${VAR}}  template<typename F>\n")
+    set(${VAR} "${${VAR}}  inline void ${FUN}(F & args_builder)\n")
+  endif()
+  set(${VAR} "${${VAR}}  {\n")
+  set(${VAR} "${${VAR}}    using T = ${IF}_${FUN}_Req;\n")
+  set(${VAR} "${${VAR}}    flatbuffers::FlatBufferBuilder builder;\n")
+  set(${VAR} "${${VAR}}    flatbuffers::Offset<T> data = args_builder(builder);\n")
+  if(RPC_D_${IF}_${FUN}_OUT_FB)
+    set(${VAR} "${${VAR}}    std::uint32_t rpc_id = register_rpc_return_callback(RpcResultInvoker(RpcRequestUTraits<T>::enum_value, std::forward<R>(return_callback)));\n")
+  else()
+    set(${VAR} "${${VAR}}    std::uint32_t rpc_id = 0;\n")
+  endif()
+  set(${VAR} "${${VAR}}    auto rpc_req = CreateRpcRequest(builder, rpc_id, RpcRequestUTraits<T>::enum_value, data.Union());\n")
+  set(${VAR} "${${VAR}}    emit_rpc_request(builder, rpc_req);\n")
+  set(${VAR} "${${VAR}}  }\n")
+endmacro()
+
+set(HPP_IF)
 
 # Loop on interfaces
 foreach(IF ${RPC_IF_LIST})
-  file(APPEND "${RPC_HEADER_OUT}" "template<class Base, bool>\n")
-  file(APPEND "${RPC_HEADER_OUT}" "class ${IF} // ${IF}Receiver\n{\n")
-  file(APPEND "${RPC_HEADER_OUT}" "public:\n")
+  set(HPP_IF "${HPP_IF}template<class Base, bool>\n")
+  set(HPP_IF "${HPP_IF}class ${IF} // ${IF}Receiver\n{\n")
+  set(HPP_IF "${HPP_IF}protected:\n")
+  set(HPP_IF "${HPP_IF}  virtual void emit_rpc_reply(flatbuffers::FlatBufferBuilder & builder, flatbuffers::Offset<RpcReply> reply) = 0;\n")
+  set(HPP_IF "${HPP_IF}public:\n")
 
   # Loop on functions
   foreach(FUN ${RPC_D_${IF}_FUNCTIONS})
-    write_fun_receiver("${RPC_HEADER_OUT}" ${IF} ${FUN})
+    write_fun_receiver(HPP_IF ${IF} ${FUN})
   endforeach(FUN)
 
-  file(APPEND "${RPC_HEADER_OUT}" "};\n\n")
-  file(APPEND "${RPC_HEADER_OUT}" "template<class Base>\n")
-  file(APPEND "${RPC_HEADER_OUT}" "class ${IF}<Base, false> // ${IF}Sender\n{\n")
-  file(APPEND "${RPC_HEADER_OUT}" "private:\n")
-  file(APPEND "${RPC_HEADER_OUT}" "  virtual void emit_rpc_request(flatbuffers::FlatBufferBuilder & builder, flatbuffers::Offset<RpcRequest> request) = 0;\n")
-  file(APPEND "${RPC_HEADER_OUT}" "public:\n")
+  set(HPP_IF "${HPP_IF}};\n\n")
+  set(HPP_IF "${HPP_IF}template<class Base>\n")
+  set(HPP_IF "${HPP_IF}class ${IF}<Base, false> // ${IF}Sender\n{\n")
+  set(HPP_IF "${HPP_IF}protected:\n")
+  set(HPP_IF "${HPP_IF}  virtual void emit_rpc_request(flatbuffers::FlatBufferBuilder & builder, flatbuffers::Offset<RpcRequest> request) = 0;\n")
+  set(HPP_IF "${HPP_IF}  virtual std::uint32_t register_rpc_return_callback(RpcResultInvoker callback) = 0;\n")
+  set(HPP_IF "${HPP_IF}public:\n")
 
   # Loop on functions
   foreach(FUN ${RPC_D_${IF}_FUNCTIONS})
-    write_fun_sender("${RPC_HEADER_OUT}" ${IF} ${FUN})
+    write_fun_sender(HPP_IF ${IF} ${FUN})
   endforeach(FUN)
 
-  file(APPEND "${RPC_HEADER_OUT}" "};\n\n")
+  set(HPP_IF "${HPP_IF}};\n\n")
 endforeach()
 
-file(APPEND "${RPC_HEADER_OUT}" "template<class Base, template<class, bool> class... Interfaces>\n")
-file(APPEND "${RPC_HEADER_OUT}" "class RpcReceiver : public Interfaces<Base, true>...\n{\n")
-file(APPEND "${RPC_HEADER_OUT}" "protected:\n")
-file(APPEND "${RPC_HEADER_OUT}" "  virtual void emit_rpc_reply(flatbuffers::FlatBufferBuilder & builder, flatbuffers::Offset<RpcReply> reply) = 0;\n")
-file(APPEND "${RPC_HEADER_OUT}" "  inline bool dispatch_rpc_request(const RpcRequest & request)\n")
-file(APPEND "${RPC_HEADER_OUT}" "  {\n")
-file(APPEND "${RPC_HEADER_OUT}" "    switch (request.data_type())\n")
-file(APPEND "${RPC_HEADER_OUT}" "    {\n")
-# Loop on interfaces
-foreach(IF ${RPC_IF_LIST})
-  # Loop on functions
-  foreach(FUN ${RPC_D_${IF}_FUNCTIONS})
-    file(APPEND "${RPC_HEADER_OUT}" "    case RpcMessageU_${IF}_${FUN}_Req: return dispatch_${IF}_${FUN}(request);\n")
-  endforeach(FUN)
-endforeach()
-file(APPEND "${RPC_HEADER_OUT}" "    default: return false;\n")
-file(APPEND "${RPC_HEADER_OUT}" "    }\n")
-file(APPEND "${RPC_HEADER_OUT}" "  }\n")
-file(APPEND "${RPC_HEADER_OUT}" "private:\n")
+set(RPC_HPP_INTERFACES "${HPP_IF}")
+
+set(HPP_SWITCH)
+
 # Loop on interfaces
 foreach(IF ${RPC_IF_LIST})
   # Loop on functions
   foreach(FUN ${RPC_D_${IF}_FUNCTIONS})
-    write_fun_dispatcher("${RPC_HEADER_OUT}" ${IF} ${FUN})
+    set(HPP_SWITCH "${HPP_SWITCH}    case RpcRequestU_${IF}_${FUN}_Req: return dispatch_${IF}_${FUN}(request);\n")
   endforeach(FUN)
 endforeach()
-file(APPEND "${RPC_HEADER_OUT}" "};\n\n")
 
-file(APPEND "${RPC_HEADER_OUT}" "template<class Base, template<class, bool> class... Interfaces>\n")
-file(APPEND "${RPC_HEADER_OUT}" "class RpcSender : public Interfaces<Base, false>...\n{\n")
-file(APPEND "${RPC_HEADER_OUT}" "protected:\n")
-file(APPEND "${RPC_HEADER_OUT}" "  inline bool dispatch_rpc_reply(const RpcReply & reply)\n")
-file(APPEND "${RPC_HEADER_OUT}" "  {\n")
-file(APPEND "${RPC_HEADER_OUT}" "  }\n")
-file(APPEND "${RPC_HEADER_OUT}" "};\n\n")
+set(RPC_HPP_REQUEST_SWITCH "${HPP_SWITCH}")
 
-file(APPEND "${RPC_HEADER_OUT}" "} // namespace ${RPC_NAMESPACE}\n")
+set(HPP_DISP)
+
+# Loop on interfaces
+foreach(IF ${RPC_IF_LIST})
+  # Loop on functions
+  foreach(FUN ${RPC_D_${IF}_FUNCTIONS})
+    write_fun_dispatcher(HPP_DISP ${IF} ${FUN})
+  endforeach(FUN)
+endforeach()
+
+set(RPC_HPP_REQUEST_DISPATCHERS "${HPP_DISP}")
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/protoRpc_template.hpp ${RPC_HEADER_OUT} @ONLY)
