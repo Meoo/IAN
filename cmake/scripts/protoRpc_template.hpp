@@ -143,11 +143,22 @@ class RpcResultInvoker
 
 // Receiver
 
+class AbstractRpcReceiver
+{
+public:
+  AbstractRpcReceiver() = default;
+  AbstractRpcReceiver(const AbstractRpcReceiver &) = delete;
+  AbstractRpcReceiver & operator=(const AbstractRpcReceiver &) = delete;
+  virtual ~AbstractRpcReceiver() = default;
+
+  virtual bool dispatch_rpc_request(const RpcRequest & request) = 0;
+};
+
 template<class Base, template<class, bool> class... Interfaces>
-class RpcReceiver : public Interfaces<Base, true>...
+class RpcReceiver : public AbstractRpcReceiver, public Interfaces<Base, true>...
 {
 protected:
-  inline bool dispatch_rpc_request(const RpcRequest & request)
+  inline bool dispatch_rpc_request(const RpcRequest & request) final
   {
     switch (request.data_type())
     {
@@ -161,8 +172,19 @@ private:
 
 // Sender
 
+class AbstractRpcSender
+{
+public:
+  AbstractRpcSender() = default;
+  AbstractRpcSender(const AbstractRpcSender &) = delete;
+  AbstractRpcSender & operator=(const AbstractRpcSender &) = delete;
+  virtual ~AbstractRpcSender() = default;
+
+  virtual bool dispatch_rpc_reply(const RpcReply & reply) = 0;
+};
+
 template<class Base, template<class, bool> class... Interfaces>
-class RpcSender : public Interfaces<Base, false>...
+class RpcSender : public AbstractRpcSender, public Interfaces<Base, false>...
 {
 protected:
   std::uint32_t register_rpc_return_callback(RpcResultInvoker callback) final
@@ -172,7 +194,7 @@ protected:
     result_callbacks_.emplace(std::make_pair(id, std::move(callback)));
     return id;
   }
-  inline bool dispatch_rpc_reply(const RpcReply & reply)
+  inline bool dispatch_rpc_reply(const RpcReply & reply) final
   {
     RpcResultInvoker cb;
     {
@@ -184,6 +206,7 @@ protected:
       result_callbacks_.erase(it);
     }
     cb.invoke(reply);
+    return true;
   }
 private:
   std::mutex mutex_;
