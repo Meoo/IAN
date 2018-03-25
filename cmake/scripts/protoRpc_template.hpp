@@ -45,6 +45,13 @@ class RpcReturn
   }
   RpcReturn(const RpcReturn &) = delete;
   RpcReturn & operator=(const RpcReturn &) = delete;
+  RpcReturn & operator=(RpcReturn && other)
+  {
+    ptr_ = other.ptr_;
+    rpc_id_ = other.rpc_id_;
+    other.ptr_ = nullptr;
+    return *this;
+  }
 
   inline ~RpcReturn()
   {
@@ -90,6 +97,13 @@ class RpcResultInvoker
   }
   RpcResultInvoker(const RpcResultInvoker &) = delete;
   RpcResultInvoker & operator=(const RpcResultInvoker &) = delete;
+  RpcResultInvoker & operator=(RpcResultInvoker && other)
+  {
+    expected_reply_ = other.expected_reply_;
+    callback_ = other.callback_;
+    other.expected_reply_ = RpcReplyU::RpcReplyU_NONE;
+    return *this;
+  }
 
   template<typename F>
   RpcResultInvoker(RpcReplyU expected_reply, F && callback)
