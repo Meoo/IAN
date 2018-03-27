@@ -34,6 +34,6 @@ extern ConfigIntValue ws_timeout;
 
 // Variables
 
-extern std::atomic<std::size_t> active_connection_count;
+extern std::atomic<int> active_connection_count;
 
 } // namespace front

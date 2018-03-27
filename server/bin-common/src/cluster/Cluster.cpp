@@ -36,7 +36,7 @@ void init(const std::shared_ptr<spdlog::logger> & logger, AsioPool & pool,
 {
   ::cluster_logger = logger;
   ::cluster_config = config;
-  ::cluster_asio   = &pool.createAsio("cluster", config.get_int("threads", 2));
+  ::cluster_asio   = &pool.create_asio("cluster", config.get_int("threads", 2));
 
   init_ssl_context(logger.get(), config.get_group("ssl"), ::cluster_ssl);
 

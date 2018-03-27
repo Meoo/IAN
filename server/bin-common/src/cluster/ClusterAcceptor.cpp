@@ -37,18 +37,18 @@ void ClusterAcceptor::run() { open(); }
 void ClusterAcceptor::open()
 {
   // Config
-  std::string listenAddr = config_.get_string("ip", ::default_listen_ip);
-  int listenPort         = config_.get_int("port", ::default_listen_port);
-  bool reuseAddr         = config_.get_bool("reuse_addr", false);
-  safe_link_             = config_.get_bool("safe_link", false);
+  std::string listen_addr = config_.get_string("ip", ::default_listen_ip);
+  int listen_port         = config_.get_int("port", ::default_listen_port);
+  bool reuse_addr         = config_.get_bool("reuse_addr", false);
+  safe_link_              = config_.get_bool("safe_link", false);
 
-  ip::tcp::endpoint endpoint(ip::make_address(listenAddr), listenPort);
+  ip::tcp::endpoint endpoint(ip::make_address(listen_addr), listen_port);
 
   boost::system::error_code ec;
 
   do
   {
-    if (reuseAddr)
+    if (reuse_addr)
     {
       acceptor_.set_option(boost::asio::ip::tcp::socket::reuse_address(true), ec);
       if (ec)
@@ -68,7 +68,7 @@ void ClusterAcceptor::open()
     acceptor_.bind(endpoint, ec);
     if (ec)
     {
-      IAN_ERROR(logger_, "Acceptor failed to bind to {}:{} : {}", listenAddr, listenPort,
+      IAN_ERROR(logger_, "Acceptor failed to bind to {}:{} : {}", listen_addr, listen_port,
                 ec.message());
       acceptor_.close(ec);
       break;
@@ -95,7 +95,7 @@ void ClusterAcceptor::open()
   else
   {
     // All green
-    IAN_INFO(logger_, "Acceptor listening for peers: {}:{}", listenAddr, listenPort);
+    IAN_INFO(logger_, "Acceptor listening for peers: {}:{}", listen_addr, listen_port);
     accept_next();
   }
 }

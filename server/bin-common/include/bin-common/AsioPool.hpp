@@ -38,7 +38,7 @@ class AsioPool
   void stop();
 
 
-  AsioCtx & createAsio(const std::string & name, const ConfigIntValue & threads);
+  AsioCtx & create_asio(const std::string & name, const ConfigIntValue & threads);
 
 
  private:

@@ -52,7 +52,7 @@ void AsioPool::run()
     IAN_INFO(logger_, "Starting asio '{}' ({} threads)", instance->name, instance->threads);
 
     instance->asio.restart();
-    while (instance->workers.size() < instance->threads)
+    while (instance->workers.size() < (std::size_t) instance->threads)
       instance->workers.emplace_back(std::bind(&AsioInstance::thread_run, instance.get()));
   }
 
@@ -74,7 +74,7 @@ void AsioPool::stop()
     instance->asio.stop();
 }
 
-AsioPool::AsioCtx & AsioPool::createAsio(const std::string & name, const ConfigIntValue & threads)
+AsioPool::AsioCtx & AsioPool::create_asio(const std::string & name, const ConfigIntValue & threads)
 {
   asios_.emplace_back(std::make_unique<AsioInstance>(name, threads));
   return asios_.back()->asio;

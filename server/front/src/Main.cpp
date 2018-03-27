@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
   // ASIO & listener
   AsioPool asio_pool(logger);
   boost::asio::io_context & asio =
-      asio_pool.createAsio("front", ConfigIntValue("front.threads", 2));
+      asio_pool.create_asio("front", ConfigIntValue("front.threads", 2));
 
   // Cluster
   {

@@ -16,7 +16,7 @@
 ClusterWatcher::ClusterWatcher(const std::shared_ptr<spdlog::logger> & logger,
                                boost::asio::io_context & asio, const TcpEndpoint & endpoint,
                                bool safe_link)
-    : logger_(logger), safe_link_(safe_link), endpoint_(endpoint), socket_(asio), timer_(asio)
+    : logger_(logger), safe_link_(safe_link), timer_(asio), endpoint_(endpoint), socket_(asio)
 {
 }
 

@@ -30,6 +30,6 @@ ConfigIntValue ws_timeout("front.ws.socket_timeout", 30);
 
 // Variables
 
-std::atomic<std::size_t> active_connection_count;
+std::atomic<int> active_connection_count;
 
 } // namespace front

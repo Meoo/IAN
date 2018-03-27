@@ -209,7 +209,7 @@ void WsConnection::cancel_state_timeout()
 bool WsConnection::check_rate_limit()
 {
   if (rate_limit_messages_ > front::rate_limit_messages ||
-      rate_limit_bytes_ > front::rate_limit_bytes)
+      rate_limit_bytes_ > (std::size_t) front::rate_limit_bytes)
   {
     auto now = std::chrono::steady_clock::now();
 
