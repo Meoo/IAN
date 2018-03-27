@@ -20,23 +20,6 @@ ian_module_version(template 1.0.0.0)
 
 
 
-# Server
-
-# Use this instead of add_library
-# The library will be linked to the module bundle
-# Module SDK is also linked to this project automatically
-ian_server_module(module-template
-  src/TemplateModule.hpp
-  src/TemplateModule.cpp)
-
-# Declare header(s) for your module classe(s)
-ian_server_add_module_header(src/TemplateModule.hpp)
-
-# Class has to be in the module namespace and implement IModule: "module::Template"
-ian_server_add_module_class(Template)
-
-
-
 # Client
 
 

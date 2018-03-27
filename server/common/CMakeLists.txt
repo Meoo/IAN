@@ -6,8 +6,6 @@ find_package(spdlog CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/common/EasyProfiler.hpp
-  include/common/IModule.hpp
-  include/common/IModuleHost.hpp
   include/common/Log.hpp
   include/common/Platform.hpp
   src/Platform.cpp)
