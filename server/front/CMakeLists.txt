@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME}
   src/FrontGlobals.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  server-bin-common)
+  server-common)
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 

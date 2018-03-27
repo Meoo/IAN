@@ -6,9 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/config/Config.hpp>
+#include <common/config/Config.hpp>
 
-#include <bin-common/config/ConfigGroup.hpp>
+#include <common/config/ConfigGroup.hpp>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>

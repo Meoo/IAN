@@ -6,9 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/Ssl.hpp>
+#include <common/Ssl.hpp>
 
-#include <bin-common/config/Config.hpp>
+#include <common/config/Config.hpp>
 
 namespace ssl = boost::asio::ssl;
 

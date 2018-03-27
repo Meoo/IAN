@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <bin-common/config/ConfigGroup.hpp>
 #include <common/Log.hpp>
+#include <common/config/ConfigGroup.hpp>
 
 #include <boost/asio/ssl/context.hpp>
 

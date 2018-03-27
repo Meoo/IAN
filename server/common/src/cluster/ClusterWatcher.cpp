@@ -8,7 +8,7 @@
 
 #include "ClusterWatcher.hpp"
 
-#include <bin-common/Ssl.hpp>
+#include <common/Ssl.hpp>
 
 #define LOG_SOCKET_TUPLE endpoint_.address().to_string(), endpoint_.port()
 

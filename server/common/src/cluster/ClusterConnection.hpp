@@ -10,8 +10,8 @@
 
 #include <common/Log.hpp>
 
-#include <bin-common/Message.hpp>
-#include <bin-common/MessageQueue.hpp>
+#include <common/Message.hpp>
+#include <common/MessageQueue.hpp>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>

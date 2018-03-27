@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/MessageQueue.hpp>
+#include <common/MessageQueue.hpp>
 
 
 void MessageQueue::push(Message && message)

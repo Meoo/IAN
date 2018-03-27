@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bin-common/Message.hpp>
+#include <common/Message.hpp>
 
 #include <list>
 

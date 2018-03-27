@@ -8,12 +8,12 @@
 
 #include <ws/WsAcceptor.hpp>
 
-#include <bin-common/AsioPool.hpp>
-#include <bin-common/Cluster.hpp>
-#include <bin-common/config/Config.hpp>
-#include <bin-common/config/ConfigValue.hpp>
+#include <common/AsioPool.hpp>
+#include <common/Cluster.hpp>
 #include <common/EasyProfiler.hpp>
 #include <common/Log.hpp>
+#include <common/config/Config.hpp>
+#include <common/config/ConfigValue.hpp>
 
 #include <boost/asio/io_context.hpp>
 

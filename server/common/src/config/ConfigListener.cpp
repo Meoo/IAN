@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/config/ConfigListener.hpp>
+#include <common/config/ConfigListener.hpp>
 
 #include "ConfigListeners.hpp"
 

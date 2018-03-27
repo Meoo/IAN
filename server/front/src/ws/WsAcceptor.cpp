@@ -12,7 +12,7 @@
 
 #include <FrontGlobals.hpp>
 
-#include <bin-common/Ssl.hpp>
+#include <common/Ssl.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip  = boost::asio::ip;

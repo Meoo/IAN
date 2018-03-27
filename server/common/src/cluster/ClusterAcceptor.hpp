@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bin-common/config/ConfigGroup.hpp>
+#include <common/config/ConfigGroup.hpp>
 #include <common/Log.hpp>
 
 #include <boost/asio/io_context.hpp>

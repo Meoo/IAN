@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bin-common/config/ConfigValue.hpp>
+#include <common/config/ConfigValue.hpp>
 
 #include <atomic>
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bin-common/config/ConfigListener.hpp>
+#include <common/config/ConfigListener.hpp>
 
 #include <mutex>
 #include <set>

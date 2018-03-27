@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bin-common/Dispatcher.hpp>
+#include <common/Dispatcher.hpp>
 
 #include <memory>
 

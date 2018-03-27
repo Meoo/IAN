@@ -6,12 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <bin-common/Cluster.hpp>
+#include <common/Cluster.hpp>
 
 #include "ClusterAcceptor.hpp"
 #include "ClusterInternal.hpp"
 #include "ClusterWatcher.hpp"
-#include <bin-common/Ssl.hpp>
+#include <common/Ssl.hpp>
 
 #include <proto-cluster/Hash.h>
 

@@ -11,7 +11,7 @@
 #include "ClusterConnection.hpp"
 #include "ClusterInternal.hpp"
 
-#include <bin-common/Ssl.hpp>
+#include <common/Ssl.hpp>
 
 namespace ssl = boost::asio::ssl;
 namespace ip  = boost::asio::ip;
