@@ -41,7 +41,6 @@ add_library(${PROJECT_NAME} STATIC
   ${SOURCE_CONFIG}
   ${SOURCE_CLUSTER}
   include/common/AsioPool.hpp
-  include/common/Dispatcher.hpp
   include/common/EasyProfiler.hpp
   include/common/Log.hpp
   include/common/Message.hpp

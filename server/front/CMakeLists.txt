@@ -4,9 +4,7 @@ project(server-front)
 set(SOURCE_CL
   src/client/Client.hpp
   src/client/Client.cpp
-  src/client/ClientConnection.hpp
-  src/client/ClientState.hpp
-  src/client/ClientState.cpp)
+  src/client/ClientConnection.hpp)
 
 source_group(client FILES ${SOURCE_CL})
 
