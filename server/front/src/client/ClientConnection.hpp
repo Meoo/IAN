@@ -30,7 +30,7 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   virtual void send_message(const Message & message) = 0;
 
   // An inbound message was received from the peer, forward it to the Client instance
-  void process_message(Message && message) {} // TODO
+  void process_message(Message && /*message*/) {} // TODO
 
 
  private:

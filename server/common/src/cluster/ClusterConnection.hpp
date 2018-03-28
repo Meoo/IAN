@@ -79,7 +79,7 @@ class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
 
   void read_next();
 
-  void process_message(Message && message) {} // TODO
+  void process_message(Message && /*message*/) {} // TODO
 
 
   void do_write_message(Message && message);
