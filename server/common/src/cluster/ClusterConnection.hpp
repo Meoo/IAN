@@ -26,10 +26,10 @@
 class ClusterConnection : public std::enable_shared_from_this<ClusterConnection>
 {
  public:
-  enum SslRole
+  enum class SslRole
   {
-    Client,
-    Server
+    client,
+    server
   };
 
   using SslContext  = boost::asio::ssl::context;

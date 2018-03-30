@@ -55,7 +55,7 @@ void ClusterWatcher::on_connect(boost::system::error_code ec)
              socket_.remote_endpoint().port());
 
     auto client = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
-    client->run(ClusterConnection::Client, safe_link_);
+    client->run(ClusterConnection::SslRole::client, safe_link_);
     connection_ = client;
   }
 

@@ -119,7 +119,7 @@ void ClusterAcceptor::on_accept(boost::system::error_code ec)
              socket_.remote_endpoint().port());
 
     auto peer = std::make_shared<ClusterConnection>(logger_, std::move(socket_));
-    peer->run(ClusterConnection::Server, safe_link_);
+    peer->run(ClusterConnection::SslRole::server, safe_link_);
   }
 
   accept_next();

@@ -102,7 +102,7 @@ void ClusterConnection::run(SslRole role, bool safe_link)
 
   // SSL handshake
   stream_.async_handshake(
-      role == Client ? asio::ssl::stream_base::client : asio::ssl::stream_base::server,
+      role == SslRole::client ? asio::ssl::stream_base::client : asio::ssl::stream_base::server,
       asio::bind_executor(strand_, std::bind(&ClusterConnection::on_ssl_handshake,
                                              shared_from_this(), std::placeholders::_1)));
 }

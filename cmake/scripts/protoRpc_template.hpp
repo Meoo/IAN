@@ -123,7 +123,7 @@ class RpcResultInvoker
     {
       // Should never happen
       flatbuffers::FlatBufferBuilder builder;
-      auto rep = CreateRpcErrorDirect(builder, 0, "Received invalid result");
+      /*auto rep =*/ CreateRpcErrorDirect(builder, 0, "Received invalid result");
       auto err = flatbuffers::GetRoot<RpcError>(builder.GetBufferPointer());
       callback_(nullptr, err);
       return;
