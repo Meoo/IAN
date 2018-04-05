@@ -82,20 +82,6 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 
-# Global dependencies
-hunter_add_package(flatbuffers)
-find_package(Flatbuffers CONFIG REQUIRED)
-
-if(WIN32)
-  set(FLATBUFFERS_FLATC_EXECUTABLE "${FLATBUFFERS_ROOT}/bin/flatc.exe")
-else()
-  set(FLATBUFFERS_FLATC_EXECUTABLE "${FLATBUFFERS_ROOT}/bin/flatc")
-endif()
-
-
-
-include(cmake/protocols.cmake)
-
 add_subdirectory(client)
 add_subdirectory(server)
 

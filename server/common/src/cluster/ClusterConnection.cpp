@@ -11,8 +11,6 @@
 
 #include <common/EasyProfiler.hpp>
 
-#include <proto-cluster/ClusterHandshake_generated.h>
-
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
@@ -263,14 +261,8 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
 
   IAN_TRACE(logger_, "SSL handshake complete for peer: {}:{}", LOG_SOCKET_TUPLE);
 
-  // Write IAN handshake
-  flatbuffers::FlatBufferBuilder builder;
-  auto hash   = builder.CreateVector<std::uint8_t>(cluster::internal::proto_hash,
-                                                 cluster::internal::proto_hash_len);
-  auto offset = proto::CreateClusterHandshake(builder, hash, safe_link_);
-  proto::FinishClusterHandshakeBuffer(builder, offset);
-
-  message_outbound_ = Message::from_flatbuffer(builder);
+  // TODO Write IAN handshake
+  // message_outbound_ = Message::from_flatbuffer(builder);
   out_message_len_le_ =
       boost::endian::native_to_little(static_cast<uint32_t>(message_outbound_.size()));
 
@@ -373,8 +365,8 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
   read_buffer_.consume(
       asio::buffer_copy(asio::buffer(buf.data(), buf.size()), read_buffer_.data()));
 
-  // Verify handshake
-  {
+  // TODO Verify handshake
+  /*{
     flatbuffers::Verifier verifier(static_cast<const uint8_t *>(buf.data()), buf.size());
     if (buf.size() < 8 || !proto::ClusterHandshakeBufferHasIdentifier(buf.data()) ||
         !proto::VerifyClusterHandshakeBuffer(verifier))
@@ -398,7 +390,7 @@ void ClusterConnection::on_ian_handshake(boost::system::error_code ec, std::size
     return;
   }
 
-  safe_link_ = safe_link_ && handshake->safe_link();
+  safe_link_ = safe_link_ && handshake->safe_link();*/
 
   // Handshake done!
   IAN_INFO(logger_, "Peer ready: {}:{}", LOG_SOCKET_TUPLE);
