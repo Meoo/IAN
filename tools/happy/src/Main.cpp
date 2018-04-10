@@ -10,6 +10,7 @@
 #include "Parser.hpp"
 
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 
 
