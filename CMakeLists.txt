@@ -38,6 +38,7 @@ endfunction()
 
 
 # Options
+set(IAN_BUILD_TOOLS ON CACHE BOOL "Build IAN tools")
 set(IAN_BUILD_CLIENT ON CACHE BOOL "Build IAN client")
 set(IAN_BUILD_SERVER ON CACHE BOOL "Build IAN server")
 
@@ -81,6 +82,8 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
+
+add_subdirectory(tools)
 
 add_subdirectory(client)
 add_subdirectory(server)

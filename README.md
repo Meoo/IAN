@@ -18,7 +18,6 @@ For Visual Studio, you might have to run CMake from the "Developer Command Promp
 Dependencies (automated with hunter):
 
 * [spdlog](https://github.com/gabime/spdlog)
-* [flatbuffers](https://google.github.io/flatbuffers/index.html)
 * [boost](http://www.boost.org/) (asio, beast)
 * [OpenSSL](https://www.openssl.org/)
 
