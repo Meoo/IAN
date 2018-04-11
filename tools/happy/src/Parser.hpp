@@ -10,6 +10,7 @@
 
 #include "Ast.hpp"
 
+#include <cstring>
 #include <exception>
 #include <string>
 
@@ -24,11 +25,16 @@ struct DocumentPosition
 class ParseException final : public std::exception
 {
  public:
-  ParseException(DocumentPosition position) : position_(position) {}
+  ParseException(DocumentPosition position, const char * message) : position_(position)
+  {
+    std::strncpy(what_, message, sizeof(what_) - 1);
+  }
 
-  const char * what() const noexcept final { return ""; }
+  const char * what() const noexcept final { return what_; }
+  DocumentPosition position() const noexcept { return position_; }
 
  private:
+  char what_[1024] {0};
   DocumentPosition position_;
 };
 
@@ -83,13 +89,13 @@ class Parser
 
  private:
   StreamReader * reader_ = nullptr;
-  DocumentPosition pos_{0, 0};
+  DocumentPosition pos_{1, 0};
 
   std::vector<char> buffer_;
   std::vector<char> tmp_buffer_;
   std::size_t buffer_offset_ = 0;
 
-  Symbol next_symbol_;
+  Symbol next_symbol_ = Symbol::invalid;
 
   //
 
@@ -106,9 +112,13 @@ class Parser
   HappyInteger parse_integer();
   HappyNumber parse_number();
 
+  std::string parse_raw_to_eol();
+
   DocumentPosition current_position() const { return pos_; }
 
-  [[noreturn]] void unexpected();
+  void expect(Symbol expected);
+  [[noreturn]] void unexpected(Symbol expected = Symbol::invalid);
+  [[noreturn]] void unexpected(const char * context);
 
 
   void parse_comment(HappyContainer & node);

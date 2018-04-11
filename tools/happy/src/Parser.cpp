@@ -24,6 +24,33 @@ const char map_keyword[]     = "MAP";
 const char enco_keyword[]    = "ENCO";
 const char for_keyword[]     = "FOR";
 
+const char * symbol_str(Symbol s)
+{
+  switch (s)
+  {
+#define SYMBOL(x) case Symbol::x: return #x
+  SYMBOL(identifier);
+  SYMBOL(string);
+  SYMBOL(integer);
+  SYMBOL(number);
+  SYMBOL(alias_kw);
+  SYMBOL(include_kw);
+  SYMBOL(data_kw);
+  SYMBOL(map_kw);
+  SYMBOL(enco_kw);
+  SYMBOL(for_kw);
+  SYMBOL(colon);
+  SYMBOL(comment);
+  SYMBOL(curly_open);
+  SYMBOL(curly_close);
+  SYMBOL(eof);
+  SYMBOL(error);
+#undef SYMBOL
+  default:
+    return "???";
+  }
+}
+
 } // namespace
 
 
@@ -67,7 +94,21 @@ void Parser::skip_whitespace()
 
 void Parser::advance(std::size_t offset)
 {
+  for (std::size_t i = 0; i < offset; ++i)
+  {
+    char c = peek_at(i);
+
+    if (c == '\n')
+    {
+      pos_.column = 0;
+      ++pos_.line;
+    }
+    else
+      ++pos_.column;
+  }
+
   buffer_offset_ += offset;
+  next_symbol_ = Symbol::invalid;
   trim_opportunity();
 }
 
@@ -115,12 +156,11 @@ Symbol Parser::peek_symbol()
   if (next_char == '\0')
     return (next_symbol_ = Symbol::eof);
 
-  if (next_char >= '0' && next_char <= '9')
+  if ((next_char >= '0' && next_char <= '9') || next_char == '-' || next_char == '+')
   {
     // integer or number
     for (std::size_t off = 1;; ++off)
     {
-      bool number = false;
       next_char   = peek_at(off);
       if ((next_char >= '0' && next_char <= '9') || next_char == '.')
       {
@@ -182,14 +222,13 @@ Symbol Parser::peek_symbol()
 
 void Parser::parse_symbol(Symbol symbol)
 {
-  if (peek_symbol() != symbol)
-    throw ParseException(current_position());
+  expect(symbol);
 
   switch (symbol)
   {
     // Signs
 #define SIGN(x)                                                                                    \
-  case Symbol::x: ++buffer_offset_; break;
+  case Symbol::x: advance(1); break;
     SIGN(comment);
     SIGN(colon);
     SIGN(curly_open);
@@ -198,7 +237,7 @@ void Parser::parse_symbol(Symbol symbol)
 
     // Keywords
 #define KEYWORD(x)                                                                                 \
-  case Symbol::x##_kw: buffer_offset_ += sizeof(x##_keyword) - 1; break
+  case Symbol::x##_kw: advance(sizeof(x##_keyword) - 1); break
     KEYWORD(alias);
     KEYWORD(include);
     KEYWORD(data);
@@ -217,29 +256,103 @@ void Parser::parse_symbol(Symbol symbol)
 
 HappyIdentifier Parser::parse_identifier()
 {
-  if (peek_symbol() != Symbol::identifier)
-    unexpected();
+  expect(Symbol::identifier);
 
-  // TODO identifier
-  return {};
+  HappyIdentifier ret;
+
+  std::size_t len;
+  for (len = 0;; ++len)
+  {
+    char next_char = peek_at(len);
+    if ((next_char >= 'a' && next_char <= 'z') || (next_char >= 'A' && next_char <= 'Z') ||
+        (next_char >= '0' && next_char <= '9') || next_char == '_')
+      ret.identifier += next_char;
+    else
+      break;
+  }
+
+  advance(len);
+  return ret;
 }
 
 HappyString Parser::parse_string()
 {
-  if (peek_symbol() != Symbol::string)
-    unexpected();
+  expect(Symbol::string);
 
-  // TODO string
-  return {};
+  HappyString ret;
+
+  int len = 1;
+  char delim = peek_at(0);
+
+  for (;;++len)
+  {
+    char next_char = peek_at(len);
+
+    if (next_char == delim)
+    {
+      ++len;
+      break;
+    }
+
+    if (next_char == '\\')
+    {
+      ++len;
+      next_char = peek_at(len);
+      switch (next_char)
+      {
+      case 'n':
+        ret += '\n';
+        break;
+      case 't':
+        ret += '\t';
+        break;
+      case '0':
+        ret += '\0';
+        break;
+      default:
+        ret += next_char;
+      }
+    }
+    else
+      ret += next_char;
+  }
+
+  advance(len);
+  return ret;
 }
 
 HappyInteger Parser::parse_integer()
 {
-  if (peek_symbol() != Symbol::integer)
-    unexpected();
+  expect(Symbol::integer);
 
-  // TODO integer
-  return 0;
+  HappyInteger ret = 0;
+
+  int len = 0;
+  bool negative = false;
+
+  char next_char = peek_at(0);
+  if (next_char == '-')
+  {
+    negative = true;
+    ++len;
+  }
+  else if (next_char == '+')
+  {
+    ++len;
+  }
+
+  for (;;++len)
+  {
+    next_char = peek_at(len);
+
+    if (!(next_char >= '0' && next_char <= '9'))
+      break;
+
+    ret = ret * 10 + (next_char - '0');
+  }
+
+  advance(len);
+  return negative ? -ret : ret;
 }
 
 HappyNumber Parser::parse_number()
@@ -247,30 +360,117 @@ HappyNumber Parser::parse_number()
   if (peek_symbol() == Symbol::integer)
     return parse_integer();
 
-  if (peek_symbol() != Symbol::number)
-    unexpected();
+  expect(Symbol::number);
 
-  // TODO number
-  return 0.0;
+  HappyNumber ret = 0;
+
+  int len = 0;
+  bool negative = false;
+
+  char next_char = peek_at(0);
+  if (next_char == '-')
+  {
+    negative = true;
+    ++len;
+  }
+  else if (next_char == '+')
+  {
+    ++len;
+  }
+
+  for (;;++len)
+  {
+    next_char = peek_at(len);
+
+    if (!(next_char >= '0' && next_char <= '9'))
+      break;
+
+    ret = ret * 10 + (next_char - '0');
+  }
+
+  // Skip dot
+  ++len;
+  HappyNumber fract = 0.1;
+
+  for (;;++len)
+  {
+    next_char = peek_at(len);
+
+    if (!(next_char >= '0' && next_char <= '9'))
+      break;
+
+    if (next_char != '0')
+      ret = ret + (next_char - '0') * fract;
+    fract *= 0.1;
+  }
+
+  advance(len);
+  return negative ? -ret : ret;
+}
+
+std::string Parser::parse_raw_to_eol()
+{
+  std::string ret;
+  int len = 0;
+
+  for (;;++len)
+  {
+    char next_char = peek_at(len);
+    if (next_char == '\0' || next_char == '\n' || next_char == '\r')
+      break;
+    ret += next_char;
+  }
+
+  advance(len);
+  return ret;
 }
 
 //
 
-void Parser::unexpected() { throw ParseException(current_position()); }
+void Parser::expect(Symbol expected)
+{
+  if (peek_symbol() != expected)
+    unexpected(expected);
+}
+
+void Parser::unexpected(Symbol expected /*= Symbol::invalid*/)
+{
+  char message[1024] {0};
+  if (expected != Symbol::invalid)
+    std::snprintf(message, sizeof(message), "Unexpected symbol %s, expected %s",
+        ::symbol_str(peek_symbol()), ::symbol_str(expected));
+  else
+    std::snprintf(message, sizeof(message), "Unexpected symbol %s",
+        ::symbol_str(peek_symbol()));
+
+  throw ParseException(current_position(), message);
+}
+
+void Parser::unexpected(const char * context)
+{
+  char message[1024] {0};
+  std::snprintf(message, sizeof(message), "Unexpected symbol %s in %s",
+      ::symbol_str(peek_symbol()), context);
+
+  throw ParseException(current_position(), message);
+}
 
 //
 
 void Parser::parse_comment(HappyContainer & node)
 {
   parse_symbol(Symbol::comment);
-  // std::string content = get_all();
-  node.emplace<HappyComment>("comment content");
+  node.emplace<HappyComment>(parse_raw_to_eol());
 }
 // parse_comment()
 
 //
 
-void Parser::parse_include(HappyContainer & node) {}
+void Parser::parse_include(HappyContainer & node)
+{
+  parse_symbol(Symbol::include_kw);
+  HappyString include = parse_string();
+}
 
 //
 
@@ -293,15 +493,20 @@ void Parser::parse_data(HappyContainer & node)
 
     case Symbol::comment: parse_comment(data); break;
     case Symbol::identifier: parse_data_field(data); break;
-    default: unexpected();
+    default: unexpected("data");
     }
 
     symbol = peek_symbol();
   }
+
+  parse_symbol(Symbol::curly_close);
 }
 // parse_data()
 
-void Parser::parse_data_field(HappyData & node) {}
+void Parser::parse_data_field(HappyData & node)
+{
+  HappyIdentifier field_id = parse_identifier();
+}
 
 //
 
@@ -318,7 +523,7 @@ void Parser::parse_document(HappyRoot & node)
     case Symbol::include_kw: parse_include(node); break;
     case Symbol::data_kw: parse_data(node); break;
     case Symbol::eof: return;
-    default: unexpected();
+    default: unexpected("document");
     }
   }
 }

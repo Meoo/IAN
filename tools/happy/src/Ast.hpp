@@ -26,8 +26,8 @@ using HappyNumber = double;
 enum class HappyNodeType
 {
   root,
-  include_root,
 
+  include,
   alias,
   data,
   data_field,

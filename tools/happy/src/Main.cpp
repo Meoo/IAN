@@ -42,9 +42,15 @@ int main()
     StdinReader reader;
     parser.process(reader, root);
   }
+  catch (ParseException & e)
+  {
+    std::cerr << "<stdin>:" << e.position().line << ":" << e.position().column
+              << ": " << e.what() << std::endl;
+    return 1;
+  }
   catch (std::exception & e)
   {
-    std::cerr << "Error : " << e.what() << std::endl;
+    std::cerr << "<stdin>: " << e.what() << std::endl;
     return 1;
   }
 
