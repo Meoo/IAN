@@ -277,8 +277,7 @@ void ClusterConnection::on_ssl_handshake(boost::system::error_code ec)
                                     std::placeholders::_1, std::placeholders::_2)));
 }
 
-void ClusterConnection::on_ian_handshake_sent(boost::system::error_code ec,
-                                              std::size_t /*writelen*/)
+void ClusterConnection::on_ian_handshake_sent(boost::system::error_code ec, std::size_t writelen)
 {
   // Clear data that was begin sent
   message_outbound_ = Message();
@@ -472,7 +471,7 @@ void ClusterConnection::on_read(boost::system::error_code ec, std::size_t readle
   read_next();
 }
 
-void ClusterConnection::on_write_message(boost::system::error_code ec, std::size_t /*writelen*/)
+void ClusterConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
 {
   // Clear data that was begin sent
   message_outbound_ = Message();

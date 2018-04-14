@@ -439,7 +439,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 }
 
 
-void WsConnection::on_write_message(boost::system::error_code ec, std::size_t /*writelen*/)
+void WsConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
 {
   // Clear data that was begin sent
   message_outbound_ = Message();
