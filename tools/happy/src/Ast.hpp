@@ -15,12 +15,20 @@
 
 struct HappyIdentifier
 {
-  std::string identifier;
+  std::string name;
 };
 
 using HappyString = std::string;
 using HappyInteger = int64_t;
 using HappyNumber = double;
+
+struct HappyType
+{
+  HappyIdentifier identifier;
+
+  bool is_array;
+  HappyInteger array_size;
+};
 
 
 enum class HappyNodeType
@@ -80,17 +88,25 @@ class HappyRoot : public HappyContainer
 class HappyData : public HappyContainer
 {
  public:
-  HappyData() : HappyContainer(HappyNodeType::data) {}
+  HappyData(HappyIdentifier identifier) : HappyContainer(HappyNodeType::data), identifier(identifier) {}
+
+  HappyIdentifier identifier;
 };
 
 
 class HappyComment : public HappyNode
 {
  public:
-  HappyComment(std::string content) : HappyNode(HappyNodeType::comment), content_(content) {}
+  HappyComment(std::string content) : HappyNode(HappyNodeType::comment), content(content) {}
 
-  const std::string & content() const { return content_; }
+  std::string content;
+};
 
- private:
-  const std::string content_;
+class HappyDataField : public HappyNode
+{
+ public:
+  HappyDataField(HappyIdentifier identifier, HappyType type) : HappyNode(HappyNodeType::data_field), identifier(identifier), type(type) {}
+
+  HappyIdentifier identifier;
+  HappyType type;
 };

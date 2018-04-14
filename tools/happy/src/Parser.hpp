@@ -55,10 +55,12 @@ enum class Symbol
   for_kw,
 
   // Symbols
-  colon,       // :
-  comment,     // #
-  curly_open,  // {
-  curly_close, // }
+  colon,         // :
+  comment,       // #
+  curly_open,    // {
+  curly_close,   // }
+  bracket_open,  // [
+  bracket_close, // ]
 
   // Special
   eof,
@@ -111,6 +113,8 @@ class Parser
   HappyString parse_string();
   HappyInteger parse_integer();
   HappyNumber parse_number();
+
+  HappyType parse_type();
 
   std::string parse_raw_to_eol();
 

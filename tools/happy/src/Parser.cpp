@@ -12,10 +12,12 @@
 namespace
 {
 
-const char comment_mark     = '#';
-const char colon_mark       = ':';
-const char curly_open_mark  = '{';
-const char curly_close_mark = '}';
+const char comment_mark       = '#';
+const char colon_mark         = ':';
+const char curly_open_mark    = '{';
+const char curly_close_mark   = '}';
+const char bracket_open_mark  = '[';
+const char bracket_close_mark = ']';
 
 const char alias_keyword[]   = "ALIAS";
 const char include_keyword[] = "INCLUDE";
@@ -43,6 +45,8 @@ const char * symbol_str(Symbol s)
   SYMBOL(comment);
   SYMBOL(curly_open);
   SYMBOL(curly_close);
+  SYMBOL(bracket_open);
+  SYMBOL(bracket_close);
   SYMBOL(eof);
   SYMBOL(error);
 #undef SYMBOL
@@ -181,6 +185,8 @@ Symbol Parser::peek_symbol()
   SIGN(colon);
   SIGN(curly_open);
   SIGN(curly_close);
+  SIGN(bracket_open);
+  SIGN(bracket_close);
 #undef SIGN
 
   if (next_char == '\'' || next_char == '"')
@@ -233,6 +239,8 @@ void Parser::parse_symbol(Symbol symbol)
     SIGN(colon);
     SIGN(curly_open);
     SIGN(curly_close);
+    SIGN(bracket_open);
+    SIGN(bracket_close);
 #undef SIGN
 
     // Keywords
@@ -266,7 +274,7 @@ HappyIdentifier Parser::parse_identifier()
     char next_char = peek_at(len);
     if ((next_char >= 'a' && next_char <= 'z') || (next_char >= 'A' && next_char <= 'Z') ||
         (next_char >= '0' && next_char <= '9') || next_char == '_')
-      ret.identifier += next_char;
+      ret.name += next_char;
     else
       break;
   }
@@ -408,6 +416,22 @@ HappyNumber Parser::parse_number()
   return negative ? -ret : ret;
 }
 
+HappyType Parser::parse_type()
+{
+  HappyType ret;
+  ret.identifier = parse_identifier();
+
+  ret.is_array = peek_symbol() == Symbol::bracket_open;
+  if (ret.is_array)
+  {
+    parse_symbol(Symbol::bracket_open);
+    ret.array_size = parse_integer();
+    parse_symbol(Symbol::bracket_close);
+  }
+
+  return ret;
+}
+
 std::string Parser::parse_raw_to_eol()
 {
   std::string ret;
@@ -477,10 +501,7 @@ void Parser::parse_include(HappyContainer & node)
 void Parser::parse_data(HappyContainer & node)
 {
   parse_symbol(Symbol::data_kw);
-
-  auto & data = *node.emplace<HappyData>();
-  // TODO data_id
-  HappyIdentifier data_id = parse_identifier();
+  auto & data = *node.emplace<HappyData>(parse_identifier());
 
   parse_symbol(Symbol::curly_open);
 
@@ -506,6 +527,9 @@ void Parser::parse_data(HappyContainer & node)
 void Parser::parse_data_field(HappyData & node)
 {
   HappyIdentifier field_id = parse_identifier();
+  parse_symbol(Symbol::colon);
+  HappyType field_type = parse_type();
+  node.emplace<HappyDataField>(field_id, field_type);
 }
 
 //
