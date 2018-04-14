@@ -17,7 +17,7 @@
 class StdinReader : public StreamReader
 {
  public:
-   std::size_t read(char * output_ptr, std::size_t length) override
+  std::size_t read(char * output_ptr, std::size_t length) override
   {
     length = std::fread(output_ptr, 1, length, stdin);
 
@@ -44,8 +44,8 @@ int main()
   }
   catch (ParseException & e)
   {
-    std::cerr << "<stdin>:" << e.position().line << ":" << e.position().column
-              << ": " << e.what() << std::endl;
+    std::cerr << "<stdin>:" << e.position().line << ":" << e.position().column << ": " << e.what()
+              << std::endl;
     return 1;
   }
   catch (std::exception & e)

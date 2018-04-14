@@ -18,9 +18,9 @@ struct HappyIdentifier
   std::string name;
 };
 
-using HappyString = std::string;
+using HappyString  = std::string;
 using HappyInteger = int64_t;
-using HappyNumber = double;
+using HappyNumber  = double;
 
 struct HappyType
 {
@@ -88,7 +88,10 @@ class HappyRoot : public HappyContainer
 class HappyData : public HappyContainer
 {
  public:
-  HappyData(HappyIdentifier identifier) : HappyContainer(HappyNodeType::data), identifier(identifier) {}
+  HappyData(HappyIdentifier identifier)
+      : HappyContainer(HappyNodeType::data), identifier(identifier)
+  {
+  }
 
   HappyIdentifier identifier;
 };
@@ -105,7 +108,10 @@ class HappyComment : public HappyNode
 class HappyDataField : public HappyNode
 {
  public:
-  HappyDataField(HappyIdentifier identifier, HappyType type) : HappyNode(HappyNodeType::data_field), identifier(identifier), type(type) {}
+  HappyDataField(HappyIdentifier identifier, HappyType type)
+      : HappyNode(HappyNodeType::data_field), identifier(identifier), type(type)
+  {
+  }
 
   HappyIdentifier identifier;
   HappyType type;

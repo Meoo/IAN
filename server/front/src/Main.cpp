@@ -28,13 +28,13 @@ bool should_stop   = false;
 bool should_reload = false;
 AsioPool * asio_pool;
 
-extern "C" void sig_stop(int)
+extern "C" void sig_stop(int /*unused*/)
 {
   should_stop = true;
   asio_pool->stop();
 }
 
-extern "C" void sig_reload(int)
+extern "C" void sig_reload(int /*unused*/)
 {
   should_reload = true;
   asio_pool->stop();
@@ -42,7 +42,7 @@ extern "C" void sig_reload(int)
 } // namespace signals
 
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
   EASY_MAIN_THREAD;
 

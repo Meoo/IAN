@@ -30,28 +30,28 @@ const char * symbol_str(Symbol s)
 {
   switch (s)
   {
-#define SYMBOL(x) case Symbol::x: return #x
-  SYMBOL(identifier);
-  SYMBOL(string);
-  SYMBOL(integer);
-  SYMBOL(number);
-  SYMBOL(alias_kw);
-  SYMBOL(include_kw);
-  SYMBOL(data_kw);
-  SYMBOL(map_kw);
-  SYMBOL(enco_kw);
-  SYMBOL(for_kw);
-  SYMBOL(colon);
-  SYMBOL(comment);
-  SYMBOL(curly_open);
-  SYMBOL(curly_close);
-  SYMBOL(bracket_open);
-  SYMBOL(bracket_close);
-  SYMBOL(eof);
-  SYMBOL(error);
+#define SYMBOL(x)                                                                                  \
+  case Symbol::x: return #x
+    SYMBOL(identifier);
+    SYMBOL(string);
+    SYMBOL(integer);
+    SYMBOL(number);
+    SYMBOL(alias_kw);
+    SYMBOL(include_kw);
+    SYMBOL(data_kw);
+    SYMBOL(map_kw);
+    SYMBOL(enco_kw);
+    SYMBOL(for_kw);
+    SYMBOL(colon);
+    SYMBOL(comment);
+    SYMBOL(curly_open);
+    SYMBOL(curly_close);
+    SYMBOL(bracket_open);
+    SYMBOL(bracket_close);
+    SYMBOL(eof);
+    SYMBOL(error);
 #undef SYMBOL
-  default:
-    return "???";
+  default: return "???";
   }
 }
 
@@ -165,7 +165,7 @@ Symbol Parser::peek_symbol()
     // integer or number
     for (std::size_t off = 1;; ++off)
     {
-      next_char   = peek_at(off);
+      next_char = peek_at(off);
       if ((next_char >= '0' && next_char <= '9') || next_char == '.')
       {
         if (next_char == '.')
@@ -289,10 +289,10 @@ HappyString Parser::parse_string()
 
   HappyString ret;
 
-  int len = 1;
+  int len    = 1;
   char delim = peek_at(0);
 
-  for (;;++len)
+  for (;; ++len)
   {
     char next_char = peek_at(len);
 
@@ -308,17 +308,10 @@ HappyString Parser::parse_string()
       next_char = peek_at(len);
       switch (next_char)
       {
-      case 'n':
-        ret += '\n';
-        break;
-      case 't':
-        ret += '\t';
-        break;
-      case '0':
-        ret += '\0';
-        break;
-      default:
-        ret += next_char;
+      case 'n': ret += '\n'; break;
+      case 't': ret += '\t'; break;
+      case '0': ret += '\0'; break;
+      default: ret += next_char;
       }
     }
     else
@@ -335,7 +328,7 @@ HappyInteger Parser::parse_integer()
 
   HappyInteger ret = 0;
 
-  int len = 0;
+  int len       = 0;
   bool negative = false;
 
   char next_char = peek_at(0);
@@ -349,7 +342,7 @@ HappyInteger Parser::parse_integer()
     ++len;
   }
 
-  for (;;++len)
+  for (;; ++len)
   {
     next_char = peek_at(len);
 
@@ -372,7 +365,7 @@ HappyNumber Parser::parse_number()
 
   HappyNumber ret = 0;
 
-  int len = 0;
+  int len       = 0;
   bool negative = false;
 
   char next_char = peek_at(0);
@@ -386,7 +379,7 @@ HappyNumber Parser::parse_number()
     ++len;
   }
 
-  for (;;++len)
+  for (;; ++len)
   {
     next_char = peek_at(len);
 
@@ -400,7 +393,7 @@ HappyNumber Parser::parse_number()
   ++len;
   HappyNumber fract = 0.1;
 
-  for (;;++len)
+  for (;; ++len)
   {
     next_char = peek_at(len);
 
@@ -437,7 +430,7 @@ std::string Parser::parse_raw_to_eol()
   std::string ret;
   int len = 0;
 
-  for (;;++len)
+  for (;; ++len)
   {
     char next_char = peek_at(len);
     if (next_char == '\0' || next_char == '\n' || next_char == '\r')
@@ -459,22 +452,21 @@ void Parser::expect(Symbol expected)
 
 void Parser::unexpected(Symbol expected /*= Symbol::invalid*/)
 {
-  char message[1024] {0};
+  char message[1024]{0};
   if (expected != Symbol::invalid)
     std::snprintf(message, sizeof(message), "Unexpected symbol %s, expected %s",
-        ::symbol_str(peek_symbol()), ::symbol_str(expected));
+                  ::symbol_str(peek_symbol()), ::symbol_str(expected));
   else
-    std::snprintf(message, sizeof(message), "Unexpected symbol %s",
-        ::symbol_str(peek_symbol()));
+    std::snprintf(message, sizeof(message), "Unexpected symbol %s", ::symbol_str(peek_symbol()));
 
   throw ParseException(current_position(), message);
 }
 
 void Parser::unexpected(const char * context)
 {
-  char message[1024] {0};
-  std::snprintf(message, sizeof(message), "Unexpected symbol %s in %s",
-      ::symbol_str(peek_symbol()), context);
+  char message[1024]{0};
+  std::snprintf(message, sizeof(message), "Unexpected symbol %s in %s", ::symbol_str(peek_symbol()),
+                context);
 
   throw ParseException(current_position(), message);
 }

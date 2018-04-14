@@ -30,12 +30,12 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
                       ssl::context & ssl_context)
 {
   // Config
-  std::string ca         = config.get_string_value("certificate_authority_file");
-  std::string certChain  = config.get_string_value("certificate_chain", ::default_cert);
-  std::string privKey    = config.get_string_value("private_key", ::default_cert);
-  std::string dh         = config.get_string_value("dh");
-  std::string password   = config.get_string_value("private_key_password");
-  std::string cipherList = config.get_string_value("cipher_list", ::default_cipher_list);
+  std::string ca          = config.get_string_value("certificate_authority_file");
+  std::string cert_chain  = config.get_string_value("certificate_chain", ::default_cert);
+  std::string priv_key    = config.get_string_value("private_key", ::default_cert);
+  std::string dh          = config.get_string_value("dh");
+  std::string password    = config.get_string_value("private_key_password");
+  std::string cipher_list = config.get_string_value("cipher_list", ::default_cipher_list);
 
   // SSL setup
   try
@@ -46,8 +46,8 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
 
     ssl_context.set_password_callback(
         std::bind([password] { return password; })); // Use bind to ignore args
-    ssl_context.use_certificate_chain_file(certChain);
-    ssl_context.use_private_key_file(privKey, ssl::context::pem);
+    ssl_context.use_certificate_chain_file(cert_chain);
+    ssl_context.use_private_key_file(priv_key, ssl::context::pem);
 
     boost::system::error_code ec;
 
@@ -65,7 +65,7 @@ void init_ssl_context(spdlog::logger * logger, const ConfigGroup & config,
         IAN_ERROR(logger, "Failed to set certificate authority: {}", ec.message());
     }
 
-    if (SSL_CTX_set_cipher_list(ssl_context.native_handle(), cipherList.c_str()) != 1)
+    if (SSL_CTX_set_cipher_list(ssl_context.native_handle(), cipher_list.c_str()) != 1)
     {
       IAN_WARN(logger, "Failed to initialize SSL cipher list");
     }

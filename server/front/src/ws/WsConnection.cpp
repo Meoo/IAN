@@ -209,7 +209,7 @@ void WsConnection::cancel_state_timeout()
 bool WsConnection::check_rate_limit()
 {
   if (rate_limit_messages_ > front::rate_limit_messages ||
-      rate_limit_bytes_ > (std::size_t) front::rate_limit_bytes)
+      rate_limit_bytes_ > (std::size_t)front::rate_limit_bytes)
   {
     auto now = std::chrono::steady_clock::now();
 
@@ -439,7 +439,7 @@ void WsConnection::on_read(boost::system::error_code ec, std::size_t readlen)
 }
 
 
-void WsConnection::on_write_message(boost::system::error_code ec, std::size_t writelen)
+void WsConnection::on_write_message(boost::system::error_code ec, std::size_t /*writelen*/)
 {
   // Clear data that was begin sent
   message_outbound_ = Message();

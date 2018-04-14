@@ -34,7 +34,7 @@ class ParseException final : public std::exception
   DocumentPosition position() const noexcept { return position_; }
 
  private:
-  char what_[1024] {0};
+  char what_[1024]{0};
   DocumentPosition position_;
 };
 
