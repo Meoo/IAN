@@ -97,14 +97,6 @@ class HappyData : public HappyContainer
 };
 
 
-class HappyComment : public HappyNode
-{
- public:
-  HappyComment(std::string content) : HappyNode(HappyNodeType::comment), content(content) {}
-
-  std::string content;
-};
-
 class HappyDataField : public HappyNode
 {
  public:

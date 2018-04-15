@@ -56,7 +56,6 @@ enum class Symbol
 
   // Symbols
   colon,         // :
-  comment,       // #
   curly_open,    // {
   curly_close,   // }
   bracket_open,  // [
@@ -101,7 +100,7 @@ class Parser
 
   //
 
-  void skip_whitespace();
+  void skip_whitespace(); // also skip comments
   void advance(std::size_t offset);
   char peek_at(std::size_t offset); // Return '\0' when eof is reached
   void trim_opportunity();
@@ -116,16 +115,12 @@ class Parser
 
   HappyType parse_type();
 
-  std::string parse_raw_to_eol();
-
   DocumentPosition current_position() const { return pos_; }
 
   void expect(Symbol expected);
   [[noreturn]] void unexpected(Symbol expected = Symbol::invalid);
   [[noreturn]] void unexpected(const char * context);
 
-
-  void parse_comment(HappyContainer & node);
 
   void parse_include(HappyContainer & node);
 

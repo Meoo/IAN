@@ -12,7 +12,9 @@
 namespace
 {
 
-const char comment_mark       = '#';
+// Not an actual symbol
+const char comment_mark = '#';
+
 const char colon_mark         = ':';
 const char curly_open_mark    = '{';
 const char curly_close_mark   = '}';
@@ -43,7 +45,6 @@ const char * symbol_str(Symbol s)
     SYMBOL(enco_kw);
     SYMBOL(for_kw);
     SYMBOL(colon);
-    SYMBOL(comment);
     SYMBOL(curly_open);
     SYMBOL(curly_close);
     SYMBOL(bracket_open);
@@ -78,15 +79,30 @@ void Parser::process(StreamReader & reader, HappyRoot & root)
 void Parser::skip_whitespace()
 {
   char c = peek_at(0);
-  while (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+  while (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == comment_mark)
   {
+    // Whitespace
     if (c == ' ' || c == '\t')
       ++pos_.column;
 
+    // EOL
     if (c == '\n')
     {
       pos_.column = 0;
       ++pos_.line;
+    }
+
+    // Comment
+    if (c == comment_mark)
+    {
+      // Skip all to EOL
+      do
+      {
+        ++pos_.column;
+        ++buffer_offset_;
+        c = peek_at(0);
+      } while (c != '\0' && c != '\n' && c != '\r');
+      continue;
     }
 
     ++buffer_offset_;
@@ -181,7 +197,6 @@ Symbol Parser::peek_symbol()
 #define SIGN(x)                                                                                    \
   if (next_char == x##_mark)                                                                       \
     return (next_symbol_ = Symbol::x);
-  SIGN(comment);
   SIGN(colon);
   SIGN(curly_open);
   SIGN(curly_close);
@@ -235,7 +250,6 @@ void Parser::parse_symbol(Symbol symbol)
     // Signs
 #define SIGN(x)                                                                                    \
   case Symbol::x: advance(1); break;
-    SIGN(comment);
     SIGN(colon);
     SIGN(curly_open);
     SIGN(curly_close);
@@ -359,7 +373,7 @@ HappyInteger Parser::parse_integer()
 HappyNumber Parser::parse_number()
 {
   if (peek_symbol() == Symbol::integer)
-    return parse_integer();
+    return (HappyNumber)parse_integer();
 
   expect(Symbol::number);
 
@@ -425,23 +439,6 @@ HappyType Parser::parse_type()
   return ret;
 }
 
-std::string Parser::parse_raw_to_eol()
-{
-  std::string ret;
-  int len = 0;
-
-  for (;; ++len)
-  {
-    char next_char = peek_at(len);
-    if (next_char == '\0' || next_char == '\n' || next_char == '\r')
-      break;
-    ret += next_char;
-  }
-
-  advance(len);
-  return ret;
-}
-
 //
 
 void Parser::expect(Symbol expected)
@@ -473,15 +470,6 @@ void Parser::unexpected(const char * context)
 
 //
 
-void Parser::parse_comment(HappyContainer & node)
-{
-  parse_symbol(Symbol::comment);
-  node.emplace<HappyComment>(parse_raw_to_eol());
-}
-// parse_comment()
-
-//
-
 void Parser::parse_include(HappyContainer & node)
 {
   parse_symbol(Symbol::include_kw);
@@ -502,9 +490,6 @@ void Parser::parse_data(HappyContainer & node)
   {
     switch (symbol)
     {
-    case Symbol::curly_close: break; // Loop will break
-
-    case Symbol::comment: parse_comment(data); break;
     case Symbol::identifier: parse_data_field(data); break;
     default: unexpected("data");
     }
@@ -535,7 +520,6 @@ void Parser::parse_document(HappyRoot & node)
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::comment: parse_comment(node); break;
     case Symbol::include_kw: parse_include(node); break;
     case Symbol::data_kw: parse_data(node); break;
     case Symbol::eof: return;
