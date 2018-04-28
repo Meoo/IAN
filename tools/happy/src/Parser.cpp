@@ -21,8 +21,9 @@ const char curly_close_mark   = '}';
 const char bracket_open_mark  = '[';
 const char bracket_close_mark = ']';
 
-const char alias_keyword[]   = "ALIAS";
+const char namespace_keyword[] = "NAMESPACE";
 const char include_keyword[] = "INCLUDE";
+const char alias_keyword[]   = "ALIAS";
 const char data_keyword[]    = "DATA";
 const char map_keyword[]     = "MAP";
 const char enco_keyword[]    = "ENCO";
@@ -38,8 +39,9 @@ const char * symbol_str(Symbol s)
     SYMBOL(string);
     SYMBOL(integer);
     SYMBOL(number);
-    SYMBOL(alias_kw);
+    SYMBOL(namespace_kw);
     SYMBOL(include_kw);
+    SYMBOL(alias_kw);
     SYMBOL(data_kw);
     SYMBOL(map_kw);
     SYMBOL(enco_kw);
@@ -227,8 +229,9 @@ Symbol Parser::peek_symbol()
 #define KEYWORD(x)                                                                                 \
   if (str == x##_keyword)                                                                          \
   return (next_symbol_ = Symbol::x##_kw)
-    KEYWORD(alias);
+    KEYWORD(namespace);
     KEYWORD(include);
+    KEYWORD(alias);
     KEYWORD(data);
     KEYWORD(map);
     KEYWORD(enco);
@@ -260,8 +263,9 @@ void Parser::parse_symbol(Symbol symbol)
     // Keywords
 #define KEYWORD(x)                                                                                 \
   case Symbol::x##_kw: advance(sizeof(x##_keyword) - 1); break
-    KEYWORD(alias);
+    KEYWORD(namespace);
     KEYWORD(include);
+    KEYWORD(alias);
     KEYWORD(data);
     KEYWORD(map);
     KEYWORD(enco);
@@ -473,7 +477,7 @@ void Parser::unexpected(const char * context)
 void Parser::parse_include(HappyContainer & node)
 {
   parse_symbol(Symbol::include_kw);
-  HappyString include = parse_string();
+  node.emplace<HappyInclude>(parse_string());
 }
 
 //
@@ -513,14 +517,23 @@ void Parser::parse_data_field(HappyData & node)
 
 void Parser::parse_document(HappyRoot & node)
 {
-  Symbol symbol;
+  HappyIdentifier ns; // TODO
 
+  if (peek_symbol() == Symbol::namespace_kw)
+  {
+    parse_symbol(Symbol::namespace_kw);
+    ns = parse_identifier();
+  }
+
+  while (peek_symbol() == Symbol::include_kw)
+    parse_include(node);
+
+  Symbol symbol;
   for (;;)
   {
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::include_kw: parse_include(node); break;
     case Symbol::data_kw: parse_data(node); break;
     case Symbol::eof: return;
     default: unexpected("document");

@@ -41,8 +41,6 @@ enum class HappyNodeType
   data_field,
   map,
   enco,
-
-  comment
 };
 
 
@@ -71,12 +69,11 @@ class HappyContainer : public HappyNode
   {
     auto sptr = std::make_unique<T>(std::forward<Args>(args)...);
     auto ptr  = sptr.get();
-    childs_.emplace_back(std::move(sptr));
+    childs.emplace_back(std::move(sptr));
     return ptr;
   }
 
- private:
-  std::vector<std::unique_ptr<HappyNode>> childs_;
+  std::vector<std::unique_ptr<HappyNode>> childs;
 };
 
 class HappyRoot : public HappyContainer
@@ -94,6 +91,18 @@ class HappyData : public HappyContainer
   }
 
   HappyIdentifier identifier;
+};
+
+
+class HappyInclude : public HappyNode
+{
+ public:
+  HappyInclude(HappyString path)
+      : HappyNode(HappyNodeType::include), path(path)
+  {
+  }
+
+  HappyString path;
 };
 
 

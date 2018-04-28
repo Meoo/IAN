@@ -7,6 +7,7 @@
  */
 
 #include "Ast.hpp"
+#include "AstPrint.hpp"
 #include "Parser.hpp"
 
 #include <cstdio>
@@ -54,6 +55,6 @@ int main()
     return 1;
   }
 
-  std::cout << "OK" << std::endl;
+  std::cout << root;
   return 0;
 }

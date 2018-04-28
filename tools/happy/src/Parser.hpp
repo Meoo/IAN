@@ -47,8 +47,9 @@ enum class Symbol
   number,
 
   // Keywords
-  alias_kw,
+  namespace_kw,
   include_kw,
+  alias_kw,
   data_kw,
   map_kw,
   enco_kw,
