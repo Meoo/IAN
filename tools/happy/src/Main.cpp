@@ -35,7 +35,7 @@ class StdinReader : public StreamReader
 
 int main()
 {
-  HappyRoot root;
+  AstRoot root;
 
   try
   {

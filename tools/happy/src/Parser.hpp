@@ -57,6 +57,7 @@ enum class Symbol
 
   // Symbols
   colon,         // :
+  namespace_sep, // .
   curly_open,    // {
   curly_close,   // }
   bracket_open,  // [
@@ -86,7 +87,7 @@ class Parser
  public:
   Parser() = default;
 
-  void process(StreamReader & reader, HappyRoot & root);
+  void process(StreamReader & reader, AstRoot & root);
 
 
  private:
@@ -109,12 +110,13 @@ class Parser
   Symbol peek_symbol();
   void parse_symbol(Symbol symbol);
 
-  HappyIdentifier parse_identifier();
-  HappyString parse_string();
-  HappyInteger parse_integer();
-  HappyNumber parse_number();
+  AstIdentifier parse_identifier();
+  AstQualifiedIdentifier parse_qualified_identifier();
+  AstString parse_string();
+  AstInteger parse_integer();
+  AstNumber parse_number();
 
-  HappyType parse_type();
+  AstType parse_type();
 
   DocumentPosition current_position() const { return pos_; }
 
@@ -123,11 +125,11 @@ class Parser
   [[noreturn]] void unexpected(const char * context);
 
 
-  void parse_include(HappyContainer & node);
+  void parse_include(AstRoot & node);
 
-  void parse_data(HappyContainer & node);
-  void parse_data_field(HappyData & node);
+  void parse_data(AstRoot & node);
+  void parse_data_field(AstData & node);
 
-  void parse_document(HappyRoot & node);
+  void parse_document(AstRoot & node);
 };
 // class Parser

@@ -16,18 +16,19 @@ namespace
 const char comment_mark = '#';
 
 const char colon_mark         = ':';
+const char namespace_sep_mark = '.';
 const char curly_open_mark    = '{';
 const char curly_close_mark   = '}';
 const char bracket_open_mark  = '[';
 const char bracket_close_mark = ']';
 
 const char namespace_keyword[] = "NAMESPACE";
-const char include_keyword[] = "INCLUDE";
-const char alias_keyword[]   = "ALIAS";
-const char data_keyword[]    = "DATA";
-const char map_keyword[]     = "MAP";
-const char enco_keyword[]    = "ENCO";
-const char for_keyword[]     = "FOR";
+const char include_keyword[]   = "INCLUDE";
+const char alias_keyword[]     = "ALIAS";
+const char data_keyword[]      = "DATA";
+const char map_keyword[]       = "MAP";
+const char enco_keyword[]      = "ENCO";
+const char for_keyword[]       = "FOR";
 
 const char * symbol_str(Symbol s)
 {
@@ -47,6 +48,7 @@ const char * symbol_str(Symbol s)
     SYMBOL(enco_kw);
     SYMBOL(for_kw);
     SYMBOL(colon);
+    SYMBOL(namespace_sep);
     SYMBOL(curly_open);
     SYMBOL(curly_close);
     SYMBOL(bracket_open);
@@ -61,7 +63,7 @@ const char * symbol_str(Symbol s)
 } // namespace
 
 
-void Parser::process(StreamReader & reader, HappyRoot & root)
+void Parser::process(StreamReader & reader, AstRoot & root)
 {
   reader_ = &reader;
   try
@@ -200,6 +202,7 @@ Symbol Parser::peek_symbol()
   if (next_char == x##_mark)                                                                       \
     return (next_symbol_ = Symbol::x);
   SIGN(colon);
+  SIGN(namespace_sep);
   SIGN(curly_open);
   SIGN(curly_close);
   SIGN(bracket_open);
@@ -254,6 +257,7 @@ void Parser::parse_symbol(Symbol symbol)
 #define SIGN(x)                                                                                    \
   case Symbol::x: advance(1); break;
     SIGN(colon);
+    SIGN(namespace_sep);
     SIGN(curly_open);
     SIGN(curly_close);
     SIGN(bracket_open);
@@ -280,11 +284,11 @@ void Parser::parse_symbol(Symbol symbol)
 
 //
 
-HappyIdentifier Parser::parse_identifier()
+AstIdentifier Parser::parse_identifier()
 {
   expect(Symbol::identifier);
 
-  HappyIdentifier ret;
+  AstIdentifier ret;
 
   std::size_t len;
   for (len = 0;; ++len)
@@ -292,7 +296,7 @@ HappyIdentifier Parser::parse_identifier()
     char next_char = peek_at(len);
     if ((next_char >= 'a' && next_char <= 'z') || (next_char >= 'A' && next_char <= 'Z') ||
         (next_char >= '0' && next_char <= '9') || next_char == '_')
-      ret.name += next_char;
+      ret += next_char;
     else
       break;
   }
@@ -301,11 +305,27 @@ HappyIdentifier Parser::parse_identifier()
   return ret;
 }
 
-HappyString Parser::parse_string()
+AstQualifiedIdentifier Parser::parse_qualified_identifier()
+{
+  AstQualifiedIdentifier qual;
+  AstIdentifier tmp = parse_identifier();
+
+  while (peek_symbol() == Symbol::namespace_sep)
+  {
+    parse_symbol(Symbol::namespace_sep);
+    qual.space.emplace_back(tmp);
+    tmp = parse_identifier();
+  }
+
+  qual.name = tmp;
+  return qual;
+}
+
+AstString Parser::parse_string()
 {
   expect(Symbol::string);
 
-  HappyString ret;
+  AstString ret;
 
   int len    = 1;
   char delim = peek_at(0);
@@ -340,11 +360,11 @@ HappyString Parser::parse_string()
   return ret;
 }
 
-HappyInteger Parser::parse_integer()
+AstInteger Parser::parse_integer()
 {
   expect(Symbol::integer);
 
-  HappyInteger ret = 0;
+  AstInteger ret = 0;
 
   int len       = 0;
   bool negative = false;
@@ -374,14 +394,14 @@ HappyInteger Parser::parse_integer()
   return negative ? -ret : ret;
 }
 
-HappyNumber Parser::parse_number()
+AstNumber Parser::parse_number()
 {
   if (peek_symbol() == Symbol::integer)
-    return (HappyNumber)parse_integer();
+    return (AstNumber)parse_integer();
 
   expect(Symbol::number);
 
-  HappyNumber ret = 0;
+  AstNumber ret = 0;
 
   int len       = 0;
   bool negative = false;
@@ -409,7 +429,7 @@ HappyNumber Parser::parse_number()
 
   // Skip dot
   ++len;
-  HappyNumber fract = 0.1;
+  AstNumber fract = 0.1;
 
   for (;; ++len)
   {
@@ -427,10 +447,10 @@ HappyNumber Parser::parse_number()
   return negative ? -ret : ret;
 }
 
-HappyType Parser::parse_type()
+AstType Parser::parse_type()
 {
-  HappyType ret;
-  ret.identifier = parse_identifier();
+  AstType ret;
+  ret.identifier = parse_qualified_identifier();
 
   ret.is_array = peek_symbol() == Symbol::bracket_open;
   if (ret.is_array)
@@ -474,18 +494,19 @@ void Parser::unexpected(const char * context)
 
 //
 
-void Parser::parse_include(HappyContainer & node)
+void Parser::parse_include(AstRoot & node)
 {
   parse_symbol(Symbol::include_kw);
-  node.emplace<HappyInclude>(parse_string());
+  node.includes.emplace_back(std::make_unique<AstInclude>(parse_string()));
 }
 
 //
 
-void Parser::parse_data(HappyContainer & node)
+void Parser::parse_data(AstRoot & node)
 {
   parse_symbol(Symbol::data_kw);
-  auto & data = *node.emplace<HappyData>(parse_identifier());
+  node.data_decls.emplace_back(std::make_unique<AstData>(parse_identifier()));
+  auto & data = *node.data_decls.back();
 
   parse_symbol(Symbol::curly_open);
 
@@ -505,28 +526,26 @@ void Parser::parse_data(HappyContainer & node)
 }
 // parse_data()
 
-void Parser::parse_data_field(HappyData & node)
+void Parser::parse_data_field(AstData & node)
 {
-  HappyIdentifier field_id = parse_identifier();
+  AstIdentifier field_id = parse_identifier();
   parse_symbol(Symbol::colon);
-  HappyType field_type = parse_type();
-  node.emplace<HappyDataField>(field_id, field_type);
+  AstType field_type = parse_type();
+  node.fields.emplace_back(std::make_unique<AstDataField>(field_id, field_type));
 }
 
 //
 
-void Parser::parse_document(HappyRoot & node)
+void Parser::parse_document(AstRoot & node)
 {
-  HappyIdentifier ns; // TODO
+  while (peek_symbol() == Symbol::include_kw)
+    parse_include(node);
 
   if (peek_symbol() == Symbol::namespace_kw)
   {
     parse_symbol(Symbol::namespace_kw);
-    ns = parse_identifier();
+    node.space = parse_qualified_identifier();
   }
-
-  while (peek_symbol() == Symbol::include_kw)
-    parse_include(node);
 
   Symbol symbol;
   for (;;)

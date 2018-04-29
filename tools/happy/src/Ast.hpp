@@ -13,25 +13,28 @@
 #include <vector>
 
 
-struct HappyIdentifier
+using AstIdentifier = std::string;
+
+struct AstQualifiedIdentifier
 {
-  std::string name;
+  std::vector<AstIdentifier> space;
+  AstIdentifier name;
 };
 
-using HappyString  = std::string;
-using HappyInteger = int64_t;
-using HappyNumber  = double;
+using AstString  = std::string;
+using AstInteger = int64_t;
+using AstNumber  = double;
 
-struct HappyType
+struct AstType
 {
-  HappyIdentifier identifier;
+  AstQualifiedIdentifier identifier;
 
   bool is_array;
-  HappyInteger array_size;
+  AstInteger array_size;
 };
 
 
-enum class HappyNodeType
+enum class AstNodeType
 {
   root,
 
@@ -44,76 +47,58 @@ enum class HappyNodeType
 };
 
 
-class HappyNode
+class AstNode
 {
  public:
-  virtual ~HappyNode() = default;
-  HappyNodeType type() const { return type_; }
+  virtual ~AstNode() = default;
+  AstNodeType type() const { return type_; }
 
  protected:
-  HappyNode(HappyNodeType type) : type_(type) {}
+  AstNode(AstNodeType type) : type_(type) {}
 
  private:
-  const HappyNodeType type_;
+  const AstNodeType type_;
 };
 
 
-class HappyContainer : public HappyNode
-{
- protected:
-  HappyContainer(HappyNodeType type) : HappyNode(type) {}
-
- public:
-  template<typename T, typename... Args>
-  T * emplace(Args &&... args)
-  {
-    auto sptr = std::make_unique<T>(std::forward<Args>(args)...);
-    auto ptr  = sptr.get();
-    childs.emplace_back(std::move(sptr));
-    return ptr;
-  }
-
-  std::vector<std::unique_ptr<HappyNode>> childs;
-};
-
-class HappyRoot : public HappyContainer
+class AstDataField : public AstNode
 {
  public:
-  HappyRoot() : HappyContainer(HappyNodeType::root) {}
-};
-
-class HappyData : public HappyContainer
-{
- public:
-  HappyData(HappyIdentifier identifier)
-      : HappyContainer(HappyNodeType::data), identifier(identifier)
+  AstDataField(AstIdentifier identifier, AstType type)
+      : AstNode(AstNodeType::data_field), identifier(identifier), type(type)
   {
   }
 
-  HappyIdentifier identifier;
+  AstIdentifier identifier;
+  AstType type;
+};
+
+class AstData : public AstNode
+{
+ public:
+  AstData(AstIdentifier identifier) : AstNode(AstNodeType::data), identifier(identifier) {}
+
+  AstIdentifier identifier;
+  std::vector<std::unique_ptr<AstDataField>> fields;
 };
 
 
-class HappyInclude : public HappyNode
+class AstInclude : public AstNode
 {
  public:
-  HappyInclude(HappyString path)
-      : HappyNode(HappyNodeType::include), path(path)
-  {
-  }
+  AstInclude(AstString path) : AstNode(AstNodeType::include), path(path) {}
 
-  HappyString path;
+  AstString path;
 };
 
 
-class HappyDataField : public HappyNode
+class AstRoot : public AstNode
 {
  public:
-  HappyDataField(HappyIdentifier identifier, HappyType type)
-      : HappyNode(HappyNodeType::data_field), identifier(identifier), type(type)
-  {
-  }
+  AstRoot() : AstNode(AstNodeType::root) {}
 
-  HappyIdentifier identifier;
-  HappyType type;
+  std::vector<std::unique_ptr<AstInclude>> includes;
+
+  AstQualifiedIdentifier space;
+  std::vector<std::unique_ptr<AstData>> data_decls;
 };

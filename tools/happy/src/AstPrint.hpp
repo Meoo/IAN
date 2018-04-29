@@ -12,14 +12,16 @@
 
 
 template<typename S>
-S & operator <<(S & s, const HappyIdentifier & id)
+S & operator <<(S & s, const AstQualifiedIdentifier & id)
 {
+  for (const auto & space : id.space)
+    s << space << '.';
   s << id.name;
   return s;
 }
 
 template<typename S>
-S & operator <<(S & s, const HappyType & type)
+S & operator <<(S & s, const AstType & type)
 {
   s << type.identifier;
   if (type.is_array)
@@ -29,47 +31,53 @@ S & operator <<(S & s, const HappyType & type)
 
 
 template<typename S>
-S & operator <<(S & s, const HappyRoot & root)
+S & operator <<(S & s, const AstRoot & root)
 {
-  for (const auto & node : root.childs)
+  for (const auto & node : root.includes)
+    s << *node << '\n';
+
+  if (!root.space.name.empty())
+    s << "NAMESPACE " << root.space << '\n';
+  for (const auto & node : root.data_decls)
     s << *node << '\n';
   return s;
 }
 
 template<typename S>
-S & operator <<(S & s, const HappyInclude & inc)
+S & operator <<(S & s, const AstInclude & inc)
 {
   s << "INCLUDE '" << inc.path << "'";
   return s;
 }
 
 template<typename S>
-S & operator <<(S & s, const HappyData & data)
+S & operator <<(S & s, const AstData & data)
 {
   s << "DATA " << data.identifier << "\n{\n";
-  for (const auto & node : data.childs)
+  for (const auto & node : data.fields)
     s << ' ' << *node << '\n';
   return s << '}';
 }
 
 template<typename S>
-S & operator <<(S & s, const HappyDataField & field)
+S & operator <<(S & s, const AstDataField & field)
 {
   s << field.identifier << ": " << field.type;
   return s;
 }
 
-
+/*
 // Dispatcher
 template<typename S>
-S & operator <<(S & s, const HappyNode & node)
+S & operator <<(S & s, const AstNode & node)
 {
   switch(node.type())
   {
-    case HappyNodeType::data: return s << static_cast<const HappyData&>(node);
-    case HappyNodeType::data_field: return s << static_cast<const HappyDataField&>(node);
-    case HappyNodeType::include: return s << static_cast<const HappyInclude&>(node);
+    case AstNodeType::data: return s << static_cast<const AstData&>(node);
+    case AstNodeType::data_field: return s << static_cast<const AstDataField&>(node);
+    case AstNodeType::include: return s << static_cast<const AstInclude&>(node);
     default: break;
   }
   return s << "???";
 }
+*/
