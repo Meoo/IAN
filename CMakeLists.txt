@@ -2,12 +2,19 @@
 cmake_minimum_required(VERSION 3.7)
 
 
-include(cmake/HunterGate.cmake)
-HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.19.224.tar.gz"
-  SHA1 "ac20d7c592855e38bdc901b1d0e43e7cd01f5470"
-  LOCAL
-)
+set(IAN_HUNTER OFF CACHE BOOL "Use hunter package manager")
+
+if(IAN_HUNTER)
+  include(cmake/HunterGate.cmake)
+  HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.20.62.tar.gz"
+    SHA1 "10ffae63cf7b07193d6d7b459c1d0cfa242fad5b"
+    LOCAL
+  )
+else()
+  macro(hunter_add_package)
+  endmacro()
+endif()
 
 
 project(IAN)

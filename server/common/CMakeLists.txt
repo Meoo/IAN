@@ -2,13 +2,18 @@
 project(server-common)
 
 hunter_add_package(spdlog)
-find_package(spdlog CONFIG REQUIRED)
+find_package(spdlog REQUIRED)
 
-hunter_add_package(Boost COMPONENTS system)
-find_package(Boost CONFIG REQUIRED system)
+hunter_add_package(Boost COMPONENTS system date_time)
+find_package(Boost REQUIRED COMPONENTS system date_time)
 
 hunter_add_package(OpenSSL)
 find_package(OpenSSL REQUIRED)
+
+# TODO: Workaround for vcpkg
+if(VCPKG_TOOLCHAIN)
+  find_package(fmt REQUIRED)
+endif()
 
 set(SOURCE_CONFIG
   include/common/config/Config.hpp
@@ -56,8 +61,13 @@ add_library(${PROJECT_NAME} STATIC
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-cluster-protocol
   spdlog::spdlog
-  Boost::system
+  Boost::boost Boost::system Boost::date_time
   OpenSSL::SSL OpenSSL::Crypto)
+
+# TODO: Workaround for vcpkg
+if(VCPKG_TOOLCHAIN)
+  target_link_libraries(${PROJECT_NAME} PUBLIC fmt::fmt)
+endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 

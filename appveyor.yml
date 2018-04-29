@@ -57,4 +57,4 @@ install:
 
 build_script:
   # --verbose --test
-  - cmd: python %POLLY_ROOT%\bin\build.py --toolchain "%TOOLCHAIN%" --config "%CONFIG%"
+  - cmd: python %POLLY_ROOT%\bin\build.py --toolchain "%TOOLCHAIN%" --config "%CONFIG%" --fwd IAN_HUNTER=ON

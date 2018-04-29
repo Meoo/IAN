@@ -106,3 +106,4 @@ script:
     build.py
     --toolchain ${TOOLCHAIN}
     --config ${CONFIG}
+    --fwd IAN_HUNTER=ON
