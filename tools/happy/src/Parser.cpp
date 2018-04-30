@@ -486,19 +486,18 @@ void Parser::unexpected(const char * context)
 
 //
 
-void Parser::parse_include(AstRoot & node)
+std::unique_ptr<AstInclude> Parser::parse_include()
 {
   parse_symbol(Symbol::include_kw);
-  node.includes.emplace_back(std::make_unique<AstInclude>(parse_string()));
+  return std::make_unique<AstInclude>(parse_string());
 }
 
 //
 
-void Parser::parse_struct(AstRoot & node)
+std::unique_ptr<AstStruct> Parser::parse_struct()
 {
   parse_symbol(Symbol::struct_kw);
-  node.data_decls.emplace_back(std::make_unique<AstStruct>(parse_identifier()));
-  auto & data = *node.data_decls.back();
+  auto node = std::make_unique<AstStruct>(parse_identifier());
 
   parse_symbol(Symbol::curly_open);
 
@@ -507,7 +506,7 @@ void Parser::parse_struct(AstRoot & node)
   {
     switch (symbol)
     {
-    case Symbol::identifier: parse_struct_field(data); break;
+    case Symbol::identifier: node->fields.emplace_back(parse_struct_field()); break;
     default: unexpected("data");
     }
 
@@ -515,15 +514,16 @@ void Parser::parse_struct(AstRoot & node)
   }
 
   parse_symbol(Symbol::curly_close);
+  return node;
 }
 // parse_struct()
 
-void Parser::parse_struct_field(AstStruct & node)
+std::unique_ptr<AstStructField> Parser::parse_struct_field()
 {
   AstIdentifier field_id = parse_identifier();
   parse_symbol(Symbol::colon);
   AstType field_type = parse_type();
-  node.fields.emplace_back(std::make_unique<AstStructField>(field_id, field_type));
+  return std::make_unique<AstStructField>(field_id, field_type);
 }
 
 //
@@ -531,7 +531,7 @@ void Parser::parse_struct_field(AstStruct & node)
 void Parser::parse_document(AstRoot & node)
 {
   while (peek_symbol() == Symbol::include_kw)
-    parse_include(node);
+    node.includes.emplace_back(parse_include());
 
   if (peek_symbol() == Symbol::namespace_kw)
   {
@@ -545,7 +545,7 @@ void Parser::parse_document(AstRoot & node)
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::struct_kw: parse_struct(node); break;
+    case Symbol::struct_kw: node.data_decls.emplace_back(parse_struct()); break;
     case Symbol::eof: return;
     default: unexpected("document");
     }

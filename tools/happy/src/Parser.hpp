@@ -123,10 +123,10 @@ class Parser
   [[noreturn]] void unexpected(const char * context);
 
 
-  void parse_include(AstRoot & node);
+  std::unique_ptr<AstInclude> parse_include();
 
-  void parse_struct(AstRoot & node);
-  void parse_struct_field(AstStruct & node);
+  std::unique_ptr<AstStruct> parse_struct();
+  std::unique_ptr<AstStructField> parse_struct_field();
 
   void parse_document(AstRoot & node);
 };
