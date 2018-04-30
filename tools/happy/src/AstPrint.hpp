@@ -51,7 +51,7 @@ S & operator <<(S & s, const AstInclude & inc)
 }
 
 template<typename S>
-S & operator <<(S & s, const AstData & data)
+S & operator <<(S & s, const AstStruct & data)
 {
   s << "DATA " << data.identifier << "\n{\n";
   for (const auto & node : data.fields)
@@ -60,7 +60,7 @@ S & operator <<(S & s, const AstData & data)
 }
 
 template<typename S>
-S & operator <<(S & s, const AstDataField & field)
+S & operator <<(S & s, const AstStructField & field)
 {
   s << field.identifier << ": " << field.type;
   return s;
@@ -73,8 +73,8 @@ S & operator <<(S & s, const AstNode & node)
 {
   switch(node.type())
   {
-    case AstNodeType::data: return s << static_cast<const AstData&>(node);
-    case AstNodeType::data_field: return s << static_cast<const AstDataField&>(node);
+    case AstNodeType::data: return s << static_cast<const AstStruct&>(node);
+    case AstNodeType::data_field: return s << static_cast<const AstStructField&>(node);
     case AstNodeType::include: return s << static_cast<const AstInclude&>(node);
     default: break;
   }

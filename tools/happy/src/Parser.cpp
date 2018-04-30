@@ -24,11 +24,9 @@ const char bracket_close_mark = ']';
 
 const char namespace_keyword[] = "NAMESPACE";
 const char include_keyword[]   = "INCLUDE";
-const char alias_keyword[]     = "ALIAS";
-const char data_keyword[]      = "DATA";
+const char struct_keyword[]    = "STRUCT";
 const char map_keyword[]       = "MAP";
 const char enco_keyword[]      = "ENCO";
-const char for_keyword[]       = "FOR";
 
 const char * symbol_str(Symbol s)
 {
@@ -42,11 +40,9 @@ const char * symbol_str(Symbol s)
     SYMBOL(number);
     SYMBOL(namespace_kw);
     SYMBOL(include_kw);
-    SYMBOL(alias_kw);
-    SYMBOL(data_kw);
+    SYMBOL(struct_kw);
     SYMBOL(map_kw);
     SYMBOL(enco_kw);
-    SYMBOL(for_kw);
     SYMBOL(colon);
     SYMBOL(namespace_sep);
     SYMBOL(curly_open);
@@ -234,11 +230,9 @@ Symbol Parser::peek_symbol()
   return (next_symbol_ = Symbol::x##_kw)
     KEYWORD(namespace);
     KEYWORD(include);
-    KEYWORD(alias);
-    KEYWORD(data);
+    KEYWORD(struct);
     KEYWORD(map);
     KEYWORD(enco);
-    KEYWORD(for);
 #undef KEYWORD
 
     return (next_symbol_ = Symbol::identifier);
@@ -269,11 +263,9 @@ void Parser::parse_symbol(Symbol symbol)
   case Symbol::x##_kw: advance(sizeof(x##_keyword) - 1); break
     KEYWORD(namespace);
     KEYWORD(include);
-    KEYWORD(alias);
-    KEYWORD(data);
+    KEYWORD(struct);
     KEYWORD(map);
     KEYWORD(enco);
-    KEYWORD(for);
 #undef KEYWORD
 
   default: throw std::logic_error("Invalid parse_symbol usage");
@@ -502,10 +494,10 @@ void Parser::parse_include(AstRoot & node)
 
 //
 
-void Parser::parse_data(AstRoot & node)
+void Parser::parse_struct(AstRoot & node)
 {
-  parse_symbol(Symbol::data_kw);
-  node.data_decls.emplace_back(std::make_unique<AstData>(parse_identifier()));
+  parse_symbol(Symbol::struct_kw);
+  node.data_decls.emplace_back(std::make_unique<AstStruct>(parse_identifier()));
   auto & data = *node.data_decls.back();
 
   parse_symbol(Symbol::curly_open);
@@ -515,7 +507,7 @@ void Parser::parse_data(AstRoot & node)
   {
     switch (symbol)
     {
-    case Symbol::identifier: parse_data_field(data); break;
+    case Symbol::identifier: parse_struct_field(data); break;
     default: unexpected("data");
     }
 
@@ -524,14 +516,14 @@ void Parser::parse_data(AstRoot & node)
 
   parse_symbol(Symbol::curly_close);
 }
-// parse_data()
+// parse_struct()
 
-void Parser::parse_data_field(AstData & node)
+void Parser::parse_struct_field(AstStruct & node)
 {
   AstIdentifier field_id = parse_identifier();
   parse_symbol(Symbol::colon);
   AstType field_type = parse_type();
-  node.fields.emplace_back(std::make_unique<AstDataField>(field_id, field_type));
+  node.fields.emplace_back(std::make_unique<AstStructField>(field_id, field_type));
 }
 
 //
@@ -553,7 +545,7 @@ void Parser::parse_document(AstRoot & node)
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::data_kw: parse_data(node); break;
+    case Symbol::struct_kw: parse_struct(node); break;
     case Symbol::eof: return;
     default: unexpected("document");
     }

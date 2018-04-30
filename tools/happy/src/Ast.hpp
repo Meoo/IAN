@@ -39,9 +39,8 @@ enum class AstNodeType
   root,
 
   include,
-  alias,
-  data,
-  data_field,
+  struct_decl,
+  struct_field,
   map,
   enco,
 };
@@ -61,11 +60,11 @@ class AstNode
 };
 
 
-class AstDataField : public AstNode
+class AstStructField : public AstNode
 {
  public:
-  AstDataField(AstIdentifier identifier, AstType type)
-      : AstNode(AstNodeType::data_field), identifier(identifier), type(type)
+  AstStructField(AstIdentifier identifier, AstType type)
+      : AstNode(AstNodeType::struct_field), identifier(identifier), type(type)
   {
   }
 
@@ -73,13 +72,13 @@ class AstDataField : public AstNode
   AstType type;
 };
 
-class AstData : public AstNode
+class AstStruct : public AstNode
 {
  public:
-  AstData(AstIdentifier identifier) : AstNode(AstNodeType::data), identifier(identifier) {}
+  AstStruct(AstIdentifier identifier) : AstNode(AstNodeType::struct_decl), identifier(identifier) {}
 
   AstIdentifier identifier;
-  std::vector<std::unique_ptr<AstDataField>> fields;
+  std::vector<std::unique_ptr<AstStructField>> fields;
 };
 
 
@@ -100,5 +99,5 @@ class AstRoot : public AstNode
   std::vector<std::unique_ptr<AstInclude>> includes;
 
   AstQualifiedIdentifier space;
-  std::vector<std::unique_ptr<AstData>> data_decls;
+  std::vector<std::unique_ptr<AstStruct>> data_decls;
 };

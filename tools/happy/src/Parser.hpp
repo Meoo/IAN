@@ -49,11 +49,9 @@ enum class Symbol
   // Keywords
   namespace_kw,
   include_kw,
-  alias_kw,
-  data_kw,
+  struct_kw,
   map_kw,
   enco_kw,
-  for_kw,
 
   // Symbols
   colon,         // :
@@ -127,8 +125,8 @@ class Parser
 
   void parse_include(AstRoot & node);
 
-  void parse_data(AstRoot & node);
-  void parse_data_field(AstData & node);
+  void parse_struct(AstRoot & node);
+  void parse_struct_field(AstStruct & node);
 
   void parse_document(AstRoot & node);
 };
