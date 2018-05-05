@@ -1,6 +1,9 @@
 
 project(server-common)
 
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
 hunter_add_package(spdlog)
 find_package(spdlog REQUIRED)
 
@@ -60,6 +63,7 @@ add_library(${PROJECT_NAME} STATIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   server-cluster-protocol
+  Threads::Threads
   spdlog::spdlog
   Boost::boost Boost::system Boost::date_time
   OpenSSL::SSL OpenSSL::Crypto)
