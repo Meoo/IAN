@@ -35,13 +35,13 @@ class StdinReader : public StreamReader
 
 int main()
 {
-  AstRoot root;
+  std::unique_ptr<AstRoot> root;
 
   try
   {
     Parser parser;
     StdinReader reader;
-    parser.process(reader, root);
+    root = parser.process(reader);
   }
   catch (ParseException & e)
   {
@@ -55,6 +55,6 @@ int main()
     return 1;
   }
 
-  std::cout << root;
+  std::cout << *root;
   return 0;
 }

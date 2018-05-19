@@ -85,7 +85,7 @@ class Parser
  public:
   Parser() = default;
 
-  void process(StreamReader & reader, AstRoot & root);
+  std::unique_ptr<AstRoot> process(StreamReader & reader);
 
 
  private:
@@ -128,6 +128,6 @@ class Parser
   std::unique_ptr<AstStruct> parse_struct();
   std::unique_ptr<AstStructField> parse_struct_field();
 
-  void parse_document(AstRoot & node);
+  std::unique_ptr<AstRoot> parse_document();
 };
 // class Parser

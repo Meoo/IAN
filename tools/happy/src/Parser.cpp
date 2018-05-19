@@ -59,12 +59,13 @@ const char * symbol_str(Symbol s)
 } // namespace
 
 
-void Parser::process(StreamReader & reader, AstRoot & root)
+std::unique_ptr<AstRoot> Parser::process(StreamReader & reader)
 {
+  std::unique_ptr<AstRoot> node;
   reader_ = &reader;
   try
   {
-    parse_document(root);
+    node = parse_document();
   }
   catch (...)
   {
@@ -72,6 +73,7 @@ void Parser::process(StreamReader & reader, AstRoot & root)
     throw;
   }
   reader_ = nullptr;
+  return node;
 }
 
 //
@@ -528,15 +530,17 @@ std::unique_ptr<AstStructField> Parser::parse_struct_field()
 
 //
 
-void Parser::parse_document(AstRoot & node)
+std::unique_ptr<AstRoot> Parser::parse_document()
 {
+  auto node = std::make_unique<AstRoot>();
+
   while (peek_symbol() == Symbol::include_kw)
-    node.includes.emplace_back(parse_include());
+    node->includes.emplace_back(parse_include());
 
   if (peek_symbol() == Symbol::namespace_kw)
   {
     parse_symbol(Symbol::namespace_kw);
-    node.space = parse_qualified_identifier();
+    node->space = parse_qualified_identifier();
   }
 
   Symbol symbol;
@@ -545,8 +549,8 @@ void Parser::parse_document(AstRoot & node)
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::struct_kw: node.data_decls.emplace_back(parse_struct()); break;
-    case Symbol::eof: return;
+    case Symbol::struct_kw: node->data_decls.emplace_back(parse_struct()); break;
+    case Symbol::eof: return node;
     default: unexpected("document");
     }
   }
