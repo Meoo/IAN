@@ -25,8 +25,8 @@ const char bracket_close_mark = ']';
 const char namespace_keyword[] = "NAMESPACE";
 const char include_keyword[]   = "INCLUDE";
 const char struct_keyword[]    = "STRUCT";
-const char map_keyword[]       = "MAP";
-const char enco_keyword[]      = "ENCO";
+const char map_keyword[]       = "MAPPING";
+const char enco_keyword[]      = "ENCODING";
 
 const char * symbol_str(Symbol s)
 {
@@ -55,6 +55,8 @@ const char * symbol_str(Symbol s)
   default: return "???";
   }
 }
+
+const AstIdentifier DEFAULT_ENCODING = "DEFAULT";
 
 } // namespace
 
@@ -530,6 +532,67 @@ std::unique_ptr<AstStructField> Parser::parse_struct_field()
 
 //
 
+std::unique_ptr<AstMapping> Parser::parse_mapping()
+{
+  parse_symbol(Symbol::map_kw);
+  AstIdentifier struct_id = parse_identifier();
+  parse_symbol(Symbol::colon);
+  AstQualifiedIdentifier map_category = parse_qualified_identifier();
+
+  auto node = std::make_unique<AstMapping>(struct_id, map_category);
+
+  parse_symbol(Symbol::curly_open);
+
+  Symbol symbol = peek_symbol();
+  while (symbol != Symbol::curly_close)
+  {
+    switch (symbol)
+    {
+    default: unexpected("mapping");
+    }
+
+    symbol = peek_symbol();
+  }
+
+  return node;
+}
+
+//
+
+std::unique_ptr<AstEncoding> Parser::parse_encoding()
+{
+  parse_symbol(Symbol::enco_kw);
+
+  AstIdentifier struct_id = parse_identifier();
+  AstIdentifier enco_id;
+  if (peek_symbol() == Symbol::colon)
+  {
+    parse_symbol(Symbol::colon);
+    enco_id = parse_identifier();
+  }
+  else
+    enco_id = DEFAULT_ENCODING;
+
+  auto node = std::make_unique<AstEncoding>(struct_id, enco_id);
+
+  parse_symbol(Symbol::curly_open);
+
+  Symbol symbol = peek_symbol();
+  while (symbol != Symbol::curly_close)
+  {
+    switch (symbol)
+    {
+    default: unexpected("encoding");
+    }
+
+    symbol = peek_symbol();
+  }
+
+  return node;
+}
+
+//
+
 std::unique_ptr<AstRoot> Parser::parse_document()
 {
   auto node = std::make_unique<AstRoot>();
@@ -549,7 +612,10 @@ std::unique_ptr<AstRoot> Parser::parse_document()
     symbol = peek_symbol();
     switch (symbol)
     {
-    case Symbol::struct_kw: node->data_decls.emplace_back(parse_struct()); break;
+
+    case Symbol::struct_kw: node->struct_decls.emplace_back(parse_struct()); break;
+    case Symbol::map_kw: node->map_decls.emplace_back(parse_mapping()); break;
+    case Symbol::enco_kw: node->enco_decls.emplace_back(parse_encoding()); break;
     case Symbol::eof: return node;
     default: unexpected("document");
     }

@@ -38,7 +38,7 @@ S & operator <<(S & s, const AstRoot & root)
 
   if (!root.space.name.empty())
     s << "NAMESPACE " << root.space << '\n';
-  for (const auto & node : root.data_decls)
+  for (const auto & node : root.struct_decls)
     s << *node << '\n';
   return s;
 }

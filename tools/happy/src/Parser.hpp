@@ -128,6 +128,10 @@ class Parser
   std::unique_ptr<AstStruct> parse_struct();
   std::unique_ptr<AstStructField> parse_struct_field();
 
+  std::unique_ptr<AstMapping> parse_mapping();
+
+  std::unique_ptr<AstEncoding> parse_encoding();
+
   std::unique_ptr<AstRoot> parse_document();
 };
 // class Parser

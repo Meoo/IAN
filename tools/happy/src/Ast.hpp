@@ -82,6 +82,32 @@ class AstStruct : public AstNode
 };
 
 
+class AstMapping : public AstNode
+{
+ public:
+  AstMapping(AstIdentifier struct_id, AstQualifiedIdentifier map_category)
+      : AstNode(AstNodeType::map), struct_id(struct_id), map_category(map_category)
+  {
+  }
+
+  AstIdentifier struct_id;
+  AstQualifiedIdentifier map_category;
+};
+
+
+class AstEncoding : public AstNode
+{
+ public:
+  AstEncoding(AstIdentifier struct_id, AstIdentifier enco_id)
+      : AstNode(AstNodeType::enco), struct_id(struct_id), enco_id(enco_id)
+  {
+  }
+
+  AstIdentifier struct_id;
+  AstIdentifier enco_id;
+};
+
+
 class AstInclude : public AstNode
 {
  public:
@@ -99,5 +125,7 @@ class AstRoot : public AstNode
   std::vector<std::unique_ptr<AstInclude>> includes;
 
   AstQualifiedIdentifier space;
-  std::vector<std::unique_ptr<AstStruct>> data_decls;
+  std::vector<std::unique_ptr<AstStruct>> struct_decls;
+  std::vector<std::unique_ptr<AstMapping>> map_decls;
+  std::vector<std::unique_ptr<AstEncoding>> enco_decls;
 };
