@@ -61,21 +61,10 @@ const AstIdentifier DEFAULT_ENCODING = "DEFAULT";
 } // namespace
 
 
-std::unique_ptr<AstRoot> Parser::process(StreamReader & reader)
+std::unique_ptr<AstRoot> Parser::parse(const std::string & filename, StreamReader & reader)
 {
-  std::unique_ptr<AstRoot> node;
-  reader_ = &reader;
-  try
-  {
-    node = parse_document();
-  }
-  catch (...)
-  {
-    reader_ = nullptr;
-    throw;
-  }
-  reader_ = nullptr;
-  return node;
+  Parser p(filename, reader);
+  return p.parse_document();
 }
 
 //
@@ -492,16 +481,23 @@ void Parser::unexpected(const char * context)
 
 std::unique_ptr<AstInclude> Parser::parse_include()
 {
+  DocumentPosition node_pos = current_position();
+
   parse_symbol(Symbol::include_kw);
-  return std::make_unique<AstInclude>(parse_string());
+  auto node = std::make_unique<AstInclude>(parse_string());
+  node->origin = node_pos;
+  return node;
 }
 
 //
 
 std::unique_ptr<AstStruct> Parser::parse_struct()
 {
+  DocumentPosition node_pos = current_position();
+
   parse_symbol(Symbol::struct_kw);
   auto node = std::make_unique<AstStruct>(parse_identifier());
+  node->origin = node_pos;
 
   parse_symbol(Symbol::curly_open);
 
@@ -524,22 +520,29 @@ std::unique_ptr<AstStruct> Parser::parse_struct()
 
 std::unique_ptr<AstStructField> Parser::parse_struct_field()
 {
+  DocumentPosition node_pos = current_position();
+
   AstIdentifier field_id = parse_identifier();
   parse_symbol(Symbol::colon);
   AstType field_type = parse_type();
-  return std::make_unique<AstStructField>(field_id, field_type);
+  auto node = std::make_unique<AstStructField>(field_id, field_type);
+  node->origin = node_pos;
+  return node;
 }
 
 //
 
 std::unique_ptr<AstMapping> Parser::parse_mapping()
 {
+  DocumentPosition node_pos = current_position();
+
   parse_symbol(Symbol::map_kw);
   AstIdentifier struct_id = parse_identifier();
   parse_symbol(Symbol::colon);
   AstQualifiedIdentifier map_category = parse_qualified_identifier();
 
   auto node = std::make_unique<AstMapping>(struct_id, map_category);
+  node->origin = node_pos;
 
   parse_symbol(Symbol::curly_open);
 
@@ -561,6 +564,8 @@ std::unique_ptr<AstMapping> Parser::parse_mapping()
 
 std::unique_ptr<AstEncoding> Parser::parse_encoding()
 {
+  DocumentPosition node_pos = current_position();
+
   parse_symbol(Symbol::enco_kw);
 
   AstIdentifier struct_id = parse_identifier();
@@ -574,6 +579,7 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
     enco_id = DEFAULT_ENCODING;
 
   auto node = std::make_unique<AstEncoding>(struct_id, enco_id);
+  node->origin = node_pos;
 
   parse_symbol(Symbol::curly_open);
 
@@ -595,7 +601,10 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
 
 std::unique_ptr<AstRoot> Parser::parse_document()
 {
+  DocumentPosition node_pos = current_position();
+
   auto node = std::make_unique<AstRoot>();
+  node->origin = node_pos;
 
   while (peek_symbol() == Symbol::include_kw)
     node->includes.emplace_back(parse_include());

@@ -15,13 +15,6 @@
 #include <string>
 
 
-struct DocumentPosition
-{
-  int line;
-  int column;
-};
-
-
 class ParseException final : public std::exception
 {
  public:
@@ -83,14 +76,14 @@ class StreamReader
 class Parser
 {
  public:
-  Parser() = default;
-
-  std::unique_ptr<AstRoot> process(StreamReader & reader);
+  static std::unique_ptr<AstRoot> parse(const std::string & filename, StreamReader & reader);
 
 
  private:
+  Parser(std::string filename, StreamReader & reader) : reader_(&reader), pos_{filename, 1, 0} {}
+
   StreamReader * reader_ = nullptr;
-  DocumentPosition pos_{1, 0};
+  DocumentPosition pos_;
 
   std::vector<char> buffer_;
   std::vector<char> tmp_buffer_;

@@ -13,6 +13,14 @@
 #include <vector>
 
 
+struct DocumentPosition
+{
+  std::string file;
+  int line;
+  int column;
+};
+
+
 using AstIdentifier = std::string;
 
 struct AstQualifiedIdentifier
@@ -54,6 +62,9 @@ class AstNode
 
  protected:
   AstNode(AstNodeType type) : type_(type) {}
+
+public:
+  DocumentPosition origin;
 
  private:
   const AstNodeType type_;

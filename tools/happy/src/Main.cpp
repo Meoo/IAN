@@ -39,19 +39,18 @@ int main()
 
   try
   {
-    Parser parser;
     StdinReader reader;
-    root = parser.process(reader);
+    root = Parser::parse("<stdin>", reader);
   }
   catch (ParseException & e)
   {
-    std::cerr << "<stdin>:" << e.position().line << ":" << e.position().column << ": " << e.what()
+    std::cerr << e.position().file << ":" << e.position().line << ":" << e.position().column << ": " << e.what()
               << std::endl;
     return 1;
   }
   catch (std::exception & e)
   {
-    std::cerr << "<stdin>: " << e.what() << std::endl;
+    std::cerr << e.what() << std::endl;
     return 1;
   }
 
