@@ -42,32 +42,16 @@ struct AstType
 };
 
 
-enum class AstNodeType
-{
-  root,
-
-  include,
-  struct_decl,
-  struct_field,
-  map,
-  enco,
-};
-
-
 class AstNode
 {
- public:
+public:
   virtual ~AstNode() = default;
-  AstNodeType type() const { return type_; }
 
- protected:
-  AstNode(AstNodeType type) : type_(type) {}
+protected:
+  AstNode() = default;
 
 public:
   DocumentPosition origin;
-
- private:
-  const AstNodeType type_;
 };
 
 
@@ -75,7 +59,7 @@ class AstStructField : public AstNode
 {
  public:
   AstStructField(AstIdentifier identifier, AstType type)
-      : AstNode(AstNodeType::struct_field), identifier(identifier), type(type)
+      : identifier(identifier), type(type)
   {
   }
 
@@ -86,43 +70,79 @@ class AstStructField : public AstNode
 class AstStruct : public AstNode
 {
  public:
-  AstStruct(AstIdentifier identifier) : AstNode(AstNodeType::struct_decl), identifier(identifier) {}
+  AstStruct(AstIdentifier identifier) : identifier(identifier) {}
 
   AstIdentifier identifier;
   std::vector<std::unique_ptr<AstStructField>> fields;
 };
 
 
+class AstMappingField : public AstNode
+{
+public:
+  AstMappingField(AstIdentifier identifier, AstString mapping_decl)
+    : identifier(identifier), mapping_decl(mapping_decl)
+  {
+  }
+
+  AstIdentifier identifier;
+  AstString mapping_decl;
+};
+
 class AstMapping : public AstNode
 {
  public:
   AstMapping(AstIdentifier struct_id, AstQualifiedIdentifier map_category)
-      : AstNode(AstNodeType::map), struct_id(struct_id), map_category(map_category)
+      : struct_id(struct_id), map_category(map_category)
   {
   }
 
   AstIdentifier struct_id;
   AstQualifiedIdentifier map_category;
+  std::vector<std::unique_ptr<AstMappingField>> fields;
 };
 
+
+class AstEncodingNode : public AstNode
+{
+};
+
+class AstEncodingField : public AstEncodingNode
+{
+public:
+  AstEncodingField(AstIdentifier identifier, AstIdentifier encoding)
+    : identifier(identifier), encoding(encoding)
+  {
+  }
+
+  AstIdentifier identifier;
+  AstIdentifier encoding;
+};
+
+class AstEncodingDeltaBlock : public AstEncodingNode
+{
+public:
+  std::vector<std::unique_ptr<AstEncodingNode>> fields;
+};
 
 class AstEncoding : public AstNode
 {
  public:
   AstEncoding(AstIdentifier struct_id, AstIdentifier enco_id)
-      : AstNode(AstNodeType::enco), struct_id(struct_id), enco_id(enco_id)
+      : struct_id(struct_id), enco_id(enco_id)
   {
   }
 
   AstIdentifier struct_id;
   AstIdentifier enco_id;
+  std::vector<std::unique_ptr<AstEncodingNode>> fields;
 };
 
 
 class AstInclude : public AstNode
 {
  public:
-  AstInclude(AstString path) : AstNode(AstNodeType::include), path(path) {}
+  AstInclude(AstString path) : path(path) {}
 
   AstString path;
 };
@@ -131,7 +151,7 @@ class AstInclude : public AstNode
 class AstRoot : public AstNode
 {
  public:
-  AstRoot() : AstNode(AstNodeType::root) {}
+  AstRoot() {}
 
   std::vector<std::unique_ptr<AstInclude>> includes;
 

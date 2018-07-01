@@ -65,19 +65,3 @@ S & operator <<(S & s, const AstStructField & field)
   s << field.identifier << ": " << field.type;
   return s;
 }
-
-/*
-// Dispatcher
-template<typename S>
-S & operator <<(S & s, const AstNode & node)
-{
-  switch(node.type())
-  {
-    case AstNodeType::data: return s << static_cast<const AstStruct&>(node);
-    case AstNodeType::data_field: return s << static_cast<const AstStructField&>(node);
-    case AstNodeType::include: return s << static_cast<const AstInclude&>(node);
-    default: break;
-  }
-  return s << "???";
-}
-*/

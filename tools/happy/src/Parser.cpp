@@ -25,8 +25,9 @@ const char bracket_close_mark = ']';
 const char namespace_keyword[] = "NAMESPACE";
 const char include_keyword[]   = "INCLUDE";
 const char struct_keyword[]    = "STRUCT";
-const char map_keyword[]       = "MAPPING";
-const char enco_keyword[]      = "ENCODING";
+const char mapping_keyword[]   = "MAPPING";
+const char encoding_keyword[]  = "ENCODING";
+const char delta_keyword[]     = "DELTA";
 
 const char * symbol_str(Symbol s)
 {
@@ -41,8 +42,9 @@ const char * symbol_str(Symbol s)
     SYMBOL(namespace_kw);
     SYMBOL(include_kw);
     SYMBOL(struct_kw);
-    SYMBOL(map_kw);
-    SYMBOL(enco_kw);
+    SYMBOL(mapping_kw);
+    SYMBOL(encoding_kw);
+    SYMBOL(delta_kw);
     SYMBOL(colon);
     SYMBOL(namespace_sep);
     SYMBOL(curly_open);
@@ -224,8 +226,9 @@ Symbol Parser::peek_symbol()
     KEYWORD(namespace);
     KEYWORD(include);
     KEYWORD(struct);
-    KEYWORD(map);
-    KEYWORD(enco);
+    KEYWORD(mapping);
+    KEYWORD(encoding);
+    KEYWORD(delta);
 #undef KEYWORD
 
     return (next_symbol_ = Symbol::identifier);
@@ -257,8 +260,9 @@ void Parser::parse_symbol(Symbol symbol)
     KEYWORD(namespace);
     KEYWORD(include);
     KEYWORD(struct);
-    KEYWORD(map);
-    KEYWORD(enco);
+    KEYWORD(mapping);
+    KEYWORD(encoding);
+    KEYWORD(delta);
 #undef KEYWORD
 
   default: throw std::logic_error("Invalid parse_symbol usage");
@@ -501,17 +505,8 @@ std::unique_ptr<AstStruct> Parser::parse_struct()
 
   parse_symbol(Symbol::curly_open);
 
-  Symbol symbol = peek_symbol();
-  while (symbol != Symbol::curly_close)
-  {
-    switch (symbol)
-    {
-    case Symbol::identifier: node->fields.emplace_back(parse_struct_field()); break;
-    default: unexpected("data");
-    }
-
-    symbol = peek_symbol();
-  }
+  while (peek_symbol() != Symbol::curly_close)
+    node->fields.emplace_back(parse_struct_field());
 
   parse_symbol(Symbol::curly_close);
   return node;
@@ -536,7 +531,7 @@ std::unique_ptr<AstMapping> Parser::parse_mapping()
 {
   DocumentPosition node_pos = current_position();
 
-  parse_symbol(Symbol::map_kw);
+  parse_symbol(Symbol::mapping_kw);
   AstIdentifier struct_id = parse_identifier();
   parse_symbol(Symbol::colon);
   AstQualifiedIdentifier map_category = parse_qualified_identifier();
@@ -546,18 +541,23 @@ std::unique_ptr<AstMapping> Parser::parse_mapping()
 
   parse_symbol(Symbol::curly_open);
 
-  Symbol symbol = peek_symbol();
-  while (symbol != Symbol::curly_close)
-  {
-    switch (symbol)
-    {
-    default: unexpected("mapping");
-    }
-
-    symbol = peek_symbol();
-  }
+  while (peek_symbol() != Symbol::curly_close)
+    node->fields.emplace_back(parse_mapping_field());
 
   parse_symbol(Symbol::curly_close);
+  return node;
+}
+// parse_mapping()
+
+std::unique_ptr<AstMappingField> Parser::parse_mapping_field()
+{
+  DocumentPosition node_pos = current_position();
+
+  AstIdentifier field_id = parse_identifier();
+  parse_symbol(Symbol::colon);
+  AstString field_mapping = parse_string();
+  auto node = std::make_unique<AstMappingField>(field_id, field_mapping);
+  node->origin = node_pos;
   return node;
 }
 
@@ -567,7 +567,7 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
 {
   DocumentPosition node_pos = current_position();
 
-  parse_symbol(Symbol::enco_kw);
+  parse_symbol(Symbol::encoding_kw);
 
   AstIdentifier struct_id = parse_identifier();
   AstIdentifier enco_id;
@@ -584,18 +584,64 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
 
   parse_symbol(Symbol::curly_open);
 
-  Symbol symbol = peek_symbol();
-  while (symbol != Symbol::curly_close)
-  {
-    switch (symbol)
-    {
-    default: unexpected("encoding");
-    }
-
-    symbol = peek_symbol();
-  }
+  while (peek_symbol() != Symbol::curly_close)
+    node->fields.emplace_back(parse_encoding_field());
 
   parse_symbol(Symbol::curly_close);
+  return node;
+}
+
+std::unique_ptr<AstEncodingNode> Parser::parse_encoding_node()
+{
+  switch (peek_symbol())
+  {
+  case Symbol::delta_kw: return parse_encoding_delta_block();
+  case Symbol::identifier: return parse_encoding_field();
+  default: unexpected("encoding_node");
+  }
+}
+
+std::unique_ptr<AstEncodingField> Parser::parse_encoding_field()
+{
+  DocumentPosition node_pos = current_position();
+
+  AstIdentifier field_id = parse_identifier();
+  parse_symbol(Symbol::colon);
+  AstIdentifier field_enco = parse_identifier();
+  auto node = std::make_unique<AstEncodingField>(field_id, field_enco);
+  node->origin = node_pos;
+  return node;
+}
+
+std::unique_ptr<AstEncodingDeltaBlock> Parser::parse_encoding_delta_block()
+{
+  DocumentPosition node_pos = current_position();
+
+  parse_symbol(Symbol::delta_kw);
+
+  auto node = std::make_unique<AstEncodingDeltaBlock>();
+  node->origin = node_pos;
+
+  switch (peek_symbol())
+  {
+  case Symbol::identifier:
+  {
+    node->fields.push_back(parse_encoding_node());
+    break;
+  }
+  case Symbol::curly_open:
+  {
+    parse_symbol(Symbol::curly_open);
+
+    while (peek_symbol() != Symbol::curly_close)
+      node->fields.emplace_back(parse_encoding_node());
+
+    parse_symbol(Symbol::curly_close);
+    break;
+  }
+  default: unexpected("encoding_delta_block");
+  }
+
   return node;
 }
 
@@ -625,8 +671,8 @@ std::unique_ptr<AstRoot> Parser::parse_document()
     {
 
     case Symbol::struct_kw: node->struct_decls.emplace_back(parse_struct()); break;
-    case Symbol::map_kw: node->map_decls.emplace_back(parse_mapping()); break;
-    case Symbol::enco_kw: node->enco_decls.emplace_back(parse_encoding()); break;
+    case Symbol::mapping_kw: node->map_decls.emplace_back(parse_mapping()); break;
+    case Symbol::encoding_kw: node->enco_decls.emplace_back(parse_encoding()); break;
     case Symbol::eof: return node;
     default: unexpected("document");
     }

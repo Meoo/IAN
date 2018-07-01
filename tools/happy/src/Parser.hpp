@@ -43,8 +43,9 @@ enum class Symbol
   namespace_kw,
   include_kw,
   struct_kw,
-  map_kw,
-  enco_kw,
+  mapping_kw,
+  encoding_kw,
+  delta_kw,
 
   // Symbols
   colon,         // :
@@ -122,8 +123,12 @@ class Parser
   std::unique_ptr<AstStructField> parse_struct_field();
 
   std::unique_ptr<AstMapping> parse_mapping();
+  std::unique_ptr<AstMappingField> parse_mapping_field();
 
   std::unique_ptr<AstEncoding> parse_encoding();
+  std::unique_ptr<AstEncodingNode> parse_encoding_node();
+  std::unique_ptr<AstEncodingField> parse_encoding_field();
+  std::unique_ptr<AstEncodingDeltaBlock> parse_encoding_delta_block();
 
   std::unique_ptr<AstRoot> parse_document();
 };
