@@ -557,6 +557,7 @@ std::unique_ptr<AstMapping> Parser::parse_mapping()
     symbol = peek_symbol();
   }
 
+  parse_symbol(Symbol::curly_close);
   return node;
 }
 
@@ -594,6 +595,7 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
     symbol = peek_symbol();
   }
 
+  parse_symbol(Symbol::curly_close);
   return node;
 }
 
