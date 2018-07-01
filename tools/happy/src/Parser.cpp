@@ -585,7 +585,7 @@ std::unique_ptr<AstEncoding> Parser::parse_encoding()
   parse_symbol(Symbol::curly_open);
 
   while (peek_symbol() != Symbol::curly_close)
-    node->fields.emplace_back(parse_encoding_field());
+    node->fields.emplace_back(parse_encoding_node());
 
   parse_symbol(Symbol::curly_close);
   return node;
@@ -606,8 +606,15 @@ std::unique_ptr<AstEncodingField> Parser::parse_encoding_field()
   DocumentPosition node_pos = current_position();
 
   AstIdentifier field_id = parse_identifier();
-  parse_symbol(Symbol::colon);
-  AstIdentifier field_enco = parse_identifier();
+  AstIdentifier field_enco;
+  if (peek_symbol() == Symbol::colon)
+  {
+    parse_symbol(Symbol::colon);
+    field_enco = parse_identifier();
+  }
+  else
+    field_enco = DEFAULT_ENCODING;
+
   auto node = std::make_unique<AstEncodingField>(field_id, field_enco);
   node->origin = node_pos;
   return node;
